@@ -1,0 +1,26 @@
+{
+  "name": "nhl-tui",
+  "module": "src/index.tsx",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.tsx",
+    "build": "tsc -p tsconfig.json",
+    "start": "bun src/index.tsx"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "ink": "^5.0.0",
+    "keytar": "^7.9.0",
+    "open": "^10.1.0",
+    "react": "^18.3.1",
+    "zustand": "^4.5.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
