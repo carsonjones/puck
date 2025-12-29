@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { listGames } from "../api/client.js";
 import { queryClient } from "../query/queryClient.js";
 import { queryKeys } from "../query/keys.js";
@@ -16,10 +16,13 @@ export const useGamesPage = ({
   const key = queryKeys.gamesList(cursor, limit);
   const fetcher = useCallback(() => listGames({ cursor, limit }), [cursor, limit]);
   const state = useQuery(key, fetcher, { staleTimeMs: 20_000 });
+  const lastPrefetchedRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (state.status !== "success" || !state.data?.nextCursor) return;
     const nextKey = queryKeys.gamesList(state.data.nextCursor, limit);
+    if (lastPrefetchedRef.current === nextKey) return;
+    lastPrefetchedRef.current = nextKey;
     queryClient.prefetchQuery(nextKey, () => listGames({ cursor: state.data!.nextCursor, limit }), {
       staleTimeMs: 20_000,
     });

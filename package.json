@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.tsx",
+    "dev": "bun --watch src/index.tsx",
     "build": "tsc -p tsconfig.json",
     "start": "bun src/index.tsx"
   },

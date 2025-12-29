@@ -14,6 +14,8 @@ type FetchOptions = {
   enabled?: boolean;
 };
 
+const IDLE_STATE: QueryState<never> = { status: "idle" };
+
 class QueryClient {
   private cache = new Map<string, QueryState<unknown>>();
   private listeners = new Map<string, Set<Listener>>();
@@ -38,7 +40,7 @@ class QueryClient {
   }
 
   getState<T>(key: string): QueryState<T> {
-    return (this.cache.get(key) as QueryState<T>) ?? { status: "idle" };
+    return (this.cache.get(key) as QueryState<T>) ?? IDLE_STATE;
   }
 
   async fetchQuery<T>(key: string, fetcher: () => Promise<T>, options: FetchOptions = {}): Promise<T> {

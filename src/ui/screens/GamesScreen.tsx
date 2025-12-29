@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Box, Text, useApp, useInput, useStdout } from "ink";
 import SplitPane from "../components/SplitPane.js";
 import List from "../components/List.js";
@@ -21,18 +21,19 @@ const GamesScreen: React.FC = () => {
     pageCursor,
     selectedGameId,
     detailTab,
+    playsScrollIndex,
     moveCursor,
     selectGame,
     setFocusedPane,
     setPageCursor,
     setDetailTab,
+    movePlaysScroll,
   } = useAppStore();
 
-  const { data, status, error, limit } = useGamesPage({ cursor: pageCursor, limit: 10 });
-  const games = data?.items ?? [];
+  const listHeight = Math.max(6, height - 4);
+  const { data, status, error, limit } = useGamesPage({ cursor: pageCursor, limit: listHeight });
+  const games = useMemo(() => data?.items ?? [], [data]);
   const detail = useGame(selectedGameId);
-
-  const listHeight = Math.max(6, height - 8);
 
   useEffect(() => {
     if (status !== "success" || games.length === 0) return;
@@ -45,23 +46,58 @@ const GamesScreen: React.FC = () => {
     if (item && item.id !== selectedGameId) {
       selectGame(item.id);
     }
-  }, [status, games, listCursorIndex, moveCursor, selectGame, selectedGameId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, games, listCursorIndex, selectedGameId]);
+
+  const previousCursor = useRef<string | null>(pageCursor);
 
   useEffect(() => {
     if (status !== "success" || games.length === 0) return;
-    if (listCursorIndex !== 0) {
+    if (previousCursor.current !== pageCursor) {
       moveCursor(-listCursorIndex, games.length - 1);
+      previousCursor.current = pageCursor;
     }
-  }, [pageCursor, status, games.length, listCursorIndex, moveCursor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageCursor, status, games.length]);
+
+  const previousGameId = useRef<string | null>(null);
+  const previousTab = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (previousGameId.current !== selectedGameId || previousTab.current !== detailTab) {
+      if (previousGameId.current !== null || previousTab.current !== null) {
+        useAppStore.setState({ playsScrollIndex: 0 });
+      }
+      previousGameId.current = selectedGameId;
+      previousTab.current = detailTab;
+    }
+  }, [selectedGameId, detailTab]);
 
   const resolveCursorDate = (value: string | null) => {
     const base = value ? new Date(value) : new Date();
     return Number.isNaN(base.getTime()) ? new Date() : base;
   };
 
+  const quit = () => {
+    exit();
+    const isWatchMode =
+      process.env.TSX_WATCH === "true" ||
+      process.env.TSX_WATCH === "1" ||
+      Boolean(process.env.TSX_WATCH_PATH) ||
+      Boolean(process.env.TSX_WATCH_MODE);
+    if (isWatchMode) {
+      try {
+        process.kill(process.ppid, "SIGINT");
+      } catch {
+        // Ignore errors if the parent process is already gone.
+      }
+    }
+    process.exit(0);
+  };
+
   useInput((input, key) => {
-    if (input === "q") {
-      exit();
+    if (input.toLowerCase() === "q" || key.escape || (key.ctrl && input === "c")) {
+      quit();
       return;
     }
 
@@ -107,16 +143,38 @@ const GamesScreen: React.FC = () => {
     }
 
     if (focusedPane === "detail") {
-      if (input === "1") setDetailTab("stats");
-      if (input === "2") setDetailTab("plays");
+      if (input === "h" || key.leftArrow) {
+        setFocusedPane("list");
+        return;
+      }
+      if (input === "1") {
+        setDetailTab("stats");
+        return;
+      }
+      if (input === "2") {
+        setDetailTab("plays");
+        return;
+      }
+      if (detailTab === "plays" && detail.data?.plays && detail.data.plays.length > 0) {
+        const playsCount = detail.data.plays.length;
+        if (input === "j" || key.downArrow) {
+          movePlaysScroll(1, playsCount - 1);
+          return;
+        }
+        if (input === "k" || key.upArrow) {
+          movePlaysScroll(-1, playsCount - 1);
+          return;
+        }
+      }
     }
   });
 
   const header = useMemo(() => {
     if (status === "loading") return "Loading games";
     if (status === "error") return "Games";
-    return `Games (${games.length})`;
-  }, [status, games.length]);
+    const dateStr = pageCursor || new Date().toISOString().slice(0, 10);
+    return `Games for ${dateStr} (${games.length})`;
+  }, [status, games.length, pageCursor]);
 
   const detailPane = () => {
     if (!selectedGameId) {
@@ -150,7 +208,11 @@ const GamesScreen: React.FC = () => {
         <Text>
           Score: {game.awayScore}-{game.homeScore} ({game.status.replace("_", " ")})
         </Text>
-        {game.clock ? <Text>Clock: {game.clock}</Text> : null}
+        {game.clock || game.period > 0 ? (
+          <Text>
+            {game.period > 0 ? `Period: P${game.period}` : "Period: n/a"}{game.clock ? ` • Clock: ${game.clock}` : ""}
+          </Text>
+        ) : null}
         {game.broadcasts.length > 0 ? (
           <Text>Broadcasts: {game.broadcasts.join(", ")}</Text>
         ) : null}
@@ -177,11 +239,25 @@ const GamesScreen: React.FC = () => {
           </Box>
         ) : (
           <Box flexDirection="column">
-            {game.plays.map((play) => (
-              <Text key={`${play.time}-${play.description}`}>
-                {play.time} {play.description}
-              </Text>
-            ))}
+            {(() => {
+              const playsHeight = Math.max(5, height - 15);
+              const windowSize = Math.max(1, playsHeight);
+              const half = Math.floor(windowSize / 2);
+              const start = Math.max(0, Math.min(game.plays.length - windowSize, playsScrollIndex - half));
+              const end = Math.min(game.plays.length, start + windowSize);
+              const visiblePlays = game.plays.slice(start, end);
+              return visiblePlays.map((play, idx) => {
+                const absoluteIndex = start + idx;
+                const isSelected = absoluteIndex === playsScrollIndex;
+                return (
+                  <Box key={absoluteIndex}>
+                    <Text color={isSelected ? "cyan" : undefined}>
+                      {isSelected ? "> " : "  "}{play.time} {play.description}
+                    </Text>
+                  </Box>
+                );
+              });
+            })()}
           </Box>
         )}
       </Box>
@@ -189,16 +265,18 @@ const GamesScreen: React.FC = () => {
   };
 
   return (
-    <Box flexDirection="column" width={width} padding={1}>
-      <SplitPane
-        left={
-          <Box flexDirection="column" gap={1}>
-            <Text>{header}</Text>
-            <List items={games} cursorIndex={listCursorIndex} height={listHeight} loading={status === "loading"} />
-          </Box>
-        }
-        right={detailPane()}
-      />
+    <Box flexDirection="column" width={width} height={height} padding={1}>
+      <Box flexGrow={1}>
+        <SplitPane
+          left={
+            <Box flexDirection="column" gap={1}>
+              <Text>{header}</Text>
+              <List items={games} cursorIndex={listCursorIndex} height={listHeight} loading={status === "loading"} />
+            </Box>
+          }
+          right={detailPane()}
+        />
+      </Box>
       <Box marginTop={1}>
         <StatusBar
           focus={focusedPane}

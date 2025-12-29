@@ -31,10 +31,11 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
         const absoluteIndex = start + index;
         const isSelected = absoluteIndex === cursorIndex;
         return (
-          <Box key={item.id}>
+          <Box key={item.id} justifyContent="space-between">
             <Text inverse={isSelected}>
-              {item.date} {item.awayTeam} @ {item.homeTeam} ({item.startTime})
+              {item.awayTeam} @ {item.homeTeam}
             </Text>
+            <Text inverse={isSelected}>{item.startTime}</Text>
           </Box>
         );
       })}

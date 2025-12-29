@@ -115,6 +115,14 @@ const makeDetail = (listItem: GameListItem): GameDetail => {
     venue: VENUES[seed % VENUES.length],
     homeScore: Math.floor(rand() * 6),
     awayScore: Math.floor(rand() * 6),
+    period: 3,
+    clock: rand() > 0.5 ? "12:34" : "",
+    broadcasts: ["ESPN", "SN"],
+    leaders: {
+      home: [`${listItem.homeTeam} Leader 1`, `${listItem.homeTeam} Leader 2`],
+      away: [`${listItem.awayTeam} Leader 1`, `${listItem.awayTeam} Leader 2`],
+    },
+    threeStars: [`${listItem.homeTeam} Star`, `${listItem.awayTeam} Star`, "Goalie Star"],
     stats: {
       shots: { home: 20 + Math.floor(rand() * 15), away: 20 + Math.floor(rand() * 15) },
       hits: { home: 10 + Math.floor(rand() * 15), away: 10 + Math.floor(rand() * 15) },
@@ -143,12 +151,22 @@ const mapGameStatus = (gameState: string): GameListItem["status"] => {
   return "scheduled";
 };
 
+const formatLocalTime = (isoTimestamp: string) => {
+  const parsed = new Date(isoTimestamp);
+  if (Number.isNaN(parsed.getTime())) return isoTimestamp.slice(11, 16);
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(parsed);
+};
+
 const mapGameListItem = (game: NhlGame): GameListItem => ({
   id: String(game.id),
   date: game.gameDate.slice(0, 10),
   homeTeam: game.homeTeam.commonName?.default ?? game.homeTeam.name.default,
   awayTeam: game.awayTeam.commonName?.default ?? game.awayTeam.name.default,
-  startTime: game.startTimeUTC.slice(11, 16),
+  startTime: formatLocalTime(game.startTimeUTC),
   status: mapGameStatus(game.gameState),
 });
 
@@ -169,16 +187,16 @@ const rosterMapFromPlayByPlay = (plays: PlayByPlayResponse | null) => {
 };
 
 const describePlay = (play: PlayByPlayResponse["plays"][number], rosterMap: Map<number, string>) => {
-  const details = play.details ?? {};
-  const scorer = details.scoringPlayerId ? rosterMap.get(details.scoringPlayerId) : undefined;
-  const shooter = details.shootingPlayerId ? rosterMap.get(details.shootingPlayerId) : undefined;
-  const committer = details.committedByPlayerId ? rosterMap.get(details.committedByPlayerId) : undefined;
-  const drawnBy = details.drawnByPlayerId ? rosterMap.get(details.drawnByPlayerId) : undefined;
+  const details = play.details;
+  const scorer = details?.scoringPlayerId ? rosterMap.get(details.scoringPlayerId) : undefined;
+  const shooter = details?.shootingPlayerId ? rosterMap.get(details.shootingPlayerId) : undefined;
+  const committer = details?.committedByPlayerId ? rosterMap.get(details.committedByPlayerId) : undefined;
+  const drawnBy = details?.drawnByPlayerId ? rosterMap.get(details.drawnByPlayerId) : undefined;
 
   if (scorer) return `Goal - ${scorer}`;
-  if (shooter) return `Shot - ${shooter} (${details.shotType ?? "shot"})`;
+  if (shooter) return `Shot - ${shooter} (${details?.shotType ?? "shot"})`;
   if (committer) return `Penalty - ${committer}${drawnBy ? ` on ${drawnBy}` : ""}`;
-  if (details.descKey) return details.descKey;
+  if (details?.descKey) return details.descKey;
   return play.typeDescKey;
 };
 
@@ -209,14 +227,17 @@ const mapGameDetail = (
     date: game.gameDate.slice(0, 10),
     homeTeam: game.homeTeam.commonName.default,
     awayTeam: game.awayTeam.commonName.default,
-    startTime: game.startTimeUTC.slice(11, 16),
+    startTime: formatLocalTime(game.startTimeUTC),
     status: mapGameStatus(game.gameState),
     venue: game.venue.default,
     homeScore: game.homeTeam.score,
     awayScore: game.awayTeam.score,
     period: resolvePeriod(plays),
     clock: game.clock?.timeRemaining ?? "",
-    broadcasts: game.tvBroadcasts?.map((cast) => cast.network).filter(Boolean) ?? [],
+    broadcasts:
+      game.tvBroadcasts
+        ?.map((cast) => cast.network)
+        .filter((network): network is string => Boolean(network)) ?? [],
     leaders: {
       home: topScorers(homePlayers, 3),
       away: topScorers(awayPlayers, 3),
@@ -229,8 +250,7 @@ const mapGameDetail = (
     },
     plays:
       plays?.plays
-        ?.slice(0, 14)
-        .map((play) => ({
+        ?.map((play) => ({
           time: `P${play.periodDescriptor.number} ${play.timeInPeriod}`,
           description: describePlay(play, rosterMap),
         })) ?? [],
@@ -244,7 +264,6 @@ export const listGames = async ({
   cursor: string | null;
   limit: number;
 }): Promise<GamesPage> => {
-  requireToken();
   const target = cursor ? new Date(cursor) : new Date();
   if (Number.isNaN(target.getTime())) {
     throw new Error(`Invalid cursor date: ${cursor}`);
@@ -253,9 +272,11 @@ export const listGames = async ({
   try {
     const schedule = await nhlClient.getScheduleByDate(formatDate(target), "asc");
     const items = schedule.games.map(mapGameListItem);
+    const nextDate = addDays(target, 1);
+
     return {
-      items: items.slice(0, limit),
-      nextCursor: formatDate(addDays(target, 1)),
+      items,
+      nextCursor: formatDate(nextDate),
     };
   } catch {
     const page = cursor ? Number(cursor) : 0;
@@ -270,7 +291,6 @@ export const listGames = async ({
 };
 
 export const getGame = async ({ id }: { id: string }): Promise<GameDetail> => {
-  requireToken();
   const numericId = Number(id);
   if (!Number.isNaN(numericId)) {
     try {
