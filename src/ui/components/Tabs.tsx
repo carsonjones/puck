@@ -9,7 +9,7 @@ const Tabs: React.FC<{
     <Box>
       {tabs.map((tab) => (
         <Box key={tab} marginRight={2}>
-          <Text inverse={tab === active}>{tab}</Text>
+          <Text inverse={tab === active}>{`${tab?.slice(0, 1).toUpperCase()}${tab?.slice(1)}`}</Text>
         </Box>
       ))}
     </Box>

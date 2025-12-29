@@ -18,6 +18,15 @@ export type GameListItem = {
   status: "scheduled" | "in_progress" | "final";
 };
 
+export type PlayerLeader = {
+  name: string;
+  goals: number;
+  assists: number;
+  points: number;
+  hits: number;
+  shots: number;
+};
+
 export type GameDetail = GameListItem & {
   venue: string;
   homeScore: number;
@@ -27,8 +36,8 @@ export type GameDetail = GameListItem & {
   broadcasts: string[];
   gameType: number;
   leaders: {
-    home: string[];
-    away: string[];
+    home: PlayerLeader[];
+    away: PlayerLeader[];
   };
   threeStars: string[];
   stats: {
@@ -90,8 +99,8 @@ const makeGame = (index: number, page: number): GameListItem => {
   const rand = seeded(page * 1000 + index)();
   const date = new Date(Date.now() + page * 24 * 60 * 60 * 1000);
   const day = date.toISOString().slice(0, 10);
-  const homeTeam = TEAM_POOL[(index * 2) % TEAM_POOL.length];
-  const awayTeam = TEAM_POOL[(index * 2 + 3) % TEAM_POOL.length];
+  const homeTeam = TEAM_POOL[(index * 2) % TEAM_POOL.length]!;
+  const awayTeam = TEAM_POOL[(index * 2 + 3) % TEAM_POOL.length]!;
   const startHour = 18 + Math.floor(rand * 4);
   const status = rand > 0.66 ? "scheduled" : rand > 0.33 ? "in_progress" : "final";
 
@@ -113,7 +122,7 @@ const makeDetail = (listItem: GameListItem): GameDetail => {
 
   return {
     ...listItem,
-    venue: VENUES[seed % VENUES.length],
+    venue: VENUES[seed % VENUES.length]!,
     homeScore: Math.floor(rand() * 6),
     awayScore: Math.floor(rand() * 6),
     period: 3,
@@ -121,8 +130,14 @@ const makeDetail = (listItem: GameListItem): GameDetail => {
     gameType: 2,
     broadcasts: ["ESPN", "SN"],
     leaders: {
-      home: [`${listItem.homeTeam} Leader 1`, `${listItem.homeTeam} Leader 2`],
-      away: [`${listItem.awayTeam} Leader 1`, `${listItem.awayTeam} Leader 2`],
+      home: [
+        { name: `${listItem.homeTeam} Leader 1`, goals: 1, assists: 2, points: 3, hits: 5, shots: 10 },
+        { name: `${listItem.homeTeam} Leader 2`, goals: 2, assists: 1, points: 3, hits: 3, shots: 8 },
+      ],
+      away: [
+        { name: `${listItem.awayTeam} Leader 1`, goals: 1, assists: 2, points: 3, hits: 4, shots: 9 },
+        { name: `${listItem.awayTeam} Leader 2`, goals: 0, assists: 2, points: 2, hits: 6, shots: 7 },
+      ],
     },
     threeStars: [`${listItem.homeTeam} Star`, `${listItem.awayTeam} Star`, "Goalie Star"],
     stats: {
@@ -174,9 +189,16 @@ const mapGameListItem = (game: NhlGame): GameListItem => ({
 
 const sumHits = (players: PlayerStats[]) => players.reduce((total, player) => total + (player.hits ?? 0), 0);
 
-const topScorers = (players: PlayerStats[], count: number) => {
+const topScorers = (players: PlayerStats[], count: number): PlayerLeader[] => {
   const sorted = [...players].sort((a, b) => b.points - a.points || b.goals - a.goals);
-  return sorted.slice(0, count).map((player) => `${player.name.default} ${player.points}P`);
+  return sorted.slice(0, count).map((player) => ({
+    name: player.name.default,
+    goals: player.goals,
+    assists: player.assists,
+    points: player.points,
+    hits: player.hits,
+    shots: player.sog,
+  }));
 };
 
 const rosterMapFromPlayByPlay = (plays: PlayByPlayResponse | null) => {
