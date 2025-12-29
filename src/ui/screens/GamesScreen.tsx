@@ -1,15 +1,13 @@
-import { Box, Text, useApp, useInput, useStdout } from "ink";
+import { Box, Text, useApp, useStdout } from "ink";
 import { useEffect, useMemo, useRef } from "react";
 import { useGame } from "../../data/hooks/useGame.js";
 import { useGamesPage } from "../../data/hooks/useGamesPage.js";
-import { formatPeriod } from "../../data/nhl/formatters.js";
-import { queryKeys } from "../../data/query/keys.js";
-import { queryClient } from "../../data/query/queryClient.js";
 import { useAppStore } from "../../state/useAppStore.js";
+import { useKeyBindings } from "../../hooks/useKeyBindings.js";
+import GameDetail from "../components/game-detail/GameDetail.js";
 import List from "../components/List.js";
 import SplitPane from "../components/SplitPane.js";
 import StatusBar from "../components/StatusBar.js";
-import Tabs from "../components/Tabs.js";
 
 const GamesScreen: React.FC = () => {
   const { exit } = useApp();
@@ -198,146 +196,15 @@ const GamesScreen: React.FC = () => {
       return <Text dimColor>Select a game to view details.</Text>;
     }
 
-    if (detail.status === "loading") {
-      return <Text dimColor>Loading game details...</Text>;
-    }
-
-    if (detail.status === "error") {
-      return <Text color="red">Failed to load game details.</Text>;
-    }
-
-    if (!detail.data) {
-      return <Text dimColor>No details available.</Text>;
-    }
-
-    const game = detail.data;
-
-    const formatPct = (value: number) => (value > 0 ? `${value}%` : "n/a");
-
     return (
-      <Box flexDirection="column" gap={1}>
-        <Box flexDirection="column">
-          <Text>
-            {game.awayTeam} @ {game.homeTeam}
-          </Text>
-          <Text>
-            {game.date} • {game.startTime} • {game.venue}
-          </Text>
-        </Box>
-{game.status !== "scheduled" ? (
-          <Box>
-            <Text>Score: {game.awayScore}-{game.homeScore}</Text>
-            {game.status === "final" ? <Text> (FINAL)</Text> : null}
-            {game.period > 0 ? (
-              <Text> • {formatPeriod(game.period, game.gameType)}</Text>
-            ) : null}
-            {game.clock ? <Text> • {game.clock}</Text> : null}
-          </Box>
-        ) : null}
-        {game.broadcasts.length > 0 ? (
-          <Text>Broadcasts: {game.broadcasts.join(", ")}</Text>
-        ) : null}
-        {game.status !== "scheduled" ? (
-          <>
-            <Tabs tabs={["stats", "plays"]} active={detailTab} />
-            {detailTab === "stats" ? (
-              <Box flexDirection="column">
-            <Box>
-              <Box width={15} />
-              <Box width={20}>
-                <Text bold>{game.awayTeam}</Text>
-              </Box>
-              <Box width={20}>
-                <Text bold>{game.homeTeam}</Text>
-              </Box>
-            </Box>
-            <Box>
-              <Box width={15}>
-                <Text>Shots</Text>
-              </Box>
-              <Box width={20}>
-                <Text>{game.stats.shots.away}</Text>
-              </Box>
-              <Box width={20}>
-                <Text>{game.stats.shots.home}</Text>
-              </Box>
-            </Box>
-            <Box>
-              <Box width={15}>
-                <Text>Hits</Text>
-              </Box>
-              <Box width={20}>
-                <Text>{game.stats.hits.away}</Text>
-              </Box>
-              <Box width={20}>
-                <Text>{game.stats.hits.home}</Text>
-              </Box>
-            </Box>
-            <Box>
-              <Box width={15}>
-                <Text>Faceoff %</Text>
-              </Box>
-              <Box width={20}>
-                <Text>{formatPct(game.stats.faceoffPct.away)}</Text>
-              </Box>
-              <Box width={20}>
-                <Text>{formatPct(game.stats.faceoffPct.home)}</Text>
-              </Box>
-            </Box>
-            {game.leaders.away.length > 0 || game.leaders.home.length > 0 ? (
-              <Box flexDirection="column" marginTop={1}>
-                <Text bold>Leaders</Text>
-                {game.leaders.away.length > 0 ? (
-                  <Box flexDirection="column" marginTop={1}>
-                    <Text bold>{game.awayTeam}</Text>
-                    {game.leaders.away.map((leader, idx) => (
-                      <Text key={idx}>
-                        {leader.name} • {leader.goals}G {leader.assists}A {leader.points}P{leader.hits > 0 ? ` • ${leader.hits} hits` : ""}{leader.shots > 0 ? ` • ${leader.shots} SOG` : ""}
-                      </Text>
-                    ))}
-                  </Box>
-                ) : null}
-                {game.leaders.home.length > 0 ? (
-                  <Box flexDirection="column" marginTop={1}>
-                    <Text bold>{game.homeTeam}</Text>
-                    {game.leaders.home.map((leader, idx) => (
-                      <Text key={idx}>
-                        {leader.name} • {leader.goals}G {leader.assists}A {leader.points}P{leader.hits > 0 ? ` • ${leader.hits} hits` : ""}{leader.shots > 0 ? ` • ${leader.shots} SOG` : ""}
-                      </Text>
-                    ))}
-                  </Box>
-                ) : null}
-              </Box>
-            ) : null}
-            {game.threeStars.length > 0 ? <Box marginTop={1}><Text><Text bold>Three Stars:</Text> {game.threeStars.join(", ")}</Text></Box> : null}
-          </Box>
-        ) : (
-          <Box flexDirection="column">
-            {(() => {
-              const sortedPlays = playsSortOrder === "desc" ? [...game.plays].reverse() : game.plays;
-              const playsHeight = Math.max(5, height - 15);
-              const windowSize = Math.max(1, playsHeight);
-              const half = Math.floor(windowSize / 2);
-              const start = Math.max(0, Math.min(sortedPlays.length - windowSize, playsScrollIndex - half));
-              const end = Math.min(sortedPlays.length, start + windowSize);
-              const visiblePlays = sortedPlays.slice(start, end);
-              return visiblePlays.map((play, idx) => {
-                const absoluteIndex = start + idx;
-                const isSelected = absoluteIndex === playsScrollIndex;
-                return (
-                  <Box key={absoluteIndex}>
-                    <Text color={isSelected ? "cyan" : undefined}>
-                      {isSelected ? "> " : "  "}{play.time} {play.description}
-                    </Text>
-                  </Box>
-                );
-              });
-            })()}
-          </Box>
-            )}
-          </>
-        ) : null}
-      </Box>
+      <GameDetail
+        game={detail.data}
+        status={detail.status}
+        detailTab={detailTab}
+        playsScrollIndex={playsScrollIndex}
+        playsSortOrder={playsSortOrder}
+        height={height}
+      />
     );
   };
 
