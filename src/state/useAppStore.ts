@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 export type FocusedPane = "list" | "detail";
 export type DetailTab = "stats" | "plays";
+export type PlaysSortOrder = "asc" | "desc";
 
 interface AppState {
   focusedPane: FocusedPane;
@@ -10,12 +11,14 @@ interface AppState {
   pageCursor: string | null;
   detailTab: DetailTab;
   playsScrollIndex: number;
+  playsSortOrder: PlaysSortOrder;
   setFocusedPane: (pane: FocusedPane) => void;
   moveCursor: (delta: number, maxIndex?: number) => void;
   selectGame: (id: string | null) => void;
   setPageCursor: (cursor: string | null) => void;
   setDetailTab: (tab: DetailTab) => void;
   movePlaysScroll: (delta: number, maxIndex?: number) => void;
+  togglePlaysSortOrder: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -25,6 +28,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   pageCursor: null,
   detailTab: "stats",
   playsScrollIndex: 0,
+  playsSortOrder: "asc",
   setFocusedPane: (pane) => set({ focusedPane: pane }),
   moveCursor: (delta, maxIndex) => {
     const nextIndex = get().listCursorIndex + delta;
@@ -44,5 +48,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         ? Math.max(0, Math.min(maxIndex, nextIndex))
         : Math.max(0, nextIndex);
     set({ playsScrollIndex: clamped });
+  },
+  togglePlaysSortOrder: () => {
+    const current = get().playsSortOrder;
+    set({ playsSortOrder: current === "asc" ? "desc" : "asc", playsScrollIndex: 0 });
   },
 }));

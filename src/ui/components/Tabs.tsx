@@ -1,5 +1,5 @@
-import React from "react";
 import { Box, Text } from "ink";
+import type React from "react";
 
 const Tabs: React.FC<{
   tabs: string[];

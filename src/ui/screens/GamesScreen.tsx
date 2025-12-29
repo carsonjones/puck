@@ -1,14 +1,14 @@
-import React, { useEffect, useMemo, useRef } from "react";
 import { Box, Text, useApp, useInput, useStdout } from "ink";
-import SplitPane from "../components/SplitPane.js";
+import { useEffect, useMemo, useRef } from "react";
+import { useGame } from "../../data/hooks/useGame.js";
+import { useGamesPage } from "../../data/hooks/useGamesPage.js";
+import { queryKeys } from "../../data/query/keys.js";
+import { queryClient } from "../../data/query/queryClient.js";
+import { useAppStore } from "../../state/useAppStore.js";
 import List from "../components/List.js";
+import SplitPane from "../components/SplitPane.js";
 import StatusBar from "../components/StatusBar.js";
 import Tabs from "../components/Tabs.js";
-import { useAppStore } from "../../state/useAppStore.js";
-import { useGamesPage } from "../../data/hooks/useGamesPage.js";
-import { useGame } from "../../data/hooks/useGame.js";
-import { queryClient } from "../../data/query/queryClient.js";
-import { queryKeys } from "../../data/query/keys.js";
 
 const GamesScreen: React.FC = () => {
   const { exit } = useApp();
@@ -22,12 +22,14 @@ const GamesScreen: React.FC = () => {
     selectedGameId,
     detailTab,
     playsScrollIndex,
+    playsSortOrder,
     moveCursor,
     selectGame,
     setFocusedPane,
     setPageCursor,
     setDetailTab,
     movePlaysScroll,
+    togglePlaysSortOrder,
   } = useAppStore();
 
   const listHeight = Math.max(6, height - 4);
@@ -36,7 +38,11 @@ const GamesScreen: React.FC = () => {
   const detail = useGame(selectedGameId);
 
   useEffect(() => {
-    if (status !== "success" || games.length === 0) return;
+    if (status !== "success") return;
+    if (games.length === 0) {
+      if (selectedGameId !== null) selectGame(null);
+      return;
+    }
     const clampedIndex = Math.min(listCursorIndex, games.length - 1);
     if (clampedIndex !== listCursorIndex) {
       moveCursor(0, games.length - 1);
@@ -96,12 +102,17 @@ const GamesScreen: React.FC = () => {
   };
 
   useInput((input, key) => {
-    if (input.toLowerCase() === "q" || key.escape || (key.ctrl && input === "c")) {
+    if (input.toLowerCase() === "q" || (key.ctrl && input === "c")) {
       quit();
       return;
     }
 
-    if (input === "\t") {
+    if (key.escape) {
+      setFocusedPane("list");
+      return;
+    }
+
+    if (input === "\t" || key.tab) {
       setFocusedPane(focusedPane === "list" ? "detail" : "list");
       return;
     }
@@ -109,6 +120,15 @@ const GamesScreen: React.FC = () => {
     if (input === "r") {
       queryClient.invalidate(queryKeys.gamesList(pageCursor, limit));
       if (selectedGameId) queryClient.invalidate(queryKeys.gameDetail(selectedGameId));
+      return;
+    }
+
+    if (input === "1") {
+      setDetailTab("stats");
+      return;
+    }
+    if (input === "2") {
+      setDetailTab("plays");
       return;
     }
 
@@ -147,12 +167,8 @@ const GamesScreen: React.FC = () => {
         setFocusedPane("list");
         return;
       }
-      if (input === "1") {
-        setDetailTab("stats");
-        return;
-      }
-      if (input === "2") {
-        setDetailTab("plays");
+      if (input === "s") {
+        togglePlaysSortOrder();
         return;
       }
       if (detailTab === "plays" && detail.data?.plays && detail.data.plays.length > 0) {
@@ -199,12 +215,14 @@ const GamesScreen: React.FC = () => {
 
     return (
       <Box flexDirection="column" gap={1}>
-        <Text>
-          {game.awayTeam} @ {game.homeTeam}
-        </Text>
-        <Text>
-          {game.date} • {game.startTime} • {game.venue}
-        </Text>
+        <Box flexDirection="column">
+          <Text>
+            {game.awayTeam} @ {game.homeTeam}
+          </Text>
+          <Text>
+            {game.date} • {game.startTime} • {game.venue}
+          </Text>
+        </Box>
         <Text>
           Score: {game.awayScore}-{game.homeScore} ({game.status.replace("_", " ")})
         </Text>
@@ -240,12 +258,13 @@ const GamesScreen: React.FC = () => {
         ) : (
           <Box flexDirection="column">
             {(() => {
+              const sortedPlays = playsSortOrder === "desc" ? [...game.plays].reverse() : game.plays;
               const playsHeight = Math.max(5, height - 15);
               const windowSize = Math.max(1, playsHeight);
               const half = Math.floor(windowSize / 2);
-              const start = Math.max(0, Math.min(game.plays.length - windowSize, playsScrollIndex - half));
-              const end = Math.min(game.plays.length, start + windowSize);
-              const visiblePlays = game.plays.slice(start, end);
+              const start = Math.max(0, Math.min(sortedPlays.length - windowSize, playsScrollIndex - half));
+              const end = Math.min(sortedPlays.length, start + windowSize);
+              const visiblePlays = sortedPlays.slice(start, end);
               return visiblePlays.map((play, idx) => {
                 const absoluteIndex = start + idx;
                 const isSelected = absoluteIndex === playsScrollIndex;
@@ -277,7 +296,7 @@ const GamesScreen: React.FC = () => {
           right={detailPane()}
         />
       </Box>
-      <Box marginTop={1}>
+      <Box marginTop={0} marginX={1}>
         <StatusBar
           focus={focusedPane}
           pageCursor={pageCursor}

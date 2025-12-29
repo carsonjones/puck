@@ -25,6 +25,7 @@ export type GameDetail = GameListItem & {
   period: number;
   clock: string;
   broadcasts: string[];
+  gameType: number;
   leaders: {
     home: string[];
     away: string[];
@@ -117,6 +118,7 @@ const makeDetail = (listItem: GameListItem): GameDetail => {
     awayScore: Math.floor(rand() * 6),
     period: 3,
     clock: rand() > 0.5 ? "12:34" : "",
+    gameType: 2,
     broadcasts: ["ESPN", "SN"],
     leaders: {
       home: [`${listItem.homeTeam} Leader 1`, `${listItem.homeTeam} Leader 2`],
@@ -146,8 +148,8 @@ const addDays = (date: Date, days: number) => {
 
 const mapGameStatus = (gameState: string): GameListItem["status"] => {
   const normalized = gameState.toLowerCase();
-  if (normalized.includes("final")) return "final";
-  if (normalized.includes("live") || normalized.includes("inprogress")) return "in_progress";
+  if (normalized.includes("final") || normalized === "off") return "final";
+  if (normalized.includes("live") || normalized.includes("inprogress") || normalized === "crit") return "in_progress";
   return "scheduled";
 };
 
@@ -221,6 +223,13 @@ const mapGameDetail = (
     : [];
 
   const rosterMap = rosterMapFromPlayByPlay(plays);
+  const period = resolvePeriod(plays);
+  const clock = game.clock?.timeRemaining ?? "";
+
+  let status = mapGameStatus(game.gameState);
+  if (status === "scheduled" && (game.homeTeam.score > 0 || game.awayTeam.score > 0) && period > 0 && (clock === "00:00" || clock === "")) {
+    status = "final";
+  }
 
   return {
     id: String(game.id),
@@ -228,12 +237,13 @@ const mapGameDetail = (
     homeTeam: game.homeTeam.commonName.default,
     awayTeam: game.awayTeam.commonName.default,
     startTime: formatLocalTime(game.startTimeUTC),
-    status: mapGameStatus(game.gameState),
+    status,
     venue: game.venue.default,
     homeScore: game.homeTeam.score,
     awayScore: game.awayTeam.score,
-    period: resolvePeriod(plays),
-    clock: game.clock?.timeRemaining ?? "",
+    period,
+    clock,
+    gameType: game.gameType,
     broadcasts:
       game.tvBroadcasts
         ?.map((cast) => cast.network)

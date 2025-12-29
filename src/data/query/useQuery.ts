@@ -15,6 +15,7 @@ export const useQuery = <T>(
   const fetcherRef = useRef(fetcher);
   const optionsRef = useRef(options);
   const lastFetchedKeyRef = useRef<string | null>(null);
+  const isFetchingRef = useRef(false);
   fetcherRef.current = fetcher;
   optionsRef.current = options;
 
@@ -34,6 +35,18 @@ export const useQuery = <T>(
 
     return unsubscribe;
   }, [key]);
+
+  // Refetch when state becomes idle (after cache invalidation)
+  useEffect(() => {
+    if (state.status === "idle" && optionsRef.current.enabled !== false && !isFetchingRef.current) {
+      isFetchingRef.current = true;
+      queryClient.fetchQuery<T>(key, fetcherRef.current, optionsRef.current)
+        .catch(() => undefined)
+        .finally(() => {
+          isFetchingRef.current = false;
+        });
+    }
+  }, [state.status, key]);
 
   return state;
 };
