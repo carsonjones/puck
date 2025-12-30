@@ -1,17 +1,17 @@
 import { Box, Text, useApp, useStdout } from "ink";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { GameDetail as GameDetailType } from "../../data/api/client.js";
-import { useGame } from "../../data/hooks/useGame.js";
-import { useGamesPage } from "../../data/hooks/useGamesPage.js";
-import { useAppStore } from "../../state/useAppStore.js";
-import { useKeyBindings } from "../../hooks/useKeyBindings.js";
-import { useAutoRefresh } from "../../hooks/useAutoRefresh.js";
-import { queryClient } from "../../data/query/queryClient.js";
-import { queryKeys } from "../../data/query/keys.js";
-import GameDetail from "../components/game-detail/GameDetail.js";
-import List from "../components/List.js";
-import SplitPane from "../components/SplitPane.js";
-import StatusBar from "../components/StatusBar.js";
+import type { GameDetail as GameDetailType } from "@/data/api/client.js";
+import { useGame } from "@/data/hooks/useGame.js";
+import { useGamesPage } from "@/data/hooks/useGamesPage.js";
+import { useAppStore } from "@/state/useAppStore.js";
+import { useKeyBindings } from "@/hooks/useKeyBindings.js";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh.js";
+import { queryClient } from "@/data/query/queryClient.js";
+import { queryKeys } from "@/data/query/keys.js";
+import GameDetail from "@/ui/components/game-detail/GameDetail.js";
+import List from "@/ui/components/List.js";
+import SplitPane from "@/ui/components/SplitPane.js";
+import StatusBar from "@/ui/components/StatusBar.js";
 
 const GamesScreen: React.FC = () => {
   const { exit } = useApp();
@@ -264,7 +264,7 @@ const GamesScreen: React.FC = () => {
   };
 
   const listPane = () => {
-    const lineWidth = Math.max(10, Math.floor(width / 2) - 14); // Half width minus padding/borders
+    const lineWidth = Math.max(10, Math.floor(width / 2) - 10); // Half width minus borders/margins
 
     if (status === "error") {
       return (

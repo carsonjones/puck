@@ -1,6 +1,6 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import { useAppStore } from "../../state/useAppStore.js";
+import { useAppStore } from "@/state/useAppStore.js";
 
 const StatusBar: React.FC<{
   focus: "list" | "detail";

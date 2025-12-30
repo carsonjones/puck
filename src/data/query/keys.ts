@@ -3,4 +3,6 @@ export const queryKeys = {
     `games:list:${cursor ?? "start"}:${limit}`,
   gameDetail: (id: string) => `games:detail:${id}`,
   standings: () => "standings:current",
+  teamRoster: (abbrev: string) => `team:roster:${abbrev}`,
+  playerStats: (playerId: number) => `player:stats:${playerId}`,
 };

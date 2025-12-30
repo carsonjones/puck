@@ -1,6 +1,6 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import { formatPeriod } from "../../../data/nhl/formatters.js";
+import { formatPeriod } from "@/data/nhl/formatters.js";
 
 type GameHeaderProps = {
   awayTeam: string;

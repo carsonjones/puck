@@ -1,15 +1,15 @@
 import { Box, Text, useApp, useInput, useStdout } from "ink";
 import { useEffect, useMemo } from "react";
-import { useStandings } from "../../data/hooks/useStandings.js";
-import { useAppStore } from "../../state/useAppStore.js";
-import { useAutoRefresh } from "../../hooks/useAutoRefresh.js";
-import { queryClient } from "../../data/query/queryClient.js";
-import { queryKeys } from "../../data/query/keys.js";
-import StandingsList from "../components/StandingsList.js";
-import StandingsDetail from "../components/standings-detail/StandingsDetail.js";
-import SplitPane from "../components/SplitPane.js";
-import StatusBar from "../components/StatusBar.js";
-import Tabs from "../components/Tabs.js";
+import { useStandings } from "@/data/hooks/useStandings.js";
+import { useAppStore } from "@/state/useAppStore.js";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh.js";
+import { queryClient } from "@/data/query/queryClient.js";
+import { queryKeys } from "@/data/query/keys.js";
+import StandingsList from "@/ui/components/StandingsList.js";
+import StandingsDetail from "@/ui/components/standings-detail/StandingsDetail.js";
+import SplitPane from "@/ui/components/SplitPane.js";
+import StatusBar from "@/ui/components/StatusBar.js";
+import Tabs from "@/ui/components/Tabs.js";
 
 const StandingsScreen: React.FC = () => {
   const { exit } = useApp();
@@ -21,11 +21,13 @@ const StandingsScreen: React.FC = () => {
     focusedPane,
     standingsCursorIndex,
     standingsTab,
+    standingsPlayersScrollIndex,
     standingsConference,
     standingsDivision,
     moveStandingsCursor,
     setFocusedPane,
     setStandingsTab,
+    moveStandingsPlayersScroll,
     setStandingsConference,
     setStandingsDivision,
     setViewMode,
@@ -180,6 +182,17 @@ const StandingsScreen: React.FC = () => {
         setFocusedPane("list");
         return;
       }
+
+      if (selectedTeam) {
+        if (input === "j" || key.downArrow) {
+          moveStandingsPlayersScroll(1, 999);
+          return;
+        }
+        if (input === "k" || key.upArrow) {
+          moveStandingsPlayersScroll(-1, 0);
+          return;
+        }
+      }
     }
   });
 
@@ -195,7 +208,7 @@ const StandingsScreen: React.FC = () => {
   }, [status, standingsTab, standingsConference, standingsDivision]);
 
   const detailPane = () => {
-    return <StandingsDetail team={selectedTeam} />;
+    return <StandingsDetail team={selectedTeam} height={height} />;
   };
 
   const listPane = () => {
@@ -226,7 +239,9 @@ const StandingsScreen: React.FC = () => {
 
     return (
       <Box flexDirection="column">
-        <Text>{header}</Text>
+        <Box minHeight={1}>
+          <Text>{header}</Text>
+        </Box>
         <Text dimColor>{"─".repeat(lineWidth)}</Text>
         <Tabs tabs={["league", "conference", "division"]} active={standingsTab} />
         {subtabs.length > 0 && <Tabs tabs={subtabs} active={activeSubtab} />}

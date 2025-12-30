@@ -1,9 +1,9 @@
 import { Box, Text } from "ink";
 import type React from "react";
 import { useEffect, useState } from "react";
-import type { GameDetail } from "../../../data/api/client.js";
-import { NhlClient } from "../../../data/nhl/client.js";
-import type { RosterResponse } from "../../../data/nhl/models.js";
+import type { GameDetail } from "@/data/api/client.js";
+import { NhlClient } from "@/data/nhl/client.js";
+import type { RosterResponse } from "@/data/nhl/models.js";
 
 type PlayersTabProps = {
   game: GameDetail;

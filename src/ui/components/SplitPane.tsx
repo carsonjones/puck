@@ -8,10 +8,10 @@ const SplitPane: React.FC<{
 }> = ({ left, right, leftWidth = 45 }) => {
   return (
     <Box flexDirection="row" width="100%">
-      <Box width={`${leftWidth}%`} flexDirection="column" borderStyle="round" paddingX={1}>
+      <Box width={`${leftWidth}%`} flexDirection="column" borderStyle="round">
         {left}
       </Box>
-      <Box flexGrow={1} marginLeft={1} flexDirection="column" borderStyle="round" paddingX={1}>
+      <Box flexGrow={1} marginLeft={1} flexDirection="column" borderStyle="round">
         {right}
       </Box>
     </Box>

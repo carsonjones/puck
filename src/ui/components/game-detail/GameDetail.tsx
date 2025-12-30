@@ -1,11 +1,11 @@
 import { Box, Text, useStdout } from "ink";
 import type React from "react";
-import type { GameDetail as GameDetailType } from "../../../data/api/client.js";
-import Tabs from "../Tabs.js";
-import GameHeader from "./GameHeader.js";
-import PlaysTab from "./PlaysTab.js";
-import PlayersTab from "./PlayersTab.js";
-import StatsTab from "./StatsTab.js";
+import type { GameDetail as GameDetailType } from "@/data/api/client.js";
+import Tabs from "@/ui/components/Tabs.js";
+import GameHeader from "@/ui/components/game-detail/GameHeader.js";
+import PlaysTab from "@/ui/components/game-detail/PlaysTab.js";
+import PlayersTab from "@/ui/components/game-detail/PlayersTab.js";
+import StatsTab from "@/ui/components/game-detail/StatsTab.js";
 
 type GameDetailProps = {
   game: GameDetailType | null;
@@ -26,7 +26,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
 }) => {
   const { stdout } = useStdout();
   const width = stdout?.columns ?? 80;
-  const lineWidth = Math.max(10, Math.floor(width / 2) - 14); // Half width minus padding/borders
+  const lineWidth = Math.max(10, Math.floor(width / 2) - 10); // Half width minus borders/margins
 
   // Only show loading message if no data yet (initial load)
   if (status === "loading" && !game) {
@@ -57,11 +57,9 @@ const GameDetail: React.FC<GameDetailProps> = ({
         clock={game.clock}
         broadcasts={game.broadcasts}
       />
-      <Text dimColor>{"─".repeat(lineWidth)}</Text>
       {game.status !== "scheduled" ? (
         <Box flexDirection="column">
           <Tabs tabs={["stats", "plays", "players"]} active={detailTab} />
-          <Text dimColor>{"─".repeat(lineWidth)}</Text>
           <Box>
             {detailTab === "stats" ? (
               <StatsTab game={game} />

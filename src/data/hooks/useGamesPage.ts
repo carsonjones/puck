@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
-import { listGames } from "../api/client.js";
-import { queryClient } from "../query/queryClient.js";
-import { queryKeys } from "../query/keys.js";
-import { useQuery } from "../query/useQuery.js";
+import { listGames } from "@/data/api/client.js";
+import { queryClient } from "@/data/query/queryClient.js";
+import { queryKeys } from "@/data/query/keys.js";
+import { useQuery } from "@/data/query/useQuery.js";
 
 const DEFAULT_LIMIT = 10;
 

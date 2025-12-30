@@ -13,7 +13,11 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src"]
 }

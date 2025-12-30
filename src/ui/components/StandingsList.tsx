@@ -1,6 +1,6 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import type { StandingListItem } from "../../data/api/client.js";
+import type { StandingListItem } from "@/data/api/client.js";
 
 type StandingsListProps = {
   items: StandingListItem[];

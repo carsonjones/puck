@@ -6,6 +6,7 @@ export type PlaysSortOrder = "asc" | "desc";
 export type GameStatus = "scheduled" | "in_progress" | "final";
 export type ViewMode = "games" | "standings";
 export type StandingsTab = "league" | "conference" | "division";
+export type StandingsDetailTab = "info" | "players";
 export type StandingsConference = "eastern" | "western";
 export type StandingsDivision = "atlantic" | "metropolitan" | "central" | "pacific";
 
@@ -20,6 +21,8 @@ interface AppState {
   viewMode: ViewMode;
   standingsTab: StandingsTab;
   standingsCursorIndex: number;
+  standingsDetailTab: StandingsDetailTab;
+  standingsPlayersScrollIndex: number;
   standingsConference: StandingsConference;
   standingsDivision: StandingsDivision;
   setFocusedPane: (pane: FocusedPane) => void;
@@ -32,6 +35,8 @@ interface AppState {
   setViewMode: (mode: ViewMode) => void;
   setStandingsTab: (tab: StandingsTab) => void;
   moveStandingsCursor: (delta: number, maxIndex?: number) => void;
+  setStandingsDetailTab: (tab: StandingsDetailTab) => void;
+  moveStandingsPlayersScroll: (delta: number, maxIndex?: number) => void;
   setStandingsConference: (conf: StandingsConference) => void;
   setStandingsDivision: (div: StandingsDivision) => void;
 }
@@ -47,6 +52,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   viewMode: "games",
   standingsTab: "league",
   standingsCursorIndex: 0,
+  standingsDetailTab: "info",
+  standingsPlayersScrollIndex: 0,
   standingsConference: "eastern",
   standingsDivision: "atlantic",
   setFocusedPane: (pane) => set({ focusedPane: pane }),
@@ -92,4 +99,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   setStandingsConference: (conf) => set({ standingsConference: conf, standingsCursorIndex: 0 }),
   setStandingsDivision: (div) => set({ standingsDivision: div, standingsCursorIndex: 0 }),
+  setStandingsDetailTab: (tab) => set({ standingsDetailTab: tab, standingsPlayersScrollIndex: 0 }),
+  moveStandingsPlayersScroll: (delta, maxIndex) => {
+    const nextIndex = get().standingsPlayersScrollIndex + delta;
+    const clamped =
+      typeof maxIndex === "number"
+        ? Math.max(0, Math.min(maxIndex, nextIndex))
+        : Math.max(0, nextIndex);
+    set({ standingsPlayersScrollIndex: clamped });
+  },
 }));

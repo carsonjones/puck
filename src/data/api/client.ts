@@ -1,5 +1,5 @@
-import { getToken } from "../../auth/token.js";
-import { NhlClient } from "../nhl/client.js";
+import { getToken } from "@/auth/token.js";
+import { NhlClient } from "@/data/nhl/client.js";
 import type {
   BoxscoreResponse,
   Game as NhlGame,
@@ -8,7 +8,7 @@ import type {
   PlayerStats,
   RosterSpot,
   StandingsResponse,
-} from "../nhl/models.js";
+} from "@/data/nhl/models.js";
 
 export type GameListItem = {
   id: string;

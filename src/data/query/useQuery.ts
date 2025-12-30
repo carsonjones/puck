@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { queryClient, QueryState } from "./queryClient.js";
+import { queryClient, QueryState } from "@/data/query/queryClient.js";
 
 type UseQueryOptions = {
   staleTimeMs?: number;

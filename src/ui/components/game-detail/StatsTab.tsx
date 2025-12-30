@@ -1,7 +1,7 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import type { GameDetail } from "../../../data/api/client.js";
-import StatRow from "../StatRow.js";
+import type { GameDetail } from "@/data/api/client.js";
+import StatRow from "@/ui/components/StatRow.js";
 
 type StatsTabProps = {
   game: GameDetail;

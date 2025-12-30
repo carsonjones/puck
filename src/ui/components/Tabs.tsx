@@ -6,7 +6,7 @@ const Tabs: React.FC<{
   active: string;
 }> = ({ tabs, active }) => {
   return (
-    <Box>
+    <Box flexDirection="row">
       {tabs.map((tab) => (
         <Box key={tab} marginRight={2}>
           <Text inverse={tab === active}>{`${tab?.slice(0, 1).toUpperCase()}${tab?.slice(1)}`}</Text>

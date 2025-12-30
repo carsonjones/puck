@@ -1,6 +1,6 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import type { Play } from "../../../data/api/client.js";
+import type { Play } from "@/data/api/client.js";
 
 type PlaysTabProps = {
   plays: Play[];

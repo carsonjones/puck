@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "ink";
-import App from "./app.js";
+import App from "@/app.js";
 
 // Clear terminal for full screen
 process.stdout.write('\x1Bc');

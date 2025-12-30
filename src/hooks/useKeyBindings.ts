@@ -1,8 +1,8 @@
 import { useInput } from "ink";
-import type { GameListItem } from "../data/api/client.js";
-import { queryKeys } from "../data/query/keys.js";
-import { queryClient } from "../data/query/queryClient.js";
-import { useAppStore, type FocusedPane, type GameStatus } from "../state/useAppStore.js";
+import type { GameListItem } from "@/data/api/client.js";
+import { queryKeys } from "@/data/query/keys.js";
+import { queryClient } from "@/data/query/queryClient.js";
+import { useAppStore, type FocusedPane, type GameStatus } from "@/state/useAppStore.js";
 
 type KeyBindingsConfig = {
   focusedPane: FocusedPane;
