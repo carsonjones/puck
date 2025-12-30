@@ -2,7 +2,7 @@ import { useInput } from "ink";
 import type { GameListItem } from "../data/api/client.js";
 import { queryKeys } from "../data/query/keys.js";
 import { queryClient } from "../data/query/queryClient.js";
-import type { FocusedPane, GameStatus } from "../state/useAppStore.js";
+import { useAppStore, type FocusedPane, type GameStatus } from "../state/useAppStore.js";
 
 type KeyBindingsConfig = {
   focusedPane: FocusedPane;
@@ -57,6 +57,16 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
 
     if (input.toLowerCase() === "q" || (key.ctrl && input === "c")) {
       onQuit();
+      return;
+    }
+
+    if (input === "w") {
+      useAppStore.getState().setViewMode("standings");
+      return;
+    }
+
+    if (input === "c") {
+      useAppStore.getState().setViewMode("games");
       return;
     }
 

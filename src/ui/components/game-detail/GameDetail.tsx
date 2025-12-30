@@ -26,7 +26,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
 }) => {
   const { stdout } = useStdout();
   const width = stdout?.columns ?? 80;
-  const lineWidth = Math.floor(width / 2) - 4; // Half width minus padding
+  const lineWidth = Math.max(10, Math.floor(width / 2) - 14); // Half width minus padding/borders
 
   // Only show loading message if no data yet (initial load)
   if (status === "loading" && !game) {

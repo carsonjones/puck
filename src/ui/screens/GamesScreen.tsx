@@ -251,10 +251,13 @@ const GamesScreen: React.FC = () => {
   };
 
   const listPane = () => {
+    const lineWidth = Math.max(10, Math.floor(width / 2) - 14); // Half width minus padding/borders
+
     if (status === "error") {
       return (
-        <Box flexDirection="column" gap={1}>
+        <Box flexDirection="column">
           <Text>{header}</Text>
+          <Text dimColor>{"─".repeat(lineWidth)}</Text>
           <Box flexDirection="column" paddingTop={2}>
             <Text color="red">Failed to load games</Text>
             <Text dimColor>{error instanceof Error ? error.message : "Unknown error"}</Text>
@@ -267,8 +270,9 @@ const GamesScreen: React.FC = () => {
     }
 
     return (
-      <Box flexDirection="column" gap={1}>
+      <Box flexDirection="column">
         <Text>{header}</Text>
+        <Text dimColor>{"─".repeat(lineWidth)}</Text>
         <List items={games} cursorIndex={listCursorIndex} height={listHeight} loading={status === "loading"} />
       </Box>
     );
