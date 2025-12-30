@@ -7,7 +7,7 @@ type AutoRefreshOptions = {
 };
 
 export const useAutoRefresh = ({ enabled = true, intervalMs, onRefresh }: AutoRefreshOptions) => {
-  const timerRef = useRef<Timer | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const onRefreshRef = useRef(onRefresh);
 
   onRefreshRef.current = onRefresh;

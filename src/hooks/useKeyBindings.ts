@@ -2,7 +2,7 @@ import { useInput } from "ink";
 import type { GameListItem } from "../data/api/client.js";
 import { queryKeys } from "../data/query/keys.js";
 import { queryClient } from "../data/query/queryClient.js";
-import type { FocusedPane } from "../state/useAppStore.js";
+import type { FocusedPane, GameStatus } from "../state/useAppStore.js";
 
 type KeyBindingsConfig = {
   focusedPane: FocusedPane;
@@ -16,10 +16,10 @@ type KeyBindingsConfig = {
   playsCount: number;
   onQuit: () => void;
   moveCursor: (delta: number, max: number) => void;
-  selectGame: (id: string | null) => void;
+  selectGame: (id: string | null, status?: GameStatus) => void;
   setFocusedPane: (pane: FocusedPane) => void;
   setPageCursor: (cursor: string | null) => void;
-  setDetailTab: (tab: "stats" | "plays") => void;
+  setDetailTab: (tab: "stats" | "plays" | "players") => void;
   movePlaysScroll: (delta: number, max: number) => void;
   togglePlaysSortOrder: () => void;
   onInteraction?: () => void;
@@ -84,6 +84,15 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
       setDetailTab("plays");
       return;
     }
+    if (input === "3") {
+      setDetailTab("players");
+      return;
+    }
+
+    if (input === "s") {
+      togglePlaysSortOrder();
+      return;
+    }
 
     if (focusedPane === "list") {
       if (input === "j" || key.downArrow) {
@@ -97,7 +106,7 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
       if (key.return) {
         const item = games[listCursorIndex];
         if (item) {
-          selectGame(item.id);
+          selectGame(item.id, item.status);
           setFocusedPane("detail");
         }
         return;
@@ -120,11 +129,7 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
         setFocusedPane("list");
         return;
       }
-      if (input === "s") {
-        togglePlaysSortOrder();
-        return;
-      }
-      if (detailTab === "plays" && playsCount > 0) {
+      if ((detailTab === "plays" || detailTab === "players") && playsCount > 0) {
         if (input === "j" || key.downArrow) {
           movePlaysScroll(1, playsCount - 1);
           return;

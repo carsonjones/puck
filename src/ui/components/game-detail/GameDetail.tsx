@@ -1,15 +1,16 @@
-import { Box, Text } from "ink";
+import { Box, Text, useStdout } from "ink";
 import type React from "react";
 import type { GameDetail as GameDetailType } from "../../../data/api/client.js";
 import Tabs from "../Tabs.js";
 import GameHeader from "./GameHeader.js";
 import PlaysTab from "./PlaysTab.js";
+import PlayersTab from "./PlayersTab.js";
 import StatsTab from "./StatsTab.js";
 
 type GameDetailProps = {
   game: GameDetailType | null;
   status: "loading" | "error" | "success";
-  detailTab: "stats" | "plays";
+  detailTab: "stats" | "plays" | "players";
   playsScrollIndex: number;
   playsSortOrder: "asc" | "desc";
   height: number;
@@ -23,11 +24,16 @@ const GameDetail: React.FC<GameDetailProps> = ({
   playsSortOrder,
   height,
 }) => {
-  if (status === "loading") {
+  const { stdout } = useStdout();
+  const width = stdout?.columns ?? 80;
+  const lineWidth = Math.floor(width / 2) - 4; // Half width minus padding
+
+  // Only show loading message if no data yet (initial load)
+  if (status === "loading" && !game) {
     return <Text dimColor>Loading game details...</Text>;
   }
 
-  if (status === "error") {
+  if (status === "error" && !game) {
     return <Text color="red">Failed to load game details.</Text>;
   }
 
@@ -36,7 +42,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
   }
 
   return (
-    <Box flexDirection="column" gap={1}>
+    <Box flexDirection="column">
       <GameHeader
         awayTeam={game.awayTeam}
         homeTeam={game.homeTeam}
@@ -51,20 +57,30 @@ const GameDetail: React.FC<GameDetailProps> = ({
         clock={game.clock}
         broadcasts={game.broadcasts}
       />
+      <Text dimColor>{"─".repeat(lineWidth)}</Text>
       {game.status !== "scheduled" ? (
-        <>
-          <Tabs tabs={["stats", "plays"]} active={detailTab} />
-          {detailTab === "stats" ? (
-            <StatsTab game={game} />
-          ) : (
-            <PlaysTab
-              plays={game.plays}
-              scrollIndex={playsScrollIndex}
-              sortOrder={playsSortOrder}
-              height={height}
-            />
-          )}
-        </>
+        <Box flexDirection="column">
+          <Tabs tabs={["stats", "plays", "players"]} active={detailTab} />
+          <Text dimColor>{"─".repeat(lineWidth)}</Text>
+          <Box>
+            {detailTab === "stats" ? (
+              <StatsTab game={game} />
+            ) : detailTab === "plays" ? (
+              <PlaysTab
+                plays={game.plays}
+                scrollIndex={playsScrollIndex}
+                sortOrder={playsSortOrder}
+                height={height}
+              />
+            ) : (
+              <PlayersTab
+                game={game}
+                scrollIndex={playsScrollIndex}
+                height={height}
+              />
+            )}
+          </Box>
+        </Box>
       ) : null}
     </Box>
   );

@@ -7,6 +7,7 @@ import type {
   PlayByPlayResponse,
   PlayerStats,
   RosterSpot,
+  StandingsResponse,
 } from "../nhl/models.js";
 
 export type GameListItem = {
@@ -37,6 +38,9 @@ export type GameDetail = GameListItem & {
     faceoffPct: { home: number; away: number };
   };
   plays: Play[];
+  boxscore: BoxscoreResponse | null;
+  homeTeamAbbrev: string;
+  awayTeamAbbrev: string;
 };
 
 export type Play = {
@@ -49,7 +53,32 @@ export type GamesPage = {
   nextCursor: string | null;
 };
 
+export type StandingListItem = {
+  teamName: string;
+  teamAbbrev: string;
+  wins: number;
+  losses: number;
+  otLosses: number;
+  points: number;
+  gamesPlayed: number;
+  divisionName: string;
+  conferenceName: string;
+  rank: number;
+  streakCode: string;
+  streakCount: number;
+};
 
+export type StandingsData = {
+  league: StandingListItem[];
+  eastern: StandingListItem[];
+  western: StandingListItem[];
+  divisions: {
+    atlantic: StandingListItem[];
+    metropolitan: StandingListItem[];
+    central: StandingListItem[];
+    pacific: StandingListItem[];
+  };
+};
 
 const nhlClient = new NhlClient();
 
@@ -187,6 +216,9 @@ const mapGameDetail = (
           time: `P${play.periodDescriptor.number} ${play.timeInPeriod}`,
           description: describePlay(play, rosterMap),
         })) ?? [],
+    boxscore,
+    homeTeamAbbrev: game.homeTeam.abbrev,
+    awayTeamAbbrev: game.awayTeam.abbrev,
   };
 };
 
@@ -225,4 +257,49 @@ export const getGame = async ({ id }: { id: string }): Promise<GameDetail> => {
   ]);
 
   return mapGameDetail(details, playByPlay, boxscore);
+};
+
+export const getStandings = async (): Promise<StandingsData> => {
+  const response = await nhlClient.getStandings();
+
+  const mapped: StandingListItem[] = response.standings.map((team) => ({
+    teamName: team.teamName.default,
+    teamAbbrev: team.teamAbbrev.default,
+    wins: team.wins,
+    losses: team.losses,
+    otLosses: team.otLosses,
+    points: team.points,
+    gamesPlayed: team.gamesPlayed,
+    divisionName: team.divisionName,
+    conferenceName: team.conferenceName,
+    rank: team.leagueSequence,
+    streakCode: team.streakCode,
+    streakCount: team.streakCount,
+  }));
+
+  const league = [...mapped].sort((a, b) => a.rank - b.rank);
+
+  const eastern = mapped
+    .filter(t => t.conferenceName === "Eastern")
+    .sort((a, b) => a.rank - b.rank);
+  const western = mapped
+    .filter(t => t.conferenceName === "Western")
+    .sort((a, b) => a.rank - b.rank);
+
+  const divisions = {
+    atlantic: mapped
+      .filter(t => t.divisionName === "Atlantic")
+      .sort((a, b) => a.rank - b.rank),
+    metropolitan: mapped
+      .filter(t => t.divisionName === "Metropolitan")
+      .sort((a, b) => a.rank - b.rank),
+    central: mapped
+      .filter(t => t.divisionName === "Central")
+      .sort((a, b) => a.rank - b.rank),
+    pacific: mapped
+      .filter(t => t.divisionName === "Pacific")
+      .sort((a, b) => a.rank - b.rank),
+  };
+
+  return { league, eastern, western, divisions };
 };

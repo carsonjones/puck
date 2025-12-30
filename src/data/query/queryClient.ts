@@ -16,6 +16,38 @@ type FetchOptions = {
 
 const IDLE_STATE: QueryState<never> = { status: "idle" };
 
+// Deep equality check for data comparison
+const deepEqual = (a: unknown, b: unknown): boolean => {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (typeof a !== "object" || typeof b !== "object") return false;
+
+  // Handle arrays
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  // One is array, other isn't
+  if (Array.isArray(a) || Array.isArray(b)) return false;
+
+  const aKeys = Object.keys(a as object);
+  const bKeys = Object.keys(b as object);
+
+  if (aKeys.length !== bKeys.length) return false;
+
+  for (const key of aKeys) {
+    const aVal = (a as Record<string, unknown>)[key];
+    const bVal = (b as Record<string, unknown>)[key];
+    if (!deepEqual(aVal, bVal)) return false;
+  }
+
+  return true;
+};
+
 class QueryClient {
   private cache = new Map<string, QueryState<unknown>>();
   private listeners = new Map<string, Set<Listener>>();
@@ -69,8 +101,16 @@ class QueryClient {
 
     try {
       const data = await fetcher();
-      this.cache.set(key, { status: "success", data, updatedAt: Date.now() });
-      this.notify(key);
+
+      // Only update cache and notify if data actually changed
+      if (!deepEqual(existing.data, data)) {
+        this.cache.set(key, { status: "success", data, updatedAt: Date.now() });
+        this.notify(key);
+      } else {
+        // Data unchanged, just update timestamp to mark as fresh
+        this.cache.set(key, { status: "success", data: existing.data, updatedAt: Date.now() });
+      }
+
       return data;
     } catch (error) {
       this.cache.set(key, {

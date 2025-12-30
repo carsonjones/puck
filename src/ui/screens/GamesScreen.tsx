@@ -1,5 +1,6 @@
 import { Box, Text, useApp, useStdout } from "ink";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { GameDetail as GameDetailType } from "../../data/api/client.js";
 import { useGame } from "../../data/hooks/useGame.js";
 import { useGamesPage } from "../../data/hooks/useGamesPage.js";
 import { useAppStore } from "../../state/useAppStore.js";
@@ -39,14 +40,86 @@ const GamesScreen: React.FC = () => {
   const games = useMemo(() => data?.items ?? [], [data]);
   const detail = useGame(selectedGameId);
 
+  // Local state for game data - updated field by field to minimize re-renders
+  const [displayGame, setDisplayGame] = useState<GameDetailType | null>(null);
+  const [displayStatus, setDisplayStatus] = useState<"loading" | "error" | "success">("loading");
+
+  // Update display state field by field when data changes
+  useEffect(() => {
+    if (detail.status === "success" && detail.data) {
+      if (!displayGame) {
+        // Initial load - set everything
+        setDisplayGame(detail.data);
+        setDisplayStatus("success");
+      } else {
+        // Incremental update - only change fields that differ
+        const updates: Partial<GameDetailType> = {};
+        let hasChanges = false;
+
+        // Check each field
+        if (detail.data.homeScore !== displayGame.homeScore) {
+          updates.homeScore = detail.data.homeScore;
+          hasChanges = true;
+        }
+        if (detail.data.awayScore !== displayGame.awayScore) {
+          updates.awayScore = detail.data.awayScore;
+          hasChanges = true;
+        }
+        if (detail.data.period !== displayGame.period) {
+          updates.period = detail.data.period;
+          hasChanges = true;
+        }
+        if (detail.data.clock !== displayGame.clock) {
+          updates.clock = detail.data.clock;
+          hasChanges = true;
+        }
+        if (detail.data.status !== displayGame.status) {
+          updates.status = detail.data.status;
+          hasChanges = true;
+        }
+        if (JSON.stringify(detail.data.plays) !== JSON.stringify(displayGame.plays)) {
+          updates.plays = detail.data.plays;
+          hasChanges = true;
+        }
+        if (JSON.stringify(detail.data.stats) !== JSON.stringify(displayGame.stats)) {
+          updates.stats = detail.data.stats;
+          hasChanges = true;
+        }
+        if (JSON.stringify(detail.data.leaders) !== JSON.stringify(displayGame.leaders)) {
+          updates.leaders = detail.data.leaders;
+          hasChanges = true;
+        }
+        if (JSON.stringify(detail.data.boxscore) !== JSON.stringify(displayGame.boxscore)) {
+          updates.boxscore = detail.data.boxscore;
+          hasChanges = true;
+        }
+
+        if (hasChanges) {
+          setDisplayGame({ ...displayGame, ...updates });
+        }
+      }
+    } else if (detail.status === "loading" && !displayGame) {
+      // Only set loading if we don't have data yet
+      setDisplayStatus("loading");
+    } else if (detail.status === "error" && !displayGame) {
+      setDisplayStatus("error");
+    }
+  }, [detail.status, detail.data, displayGame]);
+
+  // Reset display state when game changes
+  useEffect(() => {
+    setDisplayGame(null);
+    setDisplayStatus("loading");
+  }, [selectedGameId]);
+
   // Determine refresh interval based on game status
   const refreshIntervalMs = useMemo(() => {
-    if (!selectedGameId || !detail.data) return 0;
-    const gameStatus = detail.data.status;
+    if (!selectedGameId || !displayGame) return 0;
+    const gameStatus = displayGame.status;
     if (gameStatus === "in_progress") return 5_000; // 5s for live games
     if (gameStatus === "final") return 30_000; // 30s for completed games
     return 30_000; // 30s for scheduled games
-  }, [selectedGameId, detail.data]);
+  }, [selectedGameId, displayGame?.status]);
 
   // Auto-refresh selected game
   const { resetTimer } = useAutoRefresh({
@@ -72,7 +145,7 @@ const GamesScreen: React.FC = () => {
     }
     const item = games[clampedIndex];
     if (item && item.id !== selectedGameId) {
-      selectGame(item.id);
+      selectGame(item.id, item.status);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, games, listCursorIndex, selectedGameId]);
@@ -119,7 +192,18 @@ const GamesScreen: React.FC = () => {
   };
 
   const playsCount =
-    detailTab === "plays" && detail.data?.plays ? detail.data.plays.length : 0;
+    detailTab === "plays" && displayGame?.plays
+      ? displayGame.plays.length
+      : detailTab === "players" && displayGame?.boxscore
+      ? [
+          ...(displayGame.boxscore.playerByGameStats.awayTeam.forwards || []),
+          ...(displayGame.boxscore.playerByGameStats.awayTeam.defense || []),
+          ...(displayGame.boxscore.playerByGameStats.awayTeam.goalies || []),
+          ...(displayGame.boxscore.playerByGameStats.homeTeam.forwards || []),
+          ...(displayGame.boxscore.playerByGameStats.homeTeam.defense || []),
+          ...(displayGame.boxscore.playerByGameStats.homeTeam.goalies || []),
+        ].length + 3
+      : 0;
 
   useKeyBindings({
     focusedPane,
@@ -156,8 +240,8 @@ const GamesScreen: React.FC = () => {
 
     return (
       <GameDetail
-        game={detail.data ?? null}
-        status={detail.status === "idle" ? "loading" : detail.status}
+        game={displayGame}
+        status={displayStatus}
         detailTab={detailTab}
         playsScrollIndex={playsScrollIndex}
         playsSortOrder={playsSortOrder}

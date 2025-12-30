@@ -15,7 +15,7 @@ const StatRow: React.FC<StatRowProps> = ({
   awayValue,
   homeValue,
   labelWidth = 15,
-  valueWidth = 20,
+  valueWidth = 12,
   isHeader = false,
 }) => {
   return (
