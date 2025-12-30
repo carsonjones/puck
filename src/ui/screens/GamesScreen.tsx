@@ -4,6 +4,9 @@ import { useGame } from "../../data/hooks/useGame.js";
 import { useGamesPage } from "../../data/hooks/useGamesPage.js";
 import { useAppStore } from "../../state/useAppStore.js";
 import { useKeyBindings } from "../../hooks/useKeyBindings.js";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh.js";
+import { queryClient } from "../../data/query/queryClient.js";
+import { queryKeys } from "../../data/query/keys.js";
 import GameDetail from "../components/game-detail/GameDetail.js";
 import List from "../components/List.js";
 import SplitPane from "../components/SplitPane.js";
@@ -35,6 +38,26 @@ const GamesScreen: React.FC = () => {
   const { data, status, error, limit } = useGamesPage({ cursor: pageCursor, limit: listHeight });
   const games = useMemo(() => data?.items ?? [], [data]);
   const detail = useGame(selectedGameId);
+
+  // Determine refresh interval based on game status
+  const refreshIntervalMs = useMemo(() => {
+    if (!selectedGameId || !detail.data) return 0;
+    const gameStatus = detail.data.status;
+    if (gameStatus === "in_progress") return 5_000; // 5s for live games
+    if (gameStatus === "final") return 30_000; // 30s for completed games
+    return 30_000; // 30s for scheduled games
+  }, [selectedGameId, detail.data]);
+
+  // Auto-refresh selected game
+  const { resetTimer } = useAutoRefresh({
+    enabled: Boolean(selectedGameId),
+    intervalMs: refreshIntervalMs,
+    onRefresh: () => {
+      if (selectedGameId) {
+        queryClient.invalidate(queryKeys.gameDetail(selectedGameId));
+      }
+    },
+  });
 
   useEffect(() => {
     if (status !== "success") return;
@@ -78,11 +101,6 @@ const GamesScreen: React.FC = () => {
     }
   }, [selectedGameId, detailTab]);
 
-  const resolveCursorDate = (value: string | null) => {
-    const base = value ? new Date(value) : new Date();
-    return Number.isNaN(base.getTime()) ? new Date() : base;
-  };
-
   const quit = () => {
     exit();
     const isWatchMode =
@@ -100,88 +118,28 @@ const GamesScreen: React.FC = () => {
     process.exit(0);
   };
 
-  useInput((input, key) => {
-    if (input.toLowerCase() === "q" || (key.ctrl && input === "c")) {
-      quit();
-      return;
-    }
+  const playsCount =
+    detailTab === "plays" && detail.data?.plays ? detail.data.plays.length : 0;
 
-    if (key.escape) {
-      setFocusedPane("list");
-      return;
-    }
-
-    if (input === "\t" || key.tab) {
-      setFocusedPane(focusedPane === "list" ? "detail" : "list");
-      return;
-    }
-
-    if (input === "r") {
-      queryClient.invalidate(queryKeys.gamesList(pageCursor, limit));
-      if (selectedGameId) queryClient.invalidate(queryKeys.gameDetail(selectedGameId));
-      return;
-    }
-
-    if (input === "1") {
-      setDetailTab("stats");
-      return;
-    }
-    if (input === "2") {
-      setDetailTab("plays");
-      return;
-    }
-
-    if (focusedPane === "list") {
-      if (input === "j" || key.downArrow) {
-        moveCursor(1, Math.max(0, games.length - 1));
-        return;
-      }
-      if (input === "k" || key.upArrow) {
-        moveCursor(-1, Math.max(0, games.length - 1));
-        return;
-      }
-      if (key.return) {
-        const item = games[listCursorIndex];
-        if (item) {
-          selectGame(item.id);
-          setFocusedPane("detail");
-        }
-        return;
-      }
-      if (key.leftArrow) {
-        const current = resolveCursorDate(pageCursor);
-        const prev = new Date(current);
-        prev.setDate(prev.getDate() - 1);
-        setPageCursor(prev.toISOString().slice(0, 10));
-        return;
-      }
-      if (key.rightArrow && data?.nextCursor) {
-        setPageCursor(data.nextCursor);
-        return;
-      }
-    }
-
-    if (focusedPane === "detail") {
-      if (input === "h" || key.leftArrow) {
-        setFocusedPane("list");
-        return;
-      }
-      if (input === "s") {
-        togglePlaysSortOrder();
-        return;
-      }
-      if (detailTab === "plays" && detail.data?.plays && detail.data.plays.length > 0) {
-        const playsCount = detail.data.plays.length;
-        if (input === "j" || key.downArrow) {
-          movePlaysScroll(1, playsCount - 1);
-          return;
-        }
-        if (input === "k" || key.upArrow) {
-          movePlaysScroll(-1, playsCount - 1);
-          return;
-        }
-      }
-    }
+  useKeyBindings({
+    focusedPane,
+    detailTab,
+    games,
+    listCursorIndex,
+    pageCursor,
+    selectedGameId,
+    data: data ?? null,
+    limit,
+    playsCount,
+    onQuit: quit,
+    moveCursor,
+    selectGame,
+    setFocusedPane,
+    setPageCursor,
+    setDetailTab,
+    movePlaysScroll,
+    togglePlaysSortOrder,
+    onInteraction: resetTimer,
   });
 
   const header = useMemo(() => {
@@ -198,8 +156,8 @@ const GamesScreen: React.FC = () => {
 
     return (
       <GameDetail
-        game={detail.data}
-        status={detail.status}
+        game={detail.data ?? null}
+        status={detail.status === "idle" ? "loading" : detail.status}
         detailTab={detailTab}
         playsScrollIndex={playsScrollIndex}
         playsSortOrder={playsSortOrder}
@@ -208,16 +166,35 @@ const GamesScreen: React.FC = () => {
     );
   };
 
+  const listPane = () => {
+    if (status === "error") {
+      return (
+        <Box flexDirection="column" gap={1}>
+          <Text>{header}</Text>
+          <Box flexDirection="column" paddingTop={2}>
+            <Text color="red">Failed to load games</Text>
+            <Text dimColor>{error instanceof Error ? error.message : "Unknown error"}</Text>
+            <Box marginTop={1}>
+              <Text dimColor>Press 'q' to quit</Text>
+            </Box>
+          </Box>
+        </Box>
+      );
+    }
+
+    return (
+      <Box flexDirection="column" gap={1}>
+        <Text>{header}</Text>
+        <List items={games} cursorIndex={listCursorIndex} height={listHeight} loading={status === "loading"} />
+      </Box>
+    );
+  };
+
   return (
     <Box flexDirection="column" width={width} height={height} padding={1}>
       <Box flexGrow={1}>
         <SplitPane
-          left={
-            <Box flexDirection="column" gap={1}>
-              <Text>{header}</Text>
-              <List items={games} cursorIndex={listCursorIndex} height={listHeight} loading={status === "loading"} />
-            </Box>
-          }
+          left={listPane()}
           right={detailPane()}
         />
       </Box>

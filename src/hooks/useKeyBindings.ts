@@ -22,6 +22,7 @@ type KeyBindingsConfig = {
   setDetailTab: (tab: "stats" | "plays") => void;
   movePlaysScroll: (delta: number, max: number) => void;
   togglePlaysSortOrder: () => void;
+  onInteraction?: () => void;
 };
 
 export const useKeyBindings = (config: KeyBindingsConfig) => {
@@ -43,6 +44,7 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
     setDetailTab,
     movePlaysScroll,
     togglePlaysSortOrder,
+    onInteraction,
   } = config;
 
   const resolveCursorDate = (value: string | null) => {
@@ -51,6 +53,8 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
   };
 
   useInput((input, key) => {
+    onInteraction?.();
+
     if (input.toLowerCase() === "q" || (key.ctrl && input === "c")) {
       onQuit();
       return;

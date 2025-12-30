@@ -18,15 +18,6 @@ export type GameListItem = {
   status: "scheduled" | "in_progress" | "final";
 };
 
-export type PlayerLeader = {
-  name: string;
-  goals: number;
-  assists: number;
-  points: number;
-  hits: number;
-  shots: number;
-};
-
 export type GameDetail = GameListItem & {
   venue: string;
   homeScore: number;
@@ -36,8 +27,8 @@ export type GameDetail = GameListItem & {
   broadcasts: string[];
   gameType: number;
   leaders: {
-    home: PlayerLeader[];
-    away: PlayerLeader[];
+    home: string[];
+    away: string[];
   };
   threeStars: string[];
   stats: {
@@ -45,7 +36,12 @@ export type GameDetail = GameListItem & {
     hits: { home: number; away: number };
     faceoffPct: { home: number; away: number };
   };
-  plays: Array<{ time: string; description: string }>;
+  plays: Play[];
+};
+
+export type Play = {
+  time: string;
+  description: string;
 };
 
 export type GamesPage = {
@@ -53,33 +49,7 @@ export type GamesPage = {
   nextCursor: string | null;
 };
 
-const TEAM_POOL = [
-  "Bruins",
-  "Rangers",
-  "Maple Leafs",
-  "Canadiens",
-  "Lightning",
-  "Panthers",
-  "Oilers",
-  "Flames",
-  "Canucks",
-  "Avalanche",
-  "Stars",
-  "Golden Knights",
-  "Kings",
-  "Kraken",
-];
 
-const VENUES = [
-  "Madison Square Garden",
-  "TD Garden",
-  "Rogers Place",
-  "Ball Arena",
-  "Scotiabank Arena",
-  "Crypto.com Arena",
-];
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const nhlClient = new NhlClient();
 
@@ -89,69 +59,7 @@ const requireToken = () => {
   return token;
 };
 
-const seeded = (seed: number) => {
-  let value = seed % 2147483647;
-  if (value <= 0) value += 2147483646;
-  return () => (value = (value * 16807) % 2147483647) / 2147483647;
-};
 
-const makeGame = (index: number, page: number): GameListItem => {
-  const rand = seeded(page * 1000 + index)();
-  const date = new Date(Date.now() + page * 24 * 60 * 60 * 1000);
-  const day = date.toISOString().slice(0, 10);
-  const homeTeam = TEAM_POOL[(index * 2) % TEAM_POOL.length]!;
-  const awayTeam = TEAM_POOL[(index * 2 + 3) % TEAM_POOL.length]!;
-  const startHour = 18 + Math.floor(rand * 4);
-  const status = rand > 0.66 ? "scheduled" : rand > 0.33 ? "in_progress" : "final";
-
-  return {
-    id: `game-${page}-${index}`,
-    date: day,
-    homeTeam,
-    awayTeam,
-    startTime: `${startHour}:00`,
-    status,
-  };
-};
-
-const makeDetail = (listItem: GameListItem): GameDetail => {
-  const seed = listItem.id
-    .split("")
-    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  const rand = seeded(seed);
-
-  return {
-    ...listItem,
-    venue: VENUES[seed % VENUES.length]!,
-    homeScore: Math.floor(rand() * 6),
-    awayScore: Math.floor(rand() * 6),
-    period: 3,
-    clock: rand() > 0.5 ? "12:34" : "",
-    gameType: 2,
-    broadcasts: ["ESPN", "SN"],
-    leaders: {
-      home: [
-        { name: `${listItem.homeTeam} Leader 1`, goals: 1, assists: 2, points: 3, hits: 5, shots: 10 },
-        { name: `${listItem.homeTeam} Leader 2`, goals: 2, assists: 1, points: 3, hits: 3, shots: 8 },
-      ],
-      away: [
-        { name: `${listItem.awayTeam} Leader 1`, goals: 1, assists: 2, points: 3, hits: 4, shots: 9 },
-        { name: `${listItem.awayTeam} Leader 2`, goals: 0, assists: 2, points: 2, hits: 6, shots: 7 },
-      ],
-    },
-    threeStars: [`${listItem.homeTeam} Star`, `${listItem.awayTeam} Star`, "Goalie Star"],
-    stats: {
-      shots: { home: 20 + Math.floor(rand() * 15), away: 20 + Math.floor(rand() * 15) },
-      hits: { home: 10 + Math.floor(rand() * 15), away: 10 + Math.floor(rand() * 15) },
-      faceoffPct: { home: 45 + Math.floor(rand() * 10), away: 45 + Math.floor(rand() * 10) },
-    },
-    plays: [
-      { time: "19:32", description: `${listItem.homeTeam} win faceoff` },
-      { time: "15:04", description: `${listItem.awayTeam} shot on goal` },
-      { time: "09:18", description: `${listItem.homeTeam} power play` },
-    ],
-  };
-};
 
 const formatDate = (date: Date) => date.toISOString().slice(0, 10);
 
@@ -189,16 +97,9 @@ const mapGameListItem = (game: NhlGame): GameListItem => ({
 
 const sumHits = (players: PlayerStats[]) => players.reduce((total, player) => total + (player.hits ?? 0), 0);
 
-const topScorers = (players: PlayerStats[], count: number): PlayerLeader[] => {
+const topScorers = (players: PlayerStats[], count: number) => {
   const sorted = [...players].sort((a, b) => b.points - a.points || b.goals - a.goals);
-  return sorted.slice(0, count).map((player) => ({
-    name: player.name.default,
-    goals: player.goals,
-    assists: player.assists,
-    points: player.points,
-    hits: player.hits,
-    shots: player.sog,
-  }));
+  return sorted.slice(0, count).map((player) => `${player.name.default} • ${player.goals}G ${player.assists}A ${player.points}P`);
 };
 
 const rosterMapFromPlayByPlay = (plays: PlayByPlayResponse | null) => {
@@ -301,46 +202,27 @@ export const listGames = async ({
     throw new Error(`Invalid cursor date: ${cursor}`);
   }
 
-  try {
-    const schedule = await nhlClient.getScheduleByDate(formatDate(target), "asc");
-    const items = schedule.games.map(mapGameListItem);
-    const nextDate = addDays(target, 1);
+  const schedule = await nhlClient.getScheduleByDate(formatDate(target), "asc");
+  const items = schedule.games.map(mapGameListItem);
+  const nextDate = addDays(target, 1);
 
-    return {
-      items,
-      nextCursor: formatDate(nextDate),
-    };
-  } catch {
-    const page = cursor ? Number(cursor) : 0;
-    const safePage = Number.isNaN(page) ? 0 : page;
-    const items = Array.from({ length: limit }, (_, index) => makeGame(index, safePage));
-    await sleep(250 + Math.random() * 200);
-    return {
-      items,
-      nextCursor: safePage < 6 ? String(safePage + 1) : null,
-    };
-  }
+  return {
+    items,
+    nextCursor: formatDate(nextDate),
+  };
 };
 
 export const getGame = async ({ id }: { id: string }): Promise<GameDetail> => {
   const numericId = Number(id);
-  if (!Number.isNaN(numericId)) {
-    try {
-      const [details, playByPlay, boxscore] = await Promise.all([
-        nhlClient.getGameDetails(numericId),
-        nhlClient.getGamePlayByPlay(numericId).catch(() => null),
-        nhlClient.getGameBoxscore(numericId).catch(() => null),
-      ]);
-      return mapGameDetail(details, playByPlay, boxscore);
-    } catch {
-      // Fall through to mock detail if the live API fails.
-    }
+  if (Number.isNaN(numericId)) {
+    throw new Error(`Invalid game ID: ${id}`);
   }
 
-  const [_, pageStr, indexStr] = id.split("-");
-  const page = Number(pageStr ?? 0);
-  const index = Number(indexStr ?? 0);
-  const listItem = makeGame(index, page);
-  await sleep(200 + Math.random() * 150);
-  return makeDetail(listItem);
+  const [details, playByPlay, boxscore] = await Promise.all([
+    nhlClient.getGameDetails(numericId),
+    nhlClient.getGamePlayByPlay(numericId).catch(() => null),
+    nhlClient.getGameBoxscore(numericId).catch(() => null),
+  ]);
+
+  return mapGameDetail(details, playByPlay, boxscore);
 };

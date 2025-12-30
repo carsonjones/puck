@@ -45,10 +45,10 @@ const GameHeader: React.FC<GameHeaderProps> = ({
             Score: {awayScore}-{homeScore}
           </Text>
           {status === "final" ? <Text> (FINAL)</Text> : null}
-          {period && period > 0 && gameType ? (
+          {period && period > 0 && gameType && (status !== "final" || period > 3) ? (
             <Text> • {formatPeriod(period, gameType)}</Text>
           ) : null}
-          {clock ? <Text> • {clock}</Text> : null}
+          {clock && status !== "final" ? <Text> • {clock}</Text> : null}
         </Box>
       ) : null}
       {broadcasts.length > 0 ? <Text>Broadcasts: {broadcasts.join(", ")}</Text> : null}
