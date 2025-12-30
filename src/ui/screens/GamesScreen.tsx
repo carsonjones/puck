@@ -40,6 +40,19 @@ const GamesScreen: React.FC = () => {
   const games = useMemo(() => data?.items ?? [], [data]);
   const detail = useGame(selectedGameId);
 
+  // Auto-advance to next day if all today's games are final
+  useEffect(() => {
+    if (pageCursor !== null || status !== "success" || !data) return;
+
+    const allGamesFinal = games.length > 0 && games.every((game) => game.status === "final");
+
+    if (allGamesFinal) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setPageCursor(tomorrow.toISOString().slice(0, 10));
+    }
+  }, [pageCursor, status, data, games, setPageCursor]);
+
   // Local state for game data - updated field by field to minimize re-renders
   const [displayGame, setDisplayGame] = useState<GameDetailType | null>(null);
   const [displayStatus, setDisplayStatus] = useState<"loading" | "error" | "success">("loading");
@@ -286,14 +299,12 @@ const GamesScreen: React.FC = () => {
           right={detailPane()}
         />
       </Box>
-      <Box marginTop={0} marginX={1}>
-        <StatusBar
-          focus={focusedPane}
-          pageCursor={pageCursor}
-          loading={status === "loading"}
-          error={error instanceof Error ? error.message : null}
-        />
-      </Box>
+      <StatusBar
+        focus={focusedPane}
+        pageCursor={pageCursor}
+        loading={status === "loading"}
+        error={error instanceof Error ? error.message : null}
+      />
     </Box>
   );
 };

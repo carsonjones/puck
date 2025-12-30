@@ -199,10 +199,13 @@ const StandingsScreen: React.FC = () => {
   };
 
   const listPane = () => {
+    const lineWidth = Math.max(10, Math.floor(width / 2) - 14); // Half width minus padding/borders
+
     if (status === "error") {
       return (
-        <Box flexDirection="column" gap={1}>
+        <Box flexDirection="column">
           <Text>{header}</Text>
+          <Text dimColor>{"─".repeat(lineWidth)}</Text>
           <Box flexDirection="column" paddingTop={2}>
             <Text color="red">Failed to load standings</Text>
             <Text dimColor>{error instanceof Error ? error.message : "Unknown error"}</Text>
@@ -222,10 +225,12 @@ const StandingsScreen: React.FC = () => {
     }
 
     return (
-      <Box flexDirection="column" gap={1}>
+      <Box flexDirection="column">
         <Text>{header}</Text>
+        <Text dimColor>{"─".repeat(lineWidth)}</Text>
         <Tabs tabs={["league", "conference", "division"]} active={standingsTab} />
         {subtabs.length > 0 && <Tabs tabs={subtabs} active={activeSubtab} />}
+        <Text dimColor>{"─".repeat(lineWidth)}</Text>
         <StandingsList items={items} cursorIndex={standingsCursorIndex} height={listHeight} loading={status === "loading"} />
       </Box>
     );
@@ -236,9 +241,7 @@ const StandingsScreen: React.FC = () => {
       <Box flexGrow={1}>
         <SplitPane left={listPane()} right={detailPane()} />
       </Box>
-      <Box marginTop={0} marginX={1}>
-        <StatusBar focus={focusedPane} pageCursor={null} loading={status === "loading"} error={error instanceof Error ? error.message : null} />
-      </Box>
+      <StatusBar focus={focusedPane} pageCursor={null} loading={status === "loading"} error={error instanceof Error ? error.message : null} />
     </Box>
   );
 };
