@@ -32,7 +32,7 @@ const StatsTab: React.FC<StatsTabProps> = ({ game, teamStandings, standingsViewM
 	};
 
 	return (
-		<Box flexDirection="column">
+		<Box flexDirection="column" marginTop={1}>
 			<StatRow label="" awayValue={game.awayTeam} homeValue={game.homeTeam} isHeader />
 			{teamStandings && (
 				<>
@@ -59,7 +59,6 @@ const StatsTab: React.FC<StatsTabProps> = ({ game, teamStandings, standingsViewM
 			/>
 			{game.leaders.away.length > 0 || game.leaders.home.length > 0 ? (
 				<Box flexDirection="column" marginTop={1}>
-					<Text bold>Leaders</Text>
 					{game.leaders.away.length > 0 ? (
 						<Box flexDirection="column" marginTop={1}>
 							<Text bold>{game.awayTeam}</Text>

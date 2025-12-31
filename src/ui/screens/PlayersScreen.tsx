@@ -57,7 +57,7 @@ const PlayersScreen: React.FC = () => {
 		},
 	});
 
-	// Auto-select player based on cursor or sync cursor to selected player
+	// Auto-select player based on cursor position
 	useEffect(() => {
 		if (status !== 'success') return;
 		if (items.length === 0) {
@@ -65,16 +65,6 @@ const PlayersScreen: React.FC = () => {
 			return;
 		}
 
-		// If a player is already selected (e.g., from team roster), move cursor to that player
-		if (selectedPlayerId !== null) {
-			const playerIndex = items.findIndex((p) => p.id === selectedPlayerId);
-			if (playerIndex >= 0 && playerIndex !== playersCursorIndex) {
-				movePlayersCursor(playerIndex - playersCursorIndex, items.length - 1);
-				return;
-			}
-		}
-
-		// Otherwise, select the player at cursor position
 		const clampedIndex = Math.min(playersCursorIndex, items.length - 1);
 		if (clampedIndex !== playersCursorIndex) {
 			movePlayersCursor(0, items.length - 1);
@@ -85,6 +75,16 @@ const PlayersScreen: React.FC = () => {
 			selectPlayer(item.id);
 		}
 	}, [status, items, playersCursorIndex, selectedPlayerId, selectPlayer, movePlayersCursor]);
+
+	// Sync cursor to pre-selected player (e.g., from team roster) - only when selectedPlayerId changes
+	useEffect(() => {
+		if (status !== 'success' || items.length === 0 || selectedPlayerId === null) return;
+		const playerIndex = items.findIndex((p) => p.id === selectedPlayerId);
+		if (playerIndex >= 0 && playerIndex !== playersCursorIndex) {
+			movePlayersCursor(playerIndex - playersCursorIndex, items.length - 1);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedPlayerId, items, status]);
 
 	const quit = () => {
 		exit();
@@ -187,8 +187,27 @@ const PlayersScreen: React.FC = () => {
 		}
 
 		if (focusedPane === 'detail') {
+			// Tab navigation with arrow keys
+			if (input === 'l' || key.rightArrow) {
+				// Cycle through tabs: season → games → bio
+				if (playerDetailTab === 'season') {
+					setPlayerDetailTab('games');
+				} else if (playerDetailTab === 'games') {
+					setPlayerDetailTab('bio');
+				}
+				// Stay on bio if already there
+				return;
+			}
+
 			if (input === 'h' || key.leftArrow) {
-				setFocusedPane('list');
+				// Go back through tabs, or back to list if on first tab
+				if (playerDetailTab === 'season') {
+					setFocusedPane('list');
+				} else if (playerDetailTab === 'games') {
+					setPlayerDetailTab('season');
+				} else if (playerDetailTab === 'bio') {
+					setPlayerDetailTab('games');
+				}
 				return;
 			}
 

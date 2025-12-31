@@ -30,7 +30,7 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
 			return `${item.awayScore}-${item.homeScore}${overtimeLabel}`;
 		}
 		if (item.status === 'in_progress') {
-			return `${item.startTime} ●`;
+			return `● ${item.startTime}`;
 		}
 		return item.startTime;
 	};

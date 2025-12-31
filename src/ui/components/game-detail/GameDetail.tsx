@@ -31,7 +31,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
 }) => {
 	const { stdout } = useStdout();
 	const width = stdout?.columns ?? 80;
-	const _lineWidth = Math.max(10, Math.floor(width / 2) - 10); // Half width minus borders/margins
+	const lineWidth = Math.max(1, Math.floor(width / 2) - 10); // Half width minus borders/margins
 
 	// Only show loading message if no data yet (initial load)
 	if (status === 'loading' && !game) {
@@ -63,7 +63,9 @@ const GameDetail: React.FC<GameDetailProps> = ({
 				broadcasts={game.broadcasts}
 			/>
 			{game.status !== 'scheduled' ? (
-				<Box flexDirection="column" marginTop={1}>
+			<>
+        <Text dimColor>{'─'.repeat(lineWidth)}</Text>
+				<Box flexDirection="column">
 					<Tabs tabs={['stats', 'plays', 'players']} active={detailTab} />
 					<Box>
 						{detailTab === 'stats' ? (
@@ -84,6 +86,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
 						)}
 					</Box>
 				</Box>
+			</>
 			) : null}
 		</Box>
 	);

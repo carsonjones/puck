@@ -56,7 +56,9 @@ const GameHeader: React.FC<GameHeaderProps> = ({
 					{clock && status !== 'final' ? <Text> • {clock}</Text> : null}
 				</Box>
 			) : null}
-			{broadcasts.length > 0 ? <Text>{`Broadcasts: ${broadcasts.join(', ')}`}</Text> : null}
+			{['in_progress', 'scheduled'].includes(status) && broadcasts?.length ? (
+				<Text dimColor={true}>{`Broadcasts: ${broadcasts.join(', ')}`}</Text>
+			) : null}
 		</Box>
 	);
 };
