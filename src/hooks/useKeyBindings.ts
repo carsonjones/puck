@@ -1,178 +1,178 @@
-import { useInput } from "ink";
-import type { GameListItem } from "@/data/api/client.js";
-import { formatDate } from "@/data/api/client.js";
-import { queryKeys } from "@/data/query/keys.js";
-import { queryClient } from "@/data/query/queryClient.js";
-import { useAppStore, type FocusedPane, type GameStatus } from "@/state/useAppStore.js";
+import { useInput } from 'ink';
+import type { GameListItem } from '@/data/api/client.js';
+import { formatDate } from '@/data/api/client.js';
+import { queryKeys } from '@/data/query/keys.js';
+import { queryClient } from '@/data/query/queryClient.js';
+import { type FocusedPane, type GameStatus, useAppStore } from '@/state/useAppStore.js';
 
 type KeyBindingsConfig = {
-  focusedPane: FocusedPane;
-  detailTab: string;
-  games: GameListItem[];
-  listCursorIndex: number;
-  pageCursor: string | null;
-  selectedGameId: string | null;
-  data: { nextCursor?: string | null } | null;
-  limit: number;
-  playsCount: number;
-  onQuit: () => void;
-  moveCursor: (delta: number, max: number) => void;
-  selectGame: (id: string | null, status?: GameStatus) => void;
-  setFocusedPane: (pane: FocusedPane) => void;
-  setPageCursor: (cursor: string | null) => void;
-  setDetailTab: (tab: "stats" | "plays" | "players") => void;
-  movePlaysScroll: (delta: number, max: number) => void;
-  togglePlaysSortOrder: () => void;
-  onInteraction?: () => void;
+	focusedPane: FocusedPane;
+	detailTab: string;
+	games: GameListItem[];
+	listCursorIndex: number;
+	pageCursor: string | null;
+	selectedGameId: string | null;
+	data: { nextCursor?: string | null } | null;
+	limit: number;
+	playsCount: number;
+	onQuit: () => void;
+	moveCursor: (delta: number, max: number) => void;
+	selectGame: (id: string | null, status?: GameStatus) => void;
+	setFocusedPane: (pane: FocusedPane) => void;
+	setPageCursor: (cursor: string | null) => void;
+	setDetailTab: (tab: 'stats' | 'plays' | 'players') => void;
+	movePlaysScroll: (delta: number, max: number) => void;
+	togglePlaysSortOrder: () => void;
+	onInteraction?: () => void;
 };
 
 export const useKeyBindings = (config: KeyBindingsConfig) => {
-  const {
-    focusedPane,
-    detailTab,
-    games,
-    listCursorIndex,
-    pageCursor,
-    selectedGameId,
-    data,
-    limit,
-    playsCount,
-    onQuit,
-    moveCursor,
-    selectGame,
-    setFocusedPane,
-    setPageCursor,
-    setDetailTab,
-    movePlaysScroll,
-    togglePlaysSortOrder,
-    onInteraction,
-  } = config;
+	const {
+		focusedPane,
+		detailTab,
+		games,
+		listCursorIndex,
+		pageCursor,
+		selectedGameId,
+		data,
+		limit,
+		playsCount,
+		onQuit,
+		moveCursor,
+		selectGame,
+		setFocusedPane,
+		setPageCursor,
+		setDetailTab,
+		movePlaysScroll,
+		togglePlaysSortOrder,
+		onInteraction,
+	} = config;
 
-  const resolveCursorDate = (value: string | null) => {
-    const base = value ? new Date(value) : new Date();
-    return Number.isNaN(base.getTime()) ? new Date() : base;
-  };
+	const resolveCursorDate = (value: string | null) => {
+		const base = value ? new Date(value) : new Date();
+		return Number.isNaN(base.getTime()) ? new Date() : base;
+	};
 
-  useInput((input, key) => {
-    onInteraction?.();
+	useInput((input, key) => {
+		onInteraction?.();
 
-    // Check if team search modal is open - if so, don't process keys here
-    const { teamSearchOpen } = useAppStore.getState();
-    if (teamSearchOpen) {
-      return;
-    }
+		// Check if team search modal is open - if so, don't process keys here
+		const { teamSearchOpen } = useAppStore.getState();
+		if (teamSearchOpen) {
+			return;
+		}
 
-    // Team search modal trigger
-    if (input === "/" || (key.ctrl && input === "t")) {
-      useAppStore.getState().openTeamSearch();
-      return;
-    }
+		// Team search modal trigger
+		if (input === '/' || (key.ctrl && input === 't')) {
+			useAppStore.getState().openTeamSearch();
+			return;
+		}
 
-    // Clear game team filter
-    if (input === "x") {
-      useAppStore.getState().setGameTeamFilter(null);
-      return;
-    }
+		// Clear game team filter
+		if (input === 'x') {
+			useAppStore.getState().setGameTeamFilter(null);
+			return;
+		}
 
-    if (input.toLowerCase() === "q" || (key.ctrl && input === "c")) {
-      onQuit();
-      return;
-    }
+		if (input.toLowerCase() === 'q' || (key.ctrl && input === 'c')) {
+			onQuit();
+			return;
+		}
 
-    if (input === "w") {
-      useAppStore.getState().setViewMode("standings");
-      return;
-    }
+		if (input === 'w') {
+			useAppStore.getState().setViewMode('standings');
+			return;
+		}
 
-    if (input === "g") {
-      useAppStore.getState().setViewMode("games");
-      return;
-    }
+		if (input === 'g') {
+			useAppStore.getState().setViewMode('games');
+			return;
+		}
 
-    if (input === "p") {
-      useAppStore.getState().setViewMode("players");
-      return;
-    }
+		if (input === 'p') {
+			useAppStore.getState().setViewMode('players');
+			return;
+		}
 
-    if (key.escape) {
-      setFocusedPane("list");
-      return;
-    }
+		if (key.escape) {
+			setFocusedPane('list');
+			return;
+		}
 
-    if (input === "\t" || key.tab) {
-      setFocusedPane(focusedPane === "list" ? "detail" : "list");
-      return;
-    }
+		if (input === '\t' || key.tab) {
+			setFocusedPane(focusedPane === 'list' ? 'detail' : 'list');
+			return;
+		}
 
-    if (input === "r") {
-      queryClient.invalidate(queryKeys.gamesList(pageCursor, limit));
-      if (selectedGameId) queryClient.invalidate(queryKeys.gameDetail(selectedGameId));
-      return;
-    }
+		if (input === 'r') {
+			queryClient.invalidate(queryKeys.gamesList(pageCursor, limit));
+			if (selectedGameId) queryClient.invalidate(queryKeys.gameDetail(selectedGameId));
+			return;
+		}
 
-    if (input === "1") {
-      setDetailTab("stats");
-      return;
-    }
-    if (input === "2") {
-      setDetailTab("plays");
-      return;
-    }
-    if (input === "3") {
-      setDetailTab("players");
-      return;
-    }
+		if (input === '1') {
+			setDetailTab('stats');
+			return;
+		}
+		if (input === '2') {
+			setDetailTab('plays');
+			return;
+		}
+		if (input === '3') {
+			setDetailTab('players');
+			return;
+		}
 
-    if (input === "s") {
-      togglePlaysSortOrder();
-      return;
-    }
+		if (input === 's') {
+			togglePlaysSortOrder();
+			return;
+		}
 
-    if (focusedPane === "list") {
-      if (input === "j" || key.downArrow) {
-        moveCursor(1, Math.max(0, games.length - 1));
-        return;
-      }
-      if (input === "k" || key.upArrow) {
-        moveCursor(-1, Math.max(0, games.length - 1));
-        return;
-      }
-      if (key.return) {
-        const item = games[listCursorIndex];
-        if (item) {
-          selectGame(item.id, item.status);
-          setFocusedPane("detail");
-        }
-        return;
-      }
-      if (key.leftArrow) {
-        const current = resolveCursorDate(pageCursor);
-        const prev = new Date(current);
-        prev.setDate(prev.getDate() - 1);
-        setPageCursor(formatDate(prev));
-        return;
-      }
-      if (key.rightArrow && data?.nextCursor) {
-        setPageCursor(data.nextCursor);
-        return;
-      }
-    }
+		if (focusedPane === 'list') {
+			if (input === 'j' || key.downArrow) {
+				moveCursor(1, Math.max(0, games.length - 1));
+				return;
+			}
+			if (input === 'k' || key.upArrow) {
+				moveCursor(-1, Math.max(0, games.length - 1));
+				return;
+			}
+			if (key.return) {
+				const item = games[listCursorIndex];
+				if (item) {
+					selectGame(item.id, item.status);
+					setFocusedPane('detail');
+				}
+				return;
+			}
+			if (key.leftArrow) {
+				const current = resolveCursorDate(pageCursor);
+				const prev = new Date(current);
+				prev.setDate(prev.getDate() - 1);
+				setPageCursor(formatDate(prev));
+				return;
+			}
+			if (key.rightArrow && data?.nextCursor) {
+				setPageCursor(data.nextCursor);
+				return;
+			}
+		}
 
-    if (focusedPane === "detail") {
-      if (input === "h" || key.leftArrow) {
-        setFocusedPane("list");
-        return;
-      }
-      if ((detailTab === "plays" || detailTab === "players") && playsCount > 0) {
-        if (input === "j" || key.downArrow) {
-          movePlaysScroll(1, playsCount - 1);
-          return;
-        }
-        if (input === "k" || key.upArrow) {
-          movePlaysScroll(-1, playsCount - 1);
-          return;
-        }
-      }
-    }
-  });
+		if (focusedPane === 'detail') {
+			if (input === 'h' || key.leftArrow) {
+				setFocusedPane('list');
+				return;
+			}
+			if ((detailTab === 'plays' || detailTab === 'players') && playsCount > 0) {
+				if (input === 'j' || key.downArrow) {
+					movePlaysScroll(1, playsCount - 1);
+					return;
+				}
+				if (input === 'k' || key.upArrow) {
+					movePlaysScroll(-1, playsCount - 1);
+					return;
+				}
+			}
+		}
+	});
 };

@@ -1,62 +1,64 @@
-import { Box, Text } from "ink";
-import type React from "react";
-import { formatPeriod } from "@/data/nhl/formatters.js";
+import { Box, Text } from 'ink';
+import type React from 'react';
+import { formatPeriod } from '@/data/nhl/formatters.js';
 
 type GameHeaderProps = {
-  awayTeam: string;
-  homeTeam: string;
-  date: string;
-  startTime: string;
-  venue: string;
-  status: string;
-  awayScore?: number;
-  homeScore?: number;
-  period?: number;
-  gameType?: number;
-  clock?: string;
-  broadcasts: string[];
+	awayTeam: string;
+	homeTeam: string;
+	date: string;
+	startTime: string;
+	venue: string;
+	status: string;
+	awayScore?: number;
+	homeScore?: number;
+	period?: number;
+	gameType?: number;
+	clock?: string;
+	broadcasts: string[];
 };
 
 const GameHeader: React.FC<GameHeaderProps> = ({
-  awayTeam,
-  homeTeam,
-  date,
-  startTime,
-  venue,
-  status,
-  awayScore,
-  homeScore,
-  period,
-  gameType,
-  clock,
-  broadcasts,
+	awayTeam,
+	homeTeam,
+	date,
+	startTime,
+	venue,
+	status,
+	awayScore,
+	homeScore,
+	period,
+	gameType,
+	clock,
+	broadcasts,
 }) => {
-  const awayWins = status === "final" && awayScore !== undefined && homeScore !== undefined && awayScore > homeScore;
-  const homeWins = status === "final" && awayScore !== undefined && homeScore !== undefined && homeScore > awayScore;
+	const awayWins =
+		status === 'final' &&
+		awayScore !== undefined &&
+		homeScore !== undefined &&
+		awayScore > homeScore;
+	const homeWins =
+		status === 'final' &&
+		awayScore !== undefined &&
+		homeScore !== undefined &&
+		homeScore > awayScore;
 
-  return (
-    <Box flexDirection="column">
-      <Text>
-        {`${awayTeam}${awayWins ? " ✓" : ""} @ ${homeTeam}${homeWins ? " ✓" : ""}`}
-      </Text>
-      <Text>
-        {`${date} • ${startTime} • ${venue}`}
-      </Text>
-      {status !== "scheduled" ? (
-        <Box>
-          <Text>
-            {`Score: ${awayScore}-${homeScore}`}
-          </Text>
-          {status === "final" ? <Text> (FINAL)</Text> : null}
-          {period && period > 0 && gameType && (status !== "final" || period > 3) ? (
-            <Text> • {formatPeriod(period, gameType)}</Text>
-          ) : null}
-          {clock && status !== "final" ? <Text> • {clock}</Text> : null}
-        </Box>
-      ) : null}
-      {broadcasts.length > 0 ? <Text>{`Broadcasts: ${broadcasts.join(", ")}`}</Text> : null}
-    </Box>
-  );
+	return (
+		<Box flexDirection="column">
+			<Text>{`${awayTeam}${awayWins ? ' ✓' : ''} @ ${homeTeam}${homeWins ? ' ✓' : ''}`}</Text>
+			<Text>{`${date} • ${startTime} • ${venue}`}</Text>
+			{status !== 'scheduled' ? (
+				<Box>
+					<Text>{`Score: ${awayScore}-${homeScore}`}</Text>
+					{status === 'final' ? <Text> (FINAL)</Text> : null}
+					{period && period > 0 && gameType && (status !== 'final' || period > 3) ? (
+						<Text> • {formatPeriod(period, gameType)}</Text>
+					) : null}
+					{clock && status !== 'final' ? <Text> • {clock}</Text> : null}
+				</Box>
+			) : null}
+			{broadcasts.length > 0 ? <Text>{`Broadcasts: ${broadcasts.join(', ')}`}</Text> : null}
+		</Box>
+	);
 };
 
 export default GameHeader;
