@@ -277,28 +277,32 @@ export const getStandings = async (): Promise<StandingsData> => {
     streakCount: team.streakCount,
   }));
 
-  const league = [...mapped].sort((a, b) => a.rank - b.rank);
+  const sortByStandings = (a: StandingListItem, b: StandingListItem) =>
+    b.points - a.points || b.wins - a.wins || a.gamesPlayed - b.gamesPlayed;
 
-  const eastern = mapped
-    .filter(t => t.conferenceName === "Eastern")
-    .sort((a, b) => a.rank - b.rank);
-  const western = mapped
-    .filter(t => t.conferenceName === "Western")
-    .sort((a, b) => a.rank - b.rank);
+  const assignRanks = (teams: StandingListItem[]) => {
+    const sorted = [...teams].sort(sortByStandings);
+    let rank = 1;
+    return sorted.map((team, idx) => {
+      if (idx > 0) {
+        const prev = sorted[idx - 1];
+        if (team.points !== prev.points || team.wins !== prev.wins) {
+          rank = idx + 1;
+        }
+      }
+      return { ...team, rank };
+    });
+  };
+
+  const league = assignRanks(mapped);
+  const eastern = assignRanks(mapped.filter(t => t.conferenceName === "Eastern"));
+  const western = assignRanks(mapped.filter(t => t.conferenceName === "Western"));
 
   const divisions = {
-    atlantic: mapped
-      .filter(t => t.divisionName === "Atlantic")
-      .sort((a, b) => a.rank - b.rank),
-    metropolitan: mapped
-      .filter(t => t.divisionName === "Metropolitan")
-      .sort((a, b) => a.rank - b.rank),
-    central: mapped
-      .filter(t => t.divisionName === "Central")
-      .sort((a, b) => a.rank - b.rank),
-    pacific: mapped
-      .filter(t => t.divisionName === "Pacific")
-      .sort((a, b) => a.rank - b.rank),
+    atlantic: assignRanks(mapped.filter(t => t.divisionName === "Atlantic")),
+    metropolitan: assignRanks(mapped.filter(t => t.divisionName === "Metropolitan")),
+    central: assignRanks(mapped.filter(t => t.divisionName === "Central")),
+    pacific: assignRanks(mapped.filter(t => t.divisionName === "Pacific")),
   };
 
   return { league, eastern, western, divisions };

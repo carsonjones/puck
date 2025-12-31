@@ -264,7 +264,7 @@ const GamesScreen: React.FC = () => {
   };
 
   const listPane = () => {
-    const lineWidth = Math.max(10, Math.floor(width / 2) - 10); // Half width minus borders/margins
+    const lineWidth = Math.max(1, Math.floor(width / 2) - 10); // Half width minus borders/margins
 
     if (status === "error") {
       return (

@@ -1,20 +1,20 @@
 import { Box, Text, useApp, useInput, useStdout } from "ink";
 import { useEffect, useMemo } from "react";
 import { useStandings } from "@/data/hooks/useStandings.js";
-import { useAppStore } from "@/state/useAppStore.js";
-import { useAutoRefresh } from "@/hooks/useAutoRefresh.js";
-import { queryClient } from "@/data/query/queryClient.js";
 import { queryKeys } from "@/data/query/keys.js";
-import StandingsList from "@/ui/components/StandingsList.js";
-import StandingsDetail from "@/ui/components/standings-detail/StandingsDetail.js";
+import { queryClient } from "@/data/query/queryClient.js";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh.js";
+import { useAppStore } from "@/state/useAppStore.js";
 import SplitPane from "@/ui/components/SplitPane.js";
+import StandingsList from "@/ui/components/StandingsList.js";
 import StatusBar from "@/ui/components/StatusBar.js";
+import StandingsDetail from "@/ui/components/standings-detail/StandingsDetail.js";
 import Tabs from "@/ui/components/Tabs.js";
 
 const StandingsScreen: React.FC = () => {
   const { exit } = useApp();
   const { stdout } = useStdout();
-  const width = stdout?.columns ?? 80;
+  const width = Math.max(40, stdout?.columns ?? 80); // Ensure minimum width
   const height = stdout?.rows ?? 24;
 
   const {
@@ -109,6 +109,24 @@ const StandingsScreen: React.FC = () => {
     }
 
     if (input === "\t" || key.tab) {
+      if (focusedPane === "list") {
+        // Cycle through subtabs when in list pane
+        if (standingsTab === "conference") {
+          setStandingsConference(standingsConference === "eastern" ? "western" : "eastern");
+          return;
+        } else if (standingsTab === "division") {
+          const divs: Array<"atlantic" | "metropolitan" | "central" | "pacific"> = [
+            "atlantic",
+            "metropolitan",
+            "central",
+            "pacific",
+          ];
+          const idx = divs.indexOf(standingsDivision);
+          setStandingsDivision(divs[(idx + 1) % divs.length]);
+          return;
+        }
+      }
+      // Switch panes if in league tab or in detail pane
       setFocusedPane(focusedPane === "list" ? "detail" : "list");
       return;
     }
@@ -134,44 +152,14 @@ const StandingsScreen: React.FC = () => {
 
     if (focusedPane === "list") {
       if (input === "j" || key.downArrow) {
-        if (standingsTab === "conference" && key.downArrow && standingsConference === "eastern") {
-          setStandingsConference("western");
-        } else if (standingsTab === "division" && key.downArrow) {
-          const divs: Array<"atlantic" | "metropolitan" | "central" | "pacific"> = [
-            "atlantic",
-            "metropolitan",
-            "central",
-            "pacific",
-          ];
-          const idx = divs.indexOf(standingsDivision);
-          if (idx < divs.length - 1) {
-            setStandingsDivision(divs[idx + 1]);
-          }
-        } else {
-          moveStandingsCursor(1, Math.max(0, items.length - 1));
-        }
+        moveStandingsCursor(1, Math.max(0, items.length - 1));
         return;
       }
       if (input === "k" || key.upArrow) {
-        if (standingsTab === "conference" && key.upArrow && standingsConference === "western") {
-          setStandingsConference("eastern");
-        } else if (standingsTab === "division" && key.upArrow) {
-          const divs: Array<"atlantic" | "metropolitan" | "central" | "pacific"> = [
-            "atlantic",
-            "metropolitan",
-            "central",
-            "pacific",
-          ];
-          const idx = divs.indexOf(standingsDivision);
-          if (idx > 0) {
-            setStandingsDivision(divs[idx - 1]);
-          }
-        } else {
-          moveStandingsCursor(-1, Math.max(0, items.length - 1));
-        }
+        moveStandingsCursor(-1, Math.max(0, items.length - 1));
         return;
       }
-      if (key.return) {
+      if (input === "l" || key.rightArrow || key.return) {
         setFocusedPane("detail");
         return;
       }
@@ -189,7 +177,7 @@ const StandingsScreen: React.FC = () => {
           return;
         }
         if (input === "k" || key.upArrow) {
-          moveStandingsPlayersScroll(-1, 0);
+          moveStandingsPlayersScroll(-1);
           return;
         }
       }
@@ -218,7 +206,6 @@ const StandingsScreen: React.FC = () => {
       return (
         <Box flexDirection="column">
           <Text>{header}</Text>
-          <Text dimColor>{"─".repeat(lineWidth)}</Text>
           <Box flexDirection="column" paddingTop={2}>
             <Text color="red">Failed to load standings</Text>
             <Text dimColor>{error instanceof Error ? error.message : "Unknown error"}</Text>
@@ -245,8 +232,9 @@ const StandingsScreen: React.FC = () => {
         <Text dimColor>{"─".repeat(lineWidth)}</Text>
         <Tabs tabs={["league", "conference", "division"]} active={standingsTab} />
         {subtabs.length > 0 && <Tabs tabs={subtabs} active={activeSubtab} />}
-        <Text dimColor>{"─".repeat(lineWidth)}</Text>
-        <StandingsList items={items} cursorIndex={standingsCursorIndex} height={listHeight} loading={status === "loading"} />
+        <Box marginTop={1}>
+          <StandingsList items={items} cursorIndex={standingsCursorIndex} height={listHeight} loading={status === "loading"} />
+        </Box>
       </Box>
     );
   };

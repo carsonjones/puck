@@ -31,7 +31,7 @@ const StandingsDetailTabs: React.FC<StandingsDetailTabsProps> = ({ team, height 
           {team.wins}-{team.losses}-{team.otLosses} ({team.points} pts)
         </Text>
       </Box>
-      <Text dimColor>{"─".repeat(lineWidth)}</Text>
+      {/*<Text dimColor>{"─".repeat(lineWidth)}</Text>*/}
       <TeamPlayersTab
         teamAbbrev={team.teamAbbrev}
         scrollIndex={standingsPlayersScrollIndex}

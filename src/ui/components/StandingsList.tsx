@@ -18,7 +18,7 @@ const StandingsList: React.FC<StandingsListProps> = ({ items, cursorIndex, heigh
     return <Text dimColor>No standings data available.</Text>;
   }
 
-  const windowSize = Math.max(1, height - 2);
+  const windowSize = Math.max(1, height - 6);
   const half = Math.floor(windowSize / 2);
   const start = Math.max(0, Math.min(items.length - windowSize, cursorIndex - half));
   const end = Math.min(items.length, start + windowSize);
@@ -26,7 +26,7 @@ const StandingsList: React.FC<StandingsListProps> = ({ items, cursorIndex, heigh
 
   return (
     <Box flexDirection="column">
-      <Box>
+      <Box minHeight={1}>
         <Box width={25}>
           <Text bold>Team</Text>
         </Box>
@@ -42,7 +42,7 @@ const StandingsList: React.FC<StandingsListProps> = ({ items, cursorIndex, heigh
         const isSelected = absoluteIndex === cursorIndex;
         const record = `${item.wins}-${item.losses}-${item.otLosses}`;
         return (
-          <Box key={item.teamAbbrev}>
+          <Box key={`${absoluteIndex}-${item.teamAbbrev}`} minHeight={1}>
             <Box width={25}>
               <Text inverse={isSelected}>
                 {item.rank}. {item.teamName}

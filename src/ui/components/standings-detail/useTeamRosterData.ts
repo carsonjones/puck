@@ -19,8 +19,23 @@ export type PlayerWithStats = {
   shootingPctg: number;
 };
 
+export type GoalieWithStats = {
+  id: number;
+  sweaterNumber: number;
+  firstName: string;
+  lastName: string;
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  otLosses: number;
+  goalsAgainstAverage: number;
+  savePct: number;
+  shutouts: number;
+};
+
 export type TeamRosterData = {
   players: PlayerWithStats[];
+  goalies: GoalieWithStats[];
   loading: boolean;
   error: unknown;
 };
@@ -35,12 +50,14 @@ const getCurrentSeasonId = () => {
 
 export const useTeamRosterData = (teamAbbrev: string | null): TeamRosterData => {
   const [players, setPlayers] = useState<PlayerWithStats[]>([]);
+  const [goalies, setGoalies] = useState<GoalieWithStats[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     if (!teamAbbrev) {
       setPlayers([]);
+      setGoalies([]);
       setLoading(false);
       return;
     }
@@ -54,13 +71,12 @@ export const useTeamRosterData = (teamAbbrev: string | null): TeamRosterData => 
         const currentSeason = getCurrentSeasonId();
         const roster = await nhlClient.getTeamRoster(teamAbbrev);
 
-        const allPlayers: PlayerInfo[] = [
+        const skaters: PlayerInfo[] = [
           ...roster.forwards,
           ...roster.defensemen,
-          ...roster.goalies,
         ];
 
-        const statsPromises = allPlayers.map(async (player) => {
+        const skatersStatsPromises = skaters.map(async (player) => {
           try {
             const landing = await nhlClient.getPlayerSeasonStats(player.id);
             return { player, landing };
@@ -69,9 +85,9 @@ export const useTeamRosterData = (teamAbbrev: string | null): TeamRosterData => 
           }
         });
 
-        const results = await Promise.all(statsPromises);
+        const skatersResults = await Promise.all(skatersStatsPromises);
 
-        const playersWithStats: PlayerWithStats[] = results.map(({ player, landing }) => {
+        const playersWithStats: PlayerWithStats[] = skatersResults.map(({ player, landing }) => {
           const seasonStats = landing?.seasonTotals?.find(
             (s: SeasonTotal) => s.season === currentSeason && s.gameTypeId === 2
           );
@@ -94,6 +110,40 @@ export const useTeamRosterData = (teamAbbrev: string | null): TeamRosterData => 
 
         playersWithStats.sort((a, b) => b.points - a.points);
         setPlayers(playersWithStats);
+
+        const goaliesStatsPromises = roster.goalies.map(async (goalie) => {
+          try {
+            const landing = await nhlClient.getPlayerSeasonStats(goalie.id);
+            return { player: goalie, landing };
+          } catch {
+            return { player: goalie, landing: null };
+          }
+        });
+
+        const goaliesResults = await Promise.all(goaliesStatsPromises);
+
+        const goaliesWithStats: GoalieWithStats[] = goaliesResults.map(({ player, landing }) => {
+          const seasonStats = landing?.seasonTotals?.find(
+            (s: SeasonTotal) => s.season === currentSeason && s.gameTypeId === 2
+          );
+
+          return {
+            id: player.id,
+            sweaterNumber: player.sweaterNumber,
+            firstName: player.firstName.default,
+            lastName: player.lastName.default,
+            gamesPlayed: seasonStats?.gamesPlayed || 0,
+            wins: seasonStats?.wins || 0,
+            losses: seasonStats?.losses || 0,
+            otLosses: seasonStats?.otLosses || 0,
+            goalsAgainstAverage: seasonStats?.goalsAgainstAverage || 0,
+            savePct: seasonStats?.savePctg || 0,
+            shutouts: seasonStats?.shutouts || 0,
+          };
+        });
+
+        goaliesWithStats.sort((a, b) => b.wins - a.wins);
+        setGoalies(goaliesWithStats);
       } catch (err) {
         setError(err);
       } finally {
@@ -101,8 +151,12 @@ export const useTeamRosterData = (teamAbbrev: string | null): TeamRosterData => 
       }
     };
 
-    fetchRosterData();
+    const timeoutId = setTimeout(() => {
+      fetchRosterData();
+    }, 200);
+
+    return () => clearTimeout(timeoutId);
   }, [teamAbbrev]);
 
-  return { players, loading, error };
+  return { players, goalies, loading, error };
 };
