@@ -104,7 +104,10 @@ export const useStandingsKeyBindings = (config: StandingsKeyBindingsConfig) => {
         } else if (standingsTab === "division") {
           const divs: StandingsDivision[] = ["atlantic", "metropolitan", "central", "pacific"];
           const idx = divs.indexOf(standingsDivision);
-          const nextDiv = divs[(idx + 1) % divs.length];
+          const nextIdx = key.shift
+            ? (idx - 1 + divs.length) % divs.length
+            : (idx + 1) % divs.length;
+          const nextDiv = divs[nextIdx];
           if (nextDiv) setStandingsDivision(nextDiv);
           return;
         }

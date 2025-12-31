@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text, useStdout } from "ink";
 import type React from "react";
 import type { GameListItem } from "@/data/api/client.js";
 
@@ -11,6 +11,10 @@ type ListProps = {
 };
 
 const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
+  const { stdout } = useStdout();
+  const terminalWidth = stdout?.columns || 80;
+  const containerWidth = Math.floor(terminalWidth / 2) - 10; // half screen minus borders/padding
+
   if (loading) {
     return <Text dimColor>Loading games...</Text>;
   }
@@ -23,6 +27,9 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
     if (item.status === "final") {
       const overtimeLabel = item.periodType === "OT" ? " OT" : item.periodType === "SO" ? " SO" : "";
       return `${item.awayScore}-${item.homeScore}${overtimeLabel}`;
+    }
+    if (item.status === "in_progress") {
+      return `${item.startTime} ●`;
     }
     return item.startTime;
   };
@@ -40,12 +47,15 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
         const isSelected = absoluteIndex === cursorIndex;
         const awayWins = item.status === "final" && item.awayScore > item.homeScore;
         const homeWins = item.status === "final" && item.homeScore > item.awayScore;
+
+        const leftText = `${item.awayTeam}${awayWins ? " ✓" : ""} @ ${item.homeTeam}${homeWins ? " ✓" : ""}`;
+        const rightText = formatGameInfo(item);
+        const padding = Math.max(1, containerWidth - leftText.length - rightText.length);
+        const fullText = `${leftText}${" ".repeat(padding)}${rightText}`;
+
         return (
-          <Box key={item.id} justifyContent="space-between">
-            <Text inverse={isSelected}>
-              {`${item.awayTeam}${awayWins ? " ✓" : ""} @ ${item.homeTeam}${homeWins ? " ✓" : ""}`}
-            </Text>
-            <Text inverse={isSelected}>{formatGameInfo(item)}</Text>
+          <Box key={item.id}>
+            <Text inverse={isSelected}>{fullText}</Text>
           </Box>
         );
       })}

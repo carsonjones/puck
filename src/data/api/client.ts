@@ -144,7 +144,7 @@ const mapGameListItem = (game: NhlGame): GameListItem => ({
   homeScore: game.homeTeam.score,
   awayScore: game.awayTeam.score,
   period: game.period,
-  periodType: game.periodDescriptor.periodType,
+  periodType: game.periodDescriptor?.periodType ?? "REG",
 });
 
 const sumHits = (players: PlayerStats[]) => players.reduce((total, player) => total + (player.hits ?? 0), 0);

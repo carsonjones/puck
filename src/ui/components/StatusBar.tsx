@@ -21,7 +21,7 @@ const StatusBar: React.FC<{
           ? "Loading"
           : error
             ? `Error: ${error}`
-            : "[c] calendar [w] standings [p] players [q] quit"}
+            : "[g] games [w] standings [p] players [q] quit"}
       </Text>
     </Box>
   );

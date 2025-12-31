@@ -40,6 +40,7 @@ interface AppState {
   teamSearchQuery: string;
   teamSearchCursorIndex: number;
   gameTeamFilter: string | null;
+  pendingTeamNavigation: string | null;
   setFocusedPane: (pane: FocusedPane) => void;
   moveCursor: (delta: number, maxIndex?: number) => void;
   selectGame: (id: string | null, status?: GameStatus) => void;
@@ -66,6 +67,8 @@ interface AppState {
   moveTeamSearchCursor: (delta: number, maxIndex?: number) => void;
   setGameTeamFilter: (abbrev: string | null) => void;
   resetTeamSearch: () => void;
+  navigateToTeamInStandings: (teamAbbrev: string) => void;
+  clearPendingTeamNavigation: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -93,6 +96,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   teamSearchQuery: "",
   teamSearchCursorIndex: 0,
   gameTeamFilter: null,
+  pendingTeamNavigation: null,
   setFocusedPane: (pane) => set({ focusedPane: pane }),
   moveCursor: (delta, maxIndex) => {
     const nextIndex = get().listCursorIndex + delta;
@@ -184,4 +188,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   setGameTeamFilter: (abbrev) => set({ gameTeamFilter: abbrev }),
   resetTeamSearch: () => set({ teamSearchOpen: false, teamSearchQuery: "", teamSearchCursorIndex: 0 }),
+  navigateToTeamInStandings: (teamAbbrev) => set({ viewMode: "standings", pendingTeamNavigation: teamAbbrev, focusedPane: "detail" }),
+  clearPendingTeamNavigation: () => set({ pendingTeamNavigation: null }),
 }));

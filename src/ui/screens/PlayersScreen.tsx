@@ -10,7 +10,7 @@ import SplitPane from "@/ui/components/SplitPane.js";
 import PlayersList from "@/ui/components/PlayersList.js";
 import PlayerDetail from "@/ui/components/player-detail/PlayerDetail.js";
 import StatusBar from "@/ui/components/StatusBar.js";
-import TeamSearchModal from "@/ui/components/TeamSearchModal.js";
+import TeamSearchScreen from "@/ui/screens/TeamSearchScreen.js";
 
 const PlayersScreen: React.FC = () => {
   const { exit } = useApp();
@@ -256,6 +256,11 @@ const PlayersScreen: React.FC = () => {
     );
   };
 
+  // If team search is active, show search screen instead
+  if (teamSearchOpen) {
+    return <TeamSearchScreen />;
+  }
+
   return (
     <Box flexDirection="column" width={width} height={height} padding={1}>
       <Box flexGrow={1}>
@@ -267,7 +272,6 @@ const PlayersScreen: React.FC = () => {
         loading={status === "loading"}
         error={error instanceof Error ? error.message : null}
       />
-      {teamSearchOpen && <TeamSearchModal />}
     </Box>
   );
 };

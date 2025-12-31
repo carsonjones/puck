@@ -14,7 +14,7 @@ import GameDetail from "@/ui/components/game-detail/GameDetail.js";
 import List from "@/ui/components/List.js";
 import SplitPane from "@/ui/components/SplitPane.js";
 import StatusBar from "@/ui/components/StatusBar.js";
-import TeamSearchModal from "@/ui/components/TeamSearchModal.js";
+import TeamSearchScreen from "@/ui/screens/TeamSearchScreen.js";
 
 const GamesScreen: React.FC = () => {
   const { exit } = useApp();
@@ -240,6 +240,7 @@ const GamesScreen: React.FC = () => {
     listCursorIndex,
     pageCursor,
     selectedGameId,
+    displayGame,
     data: data ?? null,
     limit,
     playsCount,
@@ -319,6 +320,11 @@ const GamesScreen: React.FC = () => {
     );
   };
 
+  // If team search is active, show search screen instead
+  if (teamSearchOpen) {
+    return <TeamSearchScreen />;
+  }
+
   return (
     <Box flexDirection="column" width={width} height={height} padding={1}>
       <Box flexGrow={1}>
@@ -333,7 +339,6 @@ const GamesScreen: React.FC = () => {
         loading={status === "loading"}
         error={error instanceof Error ? error.message : null}
       />
-      {teamSearchOpen && <TeamSearchModal />}
     </Box>
   );
 };

@@ -1,5 +1,5 @@
 import { useInput } from "ink";
-import type { GameListItem } from "@/data/api/client.js";
+import type { GameListItem, GameDetail } from "@/data/api/client.js";
 import { formatDate } from "@/data/api/client.js";
 import { queryKeys } from "@/data/query/keys.js";
 import { queryClient } from "@/data/query/queryClient.js";
@@ -12,6 +12,7 @@ type GamesKeyBindingsConfig = {
   listCursorIndex: number;
   pageCursor: string | null;
   selectedGameId: string | null;
+  displayGame: GameDetail | null;
   data: { nextCursor?: string | null } | null;
   limit: number;
   playsCount: number;
@@ -34,6 +35,7 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
     listCursorIndex,
     pageCursor,
     selectedGameId,
+    displayGame,
     data,
     limit,
     playsCount,
@@ -94,9 +96,19 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
       return;
     }
 
-    // Toggle view mode (all/home/road)
-    if (input === "v") {
-      cycleStandingsViewMode();
+    // Navigate to standings with home team
+    if (input === "v" && !key.shift) {
+      if (displayGame) {
+        useAppStore.getState().navigateToTeamInStandings(displayGame.homeTeamAbbrev);
+      }
+      return;
+    }
+
+    // Navigate to standings with away team
+    if (input === "V" || (input === "v" && key.shift)) {
+      if (displayGame) {
+        useAppStore.getState().navigateToTeamInStandings(displayGame.awayTeamAbbrev);
+      }
       return;
     }
 
@@ -113,7 +125,9 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
       // In detail pane: cycle through tabs
       const tabs = ["stats", "plays", "players"] as const;
       const currentIndex = tabs.indexOf(detailTab as typeof tabs[number]);
-      const nextIndex = (currentIndex + 1) % tabs.length;
+      const nextIndex = key.shift
+        ? (currentIndex - 1 + tabs.length) % tabs.length
+        : (currentIndex + 1) % tabs.length;
       setDetailTab(tabs[nextIndex]);
       return;
     }

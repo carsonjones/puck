@@ -84,7 +84,7 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
       return;
     }
 
-    if (input === "c") {
+    if (input === "g") {
       useAppStore.getState().setViewMode("games");
       return;
     }

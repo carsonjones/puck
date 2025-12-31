@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text, useStdout } from "ink";
 import type React from "react";
 import type { StandingListItem } from "@/data/api/client.js";
 import type { StandingsViewMode } from "@/state/useAppStore.js";
@@ -12,6 +12,10 @@ type StandingsListProps = {
 };
 
 const StandingsList: React.FC<StandingsListProps> = ({ items, cursorIndex, height, loading, viewMode = "all" }) => {
+  const { stdout } = useStdout();
+  const terminalWidth = stdout?.columns || 80;
+  const containerWidth = Math.floor(terminalWidth / 2) - 10;
+
   if (loading) {
     return <Text dimColor>Loading standings...</Text>;
   }
@@ -60,19 +64,17 @@ const StandingsList: React.FC<StandingsListProps> = ({ items, cursorIndex, heigh
         const isSelected = absoluteIndex === cursorIndex;
         const record = getRecord(item);
         const points = getPoints(item);
+
+        const teamText = `${item.rank}. ${item.teamName}`;
+        const recordText = record.padStart(10);
+        const pointsText = points.toString().padStart(4);
+        const combinedLength = teamText.length + recordText.length + pointsText.length;
+        const padding = Math.max(1, containerWidth - combinedLength);
+        const fullText = `${teamText}${" ".repeat(padding)}${recordText} ${pointsText}`;
+
         return (
           <Box key={`${absoluteIndex}-${item.teamAbbrev}`} minHeight={1}>
-            <Box width={25}>
-              <Text inverse={isSelected}>
-                {item.rank}. {item.teamName}
-              </Text>
-            </Box>
-            <Box width={12}>
-              <Text inverse={isSelected}>{record}</Text>
-            </Box>
-            <Box width={6}>
-              <Text inverse={isSelected}>{points}</Text>
-            </Box>
+            <Text inverse={isSelected}>{fullText}</Text>
           </Box>
         );
       })}

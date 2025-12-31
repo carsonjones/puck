@@ -11,7 +11,7 @@ import StandingsList from "@/ui/components/StandingsList.js";
 import StatusBar from "@/ui/components/StatusBar.js";
 import StandingsDetail from "@/ui/components/standings-detail/StandingsDetail.js";
 import Tabs from "@/ui/components/Tabs.js";
-import TeamSearchModal from "@/ui/components/TeamSearchModal.js";
+import TeamSearchScreen from "@/ui/screens/TeamSearchScreen.js";
 import { useTeamRosterData } from "@/ui/components/standings-detail/useTeamRosterData.js";
 
 const StandingsScreen: React.FC = () => {
@@ -29,6 +29,7 @@ const StandingsScreen: React.FC = () => {
     standingsDivision,
     standingsViewMode,
     teamSearchOpen,
+    pendingTeamNavigation,
     moveStandingsCursor,
     setFocusedPane,
     setStandingsTab,
@@ -40,6 +41,7 @@ const StandingsScreen: React.FC = () => {
     selectPlayer,
     setPreviousStandingsState,
     openTeamSearch,
+    clearPendingTeamNavigation,
   } = useAppStore();
 
   const listHeight = Math.max(6, height - 4);
@@ -76,6 +78,19 @@ const StandingsScreen: React.FC = () => {
       moveStandingsCursor(-(standingsCursorIndex - (items.length - 1)), items.length - 1);
     }
   }, [items.length, standingsCursorIndex, moveStandingsCursor]);
+
+  // Handle pending team navigation from games screen
+  useEffect(() => {
+    if (pendingTeamNavigation && data) {
+      const teamIndex = data.league.findIndex(t => t.teamAbbrev === pendingTeamNavigation);
+      if (teamIndex >= 0) {
+        // Switch to league tab and set cursor to team
+        setStandingsTab("league");
+        moveStandingsCursor(teamIndex - standingsCursorIndex, data.league.length - 1);
+      }
+      clearPendingTeamNavigation();
+    }
+  }, [pendingTeamNavigation, data, standingsCursorIndex, setStandingsTab, moveStandingsCursor, clearPendingTeamNavigation]);
 
   const quit = () => {
     exit();
@@ -169,13 +184,17 @@ const StandingsScreen: React.FC = () => {
     );
   };
 
+  // If team search is active, show search screen instead
+  if (teamSearchOpen) {
+    return <TeamSearchScreen />;
+  }
+
   return (
     <Box flexDirection="column" width={width} height={height} padding={1}>
       <Box flexGrow={1}>
         <SplitPane left={listPane()} right={detailPane()} />
       </Box>
       <StatusBar focus={focusedPane} pageCursor={null} loading={status === "loading"} error={error instanceof Error ? error.message : null} />
-      {teamSearchOpen && <TeamSearchModal />}
     </Box>
   );
 };

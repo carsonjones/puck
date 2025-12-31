@@ -1,12 +1,11 @@
-import { Box, Text, useInput } from "ink";
-import { useStdout } from "ink";
-import type React from "react";
+import { Box, Text, useInput, useStdout } from "ink";
+import { useMemo } from "react";
 import type { StandingListItem } from "@/data/api/client.js";
 import { useStandings } from "@/data/hooks/useStandings.js";
 import { useAppStore } from "@/state/useAppStore.js";
 import { fuzzyMatchTeams } from "@/utils/fuzzyMatch.js";
 
-const TeamSearchModal: React.FC = () => {
+const TeamSearchScreen: React.FC = () => {
   const { stdout } = useStdout();
   const width = stdout?.columns ?? 80;
   const height = stdout?.rows ?? 24;
@@ -22,7 +21,6 @@ const TeamSearchModal: React.FC = () => {
     setViewMode,
     setStandingsTab,
     setStandingsConference,
-    setStandingsDivision,
     moveStandingsCursor,
     setFocusedPane,
     standingsCursorIndex,
@@ -37,18 +35,11 @@ const TeamSearchModal: React.FC = () => {
   const filteredMatches = fuzzyMatchTeams(query, allTeams);
   const filteredTeams = filteredMatches.map((m) => m.team);
 
-  // Modal dimensions and position
-  // Account for padding (2x2=4) and border (2) = 6 extra columns
-  const modalContentWidth = Math.floor(width * 0.35);
-  const modalMaxHeight = Math.floor(height * 0.6);
-  const modalLeft = Math.floor((width - modalContentWidth - 6) / 2);
-  const modalTop = 3; // Fixed top margin
-
   // Scrolling window for results
-  const maxResults = modalMaxHeight - 6; // Account for header, input, footer, borders
-  const half = Math.floor(maxResults / 2);
-  const start = Math.max(0, Math.min(filteredTeams.length - maxResults, cursorIndex - half));
-  const end = Math.min(filteredTeams.length, start + maxResults);
+  const listHeight = height - 6; // Account for header, input, footer
+  const half = Math.floor(listHeight / 2);
+  const start = Math.max(0, Math.min(filteredTeams.length - listHeight, cursorIndex - half));
+  const end = Math.min(filteredTeams.length, start + listHeight);
   const visibleTeams = filteredTeams.slice(start, end);
 
   const handleTeamSelection = (team: StandingListItem, action: "context" | "roster") => {
@@ -81,8 +72,7 @@ const TeamSearchModal: React.FC = () => {
       setStandingsConference("western");
     }
 
-    // Find team index in current standings view
-    // For simplicity, use league-wide list
+    // Find team index in league-wide list
     const teamIndex = allTeams.findIndex((t) => t.teamAbbrev === team.teamAbbrev);
 
     if (teamIndex >= 0) {
@@ -144,71 +134,57 @@ const TeamSearchModal: React.FC = () => {
     contextHint = "jump to team";
   }
 
+  const lineWidth = Math.max(20, width - 4);
+
   return (
-    <Box
-      width={width}
-      height={height}
-      position="absolute"
-    >
-      {/* Background overlay - fill entire screen with spaces */}
-      <Box position="absolute" width={width} height={height} flexDirection="column">
-        {Array.from({ length: height }).map((_, i) => (
-          <Text key={i} backgroundColor="black">
-            {" ".repeat(width)}
-          </Text>
-        ))}
+    <Box flexDirection="column" width={width} height={height} padding={1}>
+      {/* Header */}
+      <Box flexDirection="column">
+        <Text bold>Search Teams</Text>
+        <Text dimColor>{"─".repeat(lineWidth)}</Text>
       </Box>
 
-      {/* Modal content - positioned with margins */}
-      <Box position="absolute" width={width} height={height} flexDirection="column">
-        <Box height={modalTop} />
-        <Box flexDirection="row">
-          <Box width={modalLeft} />
-          <Box
-            width={modalContentWidth}
-            borderStyle="round"
-            borderColor="cyan"
-            flexDirection="column"
-            padding={1}
-            backgroundColor="black"
-          >
-        {/* Search input */}
-        <Box marginBottom={1}>
-          <Text bold>Search Teams: </Text>
-          <Text color="cyan">{query}</Text>
-          <Text>█</Text>
-        </Box>
+      {/* Search input */}
+      <Box marginTop={1} marginBottom={1}>
+        <Text>Query: </Text>
+        <Text color="cyan">{query || "(type to search)"}</Text>
+        {query && <Text>█</Text>}
+      </Box>
 
-        {/* Results list */}
-        <Box flexDirection="column" flexGrow={1}>
-          {status === "pending" ? (
-            <Text dimColor>Loading teams...</Text>
-          ) : filteredTeams.length === 0 ? (
-            <Text dimColor>No teams found</Text>
-          ) : (
-            visibleTeams.map((team, index) => {
-              const absoluteIndex = start + index;
-              const isSelected = absoluteIndex === cursorIndex;
-              return (
-                <Text key={team.teamAbbrev} inverse={isSelected}>
-                  {team.teamAbbrev} - {team.teamName}
-                </Text>
-              );
-            })
-          )}
-        </Box>
+      {/* Results list */}
+      <Box flexDirection="column" flexGrow={1}>
+        {status === "pending" ? (
+          <Text dimColor>Loading teams...</Text>
+        ) : filteredTeams.length === 0 ? (
+          <Text dimColor>No teams found</Text>
+        ) : (
+          <>
+            <Text dimColor>
+              {filteredTeams.length} team{filteredTeams.length !== 1 ? "s" : ""} found
+            </Text>
+            <Box marginTop={1} flexDirection="column">
+              {visibleTeams.map((team, index) => {
+                const absoluteIndex = start + index;
+                const isSelected = absoluteIndex === cursorIndex;
+                return (
+                  <Text key={team.teamAbbrev} inverse={isSelected}>
+                    {team.teamAbbrev} - {team.teamName}
+                  </Text>
+                );
+              })}
+            </Box>
+          </>
+        )}
+      </Box>
 
-        {/* Footer hints */}
-        <Box marginTop={1} borderStyle="single" borderTop borderColor="gray">
-          <Text dimColor>
-            [↑↓/jk] navigate  [Enter] {contextHint}  [Ctrl+D] roster  [Esc] close
-          </Text>
-        </Box>
-          </Box>
-        </Box>
+      {/* Footer hints */}
+      <Box marginTop={1} borderStyle="single" borderTop>
+        <Text dimColor>
+          [↑↓/jk] navigate | [Enter] {contextHint} | [Ctrl+D] roster | [Esc] close
+        </Text>
       </Box>
     </Box>
   );
 };
 
-export default TeamSearchModal;
+export default TeamSearchScreen;
