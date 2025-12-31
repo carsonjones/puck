@@ -58,7 +58,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
         broadcasts={game.broadcasts}
       />
       {game.status !== "scheduled" ? (
-        <Box flexDirection="column">
+        <Box flexDirection="column" marginTop={1}>
           <Tabs tabs={["stats", "plays", "players"]} active={detailTab} />
           <Box>
             {detailTab === "stats" ? (

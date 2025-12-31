@@ -19,6 +19,14 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
     return <Text dimColor>No games found.</Text>;
   }
 
+  const formatGameInfo = (item: GameListItem) => {
+    if (item.status === "final") {
+      const overtimeLabel = item.periodType === "OT" ? " OT" : item.periodType === "SO" ? " SO" : "";
+      return `${item.awayScore}-${item.homeScore}${overtimeLabel}`;
+    }
+    return item.startTime;
+  };
+
   const windowSize = Math.max(1, height - 2);
   const half = Math.floor(windowSize / 2);
   const start = Math.max(0, Math.min(items.length - windowSize, cursorIndex - half));
@@ -35,9 +43,9 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
         return (
           <Box key={item.id} justifyContent="space-between">
             <Text inverse={isSelected}>
-              {`${item.awayTeam}${awayWins ? "✓" : ""} @ ${item.homeTeam}${homeWins ? "✓" : ""}`}
+              {`${item.awayTeam}${awayWins ? " ✓" : ""} @ ${item.homeTeam}${homeWins ? " ✓" : ""}`}
             </Text>
-            <Text inverse={isSelected}>{item.startTime}</Text>
+            <Text inverse={isSelected}>{formatGameInfo(item)}</Text>
           </Box>
         );
       })}

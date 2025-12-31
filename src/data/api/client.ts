@@ -19,6 +19,8 @@ export type GameListItem = {
   status: "scheduled" | "in_progress" | "final";
   homeScore: number;
   awayScore: number;
+  period: number;
+  periodType: string;
 };
 
 export type GameDetail = GameListItem & {
@@ -141,6 +143,8 @@ const mapGameListItem = (game: NhlGame): GameListItem => ({
   status: mapGameStatus(game.gameState),
   homeScore: game.homeTeam.score,
   awayScore: game.awayTeam.score,
+  period: game.period,
+  periodType: game.periodDescriptor.periodType,
 });
 
 const sumHits = (players: PlayerStats[]) => players.reduce((total, player) => total + (player.hits ?? 0), 0);

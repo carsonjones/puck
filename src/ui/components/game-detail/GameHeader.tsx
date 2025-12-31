@@ -37,7 +37,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({
   return (
     <Box flexDirection="column">
       <Text>
-        {`${awayTeam}${awayWins ? "✓" : ""} @ ${homeTeam}${homeWins ? "✓" : ""}`}
+        {`${awayTeam}${awayWins ? " ✓" : ""} @ ${homeTeam}${homeWins ? " ✓" : ""}`}
       </Text>
       <Text>
         {`${date} • ${startTime} • ${venue}`}

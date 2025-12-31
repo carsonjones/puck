@@ -36,6 +36,10 @@ interface AppState {
     teamAbbrev: string | null;
     playerIndex: number;
   } | null;
+  teamSearchOpen: boolean;
+  teamSearchQuery: string;
+  teamSearchCursorIndex: number;
+  gameTeamFilter: string | null;
   setFocusedPane: (pane: FocusedPane) => void;
   moveCursor: (delta: number, maxIndex?: number) => void;
   selectGame: (id: string | null, status?: GameStatus) => void;
@@ -56,6 +60,12 @@ interface AppState {
   setPlayerDetailTab: (tab: PlayerDetailTab) => void;
   movePlayerDetailScroll: (delta: number, maxIndex?: number) => void;
   setPreviousStandingsState: (state: { teamAbbrev: string | null; playerIndex: number } | null) => void;
+  openTeamSearch: () => void;
+  closeTeamSearch: () => void;
+  setTeamSearchQuery: (query: string) => void;
+  moveTeamSearchCursor: (delta: number, maxIndex?: number) => void;
+  setGameTeamFilter: (abbrev: string | null) => void;
+  resetTeamSearch: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -79,6 +89,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   playerDetailTab: "season",
   playerDetailScrollIndex: 0,
   previousStandingsState: null,
+  teamSearchOpen: false,
+  teamSearchQuery: "",
+  teamSearchCursorIndex: 0,
+  gameTeamFilter: null,
   setFocusedPane: (pane) => set({ focusedPane: pane }),
   moveCursor: (delta, maxIndex) => {
     const nextIndex = get().listCursorIndex + delta;
@@ -157,4 +171,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ playerDetailScrollIndex: clamped });
   },
   setPreviousStandingsState: (state) => set({ previousStandingsState: state }),
+  openTeamSearch: () => set({ teamSearchOpen: true, teamSearchQuery: "", teamSearchCursorIndex: 0 }),
+  closeTeamSearch: () => set({ teamSearchOpen: false }),
+  setTeamSearchQuery: (query) => set({ teamSearchQuery: query, teamSearchCursorIndex: 0 }),
+  moveTeamSearchCursor: (delta, maxIndex) => {
+    const nextIndex = get().teamSearchCursorIndex + delta;
+    const clamped =
+      typeof maxIndex === "number"
+        ? Math.max(0, Math.min(maxIndex, nextIndex))
+        : Math.max(0, nextIndex);
+    set({ teamSearchCursorIndex: clamped });
+  },
+  setGameTeamFilter: (abbrev) => set({ gameTeamFilter: abbrev }),
+  resetTeamSearch: () => set({ teamSearchOpen: false, teamSearchQuery: "", teamSearchCursorIndex: 0 }),
 }));
