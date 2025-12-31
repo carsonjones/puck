@@ -1,5 +1,5 @@
 import { Box, Text, useStdout } from 'ink';
-import type React from 'react';
+import React, { Fragment } from 'react';
 import type { GameDetail as GameDetailType, StandingListItem } from '@/data/api/client.js';
 import type { StandingsViewMode } from '@/state/useAppStore.js';
 import GameHeader from '@/ui/components/game-detail/GameHeader.js';
@@ -49,6 +49,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
 	return (
 		<Box flexDirection="column">
 			<GameHeader
+	      key={`game-${game.id}-header`}
 				awayTeam={game.awayTeam}
 				homeTeam={game.homeTeam}
 				date={game.date}
@@ -63,30 +64,31 @@ const GameDetail: React.FC<GameDetailProps> = ({
 				broadcasts={game.broadcasts}
 			/>
 			{game.status !== 'scheduled' ? (
-			<>
-        <Text dimColor>{'─'.repeat(lineWidth)}</Text>
-				<Box flexDirection="column">
-					<Tabs tabs={['stats', 'plays', 'players']} active={detailTab} />
-					<Box>
-						{detailTab === 'stats' ? (
-							<StatsTab
-								game={game}
-								teamStandings={teamStandings}
-								standingsViewMode={standingsViewMode}
-							/>
-						) : detailTab === 'plays' ? (
-							<PlaysTab
-								plays={game.plays}
-								scrollIndex={playsScrollIndex}
-								sortOrder={playsSortOrder}
-								height={height}
-							/>
-						) : (
-							<PlayersTab game={game} scrollIndex={playsScrollIndex} height={height} />
-						)}
-					</Box>
-				</Box>
-			</>
+  			<Fragment key={`game-${game.id}-details-tabs`}>
+          <Text dimColor>{'─'.repeat(lineWidth)}</Text>
+  				<Box flexDirection="column">
+  					<Tabs tabs={['stats', 'plays', 'players']} active={detailTab} />
+            <Text dimColor>{'─'.repeat(lineWidth)}</Text>
+  					<Box>
+  						{detailTab === 'stats' ? (
+  							<StatsTab
+  								game={game}
+  								teamStandings={teamStandings}
+  								standingsViewMode={standingsViewMode}
+  							/>
+  						) : detailTab === 'plays' ? (
+  							<PlaysTab
+  								plays={game.plays}
+  								scrollIndex={playsScrollIndex}
+  								sortOrder={playsSortOrder}
+  								height={height}
+  							/>
+  						) : (
+  							<PlayersTab game={game} scrollIndex={playsScrollIndex} height={height} />
+  						)}
+  					</Box>
+  				</Box>
+  			</Fragment>
 			) : null}
 		</Box>
 	);

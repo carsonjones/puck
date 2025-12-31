@@ -165,15 +165,53 @@ const describePlay = (
 ) => {
 	const details = play.details;
 	const scorer = details?.scoringPlayerId ? rosterMap.get(details.scoringPlayerId) : undefined;
+	const assist1 = details?.assist1PlayerId ? rosterMap.get(details.assist1PlayerId) : undefined;
+	const assist2 = details?.assist2PlayerId ? rosterMap.get(details.assist2PlayerId) : undefined;
 	const shooter = details?.shootingPlayerId ? rosterMap.get(details.shootingPlayerId) : undefined;
 	const committer = details?.committedByPlayerId
 		? rosterMap.get(details.committedByPlayerId)
 		: undefined;
 	const drawnBy = details?.drawnByPlayerId ? rosterMap.get(details.drawnByPlayerId) : undefined;
+	const hitter = details?.hittingPlayerId ? rosterMap.get(details.hittingPlayerId) : undefined;
+	const hittee = details?.hitteePlayerId ? rosterMap.get(details.hitteePlayerId) : undefined;
+	const faceoffWinner = details?.winningPlayerId
+		? rosterMap.get(details.winningPlayerId)
+		: undefined;
+	const blocker = details?.blockingPlayerId
+		? rosterMap.get(details.blockingPlayerId)
+		: undefined;
 
-	if (scorer) return `Goal - ${scorer}`;
+	// Goal with assists
+	if (scorer) {
+		const assists = [assist1, assist2].filter(Boolean).join(', ');
+		return assists ? `Goal - ${scorer} (${assists})` : `Goal - ${scorer}`;
+	}
+
+	// Blocked shot
+	if (blocker && shooter) return `Blocked Shot - ${blocker} blocks ${shooter}`;
+
+	// Hit
+	if (hitter && hittee) return `Hit - ${hitter} on ${hittee}`;
+	if (hitter) return `Hit - ${hitter}`;
+
+	// Shot
 	if (shooter) return `Shot - ${shooter} (${details?.shotType ?? 'shot'})`;
-	if (committer) return `Penalty - ${committer}${drawnBy ? ` on ${drawnBy}` : ''}`;
+
+	// Faceoff
+	if (faceoffWinner) return `Faceoff won by ${faceoffWinner}`;
+
+	// Penalty
+	if (committer) {
+		const penalty = details?.descKey || 'Penalty';
+		return drawnBy ? `${penalty} - ${committer} (drawn by ${drawnBy})` : `${penalty} - ${committer}`;
+	}
+
+	// Stoppage with reason
+	if (play.typeDescKey === 'stoppage' && details?.reason) {
+		return details.reason === 'icing' ? 'Icing' : details.reason;
+	}
+
+	// Fallback
 	if (details?.descKey) return details.descKey;
 	return play.typeDescKey;
 };

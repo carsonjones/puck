@@ -45,7 +45,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({
 	return (
 		<Box flexDirection="column">
 			<Text>{`${awayTeam}${awayWins ? ' ✓' : ''} @ ${homeTeam}${homeWins ? ' ✓' : ''}`}</Text>
-			<Text>{`${date} • ${startTime} • ${venue}`}</Text>
+			<Text dimColor={status === 'final'}>{`${date} • ${startTime} • ${venue}`}</Text>
 			{status !== 'scheduled' ? (
 				<Box>
 					<Text>{`Score: ${awayScore}-${homeScore}`}</Text>

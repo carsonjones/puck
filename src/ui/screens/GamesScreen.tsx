@@ -1,6 +1,5 @@
 import { Box, Text, useApp, useStdout } from 'ink';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { GameDetail as GameDetailType } from '@/data/api/client.js';
+import { useMemo } from 'react';
 import { formatDate } from '@/data/api/client.js';
 import { useGame } from '@/data/hooks/useGame.js';
 import { useGamesPage } from '@/data/hooks/useGamesPage.js';
@@ -8,6 +7,8 @@ import { useStandings } from '@/data/hooks/useStandings.js';
 import { queryKeys } from '@/data/query/keys.js';
 import { queryClient } from '@/data/query/queryClient.js';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh.js';
+import { useGameAutoAdvance } from '@/hooks/useGameAutoAdvance.js';
+import { useGameSelection } from '@/hooks/useGameSelection.js';
 import { useGamesKeyBindings } from '@/hooks/useGamesKeyBindings.js';
 import { useAppStore } from '@/state/useAppStore.js';
 import GameDetail from '@/ui/components/game-detail/GameDetail.js';
@@ -15,6 +16,12 @@ import List from '@/ui/components/List.js';
 import SplitPane from '@/ui/components/SplitPane.js';
 import StatusBar from '@/ui/components/StatusBar.js';
 import TeamSearchScreen from '@/ui/screens/TeamSearchScreen.js';
+import {
+	getGamesHeader,
+	getPlaysCount,
+	getRefreshInterval,
+	getTeamStandings,
+} from './GamesScreen.helpers.js';
 
 const GamesScreen: React.FC = () => {
 	const { exit } = useApp();
@@ -54,98 +61,14 @@ const GamesScreen: React.FC = () => {
 	const detail = useGame(selectedGameId);
 
 	// Auto-advance to next day if all today's games are final
-	useEffect(() => {
-		if (pageCursor !== null || status !== 'success' || !data) return;
+	useGameAutoAdvance({ pageCursor, status, data, games, setPageCursor });
 
-		const allGamesFinal = games.length > 0 && games.every((game) => game.status === 'final');
+	// Simplified state - use detail data directly
+	const displayGame = detail.data ?? null;
+	const displayStatus = detail.status === 'idle' ? 'loading' : detail.status;
 
-		if (allGamesFinal) {
-			const tomorrow = new Date();
-			tomorrow.setDate(tomorrow.getDate() + 1);
-			setPageCursor(formatDate(tomorrow));
-		}
-	}, [pageCursor, status, data, games, setPageCursor]);
-
-	// Local state for game data - updated field by field to minimize re-renders
-	const [displayGame, setDisplayGame] = useState<GameDetailType | null>(null);
-	const [displayStatus, setDisplayStatus] = useState<'loading' | 'error' | 'success'>('loading');
-
-	// Update display state field by field when data changes
-	useEffect(() => {
-		if (detail.status === 'success' && detail.data) {
-			if (!displayGame) {
-				// Initial load - set everything
-				setDisplayGame(detail.data);
-				setDisplayStatus('success');
-			} else {
-				// Incremental update - only change fields that differ
-				const updates: Partial<GameDetailType> = {};
-				let hasChanges = false;
-
-				// Check each field
-				if (detail.data.homeScore !== displayGame.homeScore) {
-					updates.homeScore = detail.data.homeScore;
-					hasChanges = true;
-				}
-				if (detail.data.awayScore !== displayGame.awayScore) {
-					updates.awayScore = detail.data.awayScore;
-					hasChanges = true;
-				}
-				if (detail.data.period !== displayGame.period) {
-					updates.period = detail.data.period;
-					hasChanges = true;
-				}
-				if (detail.data.clock !== displayGame.clock) {
-					updates.clock = detail.data.clock;
-					hasChanges = true;
-				}
-				if (detail.data.status !== displayGame.status) {
-					updates.status = detail.data.status;
-					hasChanges = true;
-				}
-				if (JSON.stringify(detail.data.plays) !== JSON.stringify(displayGame.plays)) {
-					updates.plays = detail.data.plays;
-					hasChanges = true;
-				}
-				if (JSON.stringify(detail.data.stats) !== JSON.stringify(displayGame.stats)) {
-					updates.stats = detail.data.stats;
-					hasChanges = true;
-				}
-				if (JSON.stringify(detail.data.leaders) !== JSON.stringify(displayGame.leaders)) {
-					updates.leaders = detail.data.leaders;
-					hasChanges = true;
-				}
-				if (JSON.stringify(detail.data.boxscore) !== JSON.stringify(displayGame.boxscore)) {
-					updates.boxscore = detail.data.boxscore;
-					hasChanges = true;
-				}
-
-				if (hasChanges) {
-					setDisplayGame({ ...displayGame, ...updates });
-				}
-			}
-		} else if (detail.status === 'loading' && !displayGame) {
-			// Only set loading if we don't have data yet
-			setDisplayStatus('loading');
-		} else if (detail.status === 'error' && !displayGame) {
-			setDisplayStatus('error');
-		}
-	}, [detail.status, detail.data, displayGame]);
-
-	// Reset display state when game changes
-	useEffect(() => {
-		setDisplayGame(null);
-		setDisplayStatus('loading');
-	}, []);
-
-	// Determine refresh interval based on game status
-	const refreshIntervalMs = useMemo(() => {
-		if (!selectedGameId || !displayGame) return 0;
-		const gameStatus = displayGame.status;
-		if (gameStatus === 'in_progress') return 5_000; // 5s for live games
-		if (gameStatus === 'final') return 30_000; // 30s for completed games
-		return 30_000; // 30s for scheduled games
-	}, [selectedGameId, displayGame?.status, displayGame]);
+	// Determine refresh interval using helper
+	const refreshIntervalMs = getRefreshInterval(selectedGameId, displayGame);
 
 	// Auto-refresh selected game
 	const { resetTimer } = useAutoRefresh({
@@ -158,47 +81,17 @@ const GamesScreen: React.FC = () => {
 		},
 	});
 
-	useEffect(() => {
-		if (status !== 'success') return;
-		if (games.length === 0) {
-			if (selectedGameId !== null) selectGame(null);
-			return;
-		}
-		const clampedIndex = Math.min(listCursorIndex, games.length - 1);
-		if (clampedIndex !== listCursorIndex) {
-			moveCursor(0, games.length - 1);
-			return;
-		}
-		const item = games[clampedIndex];
-		if (item && item.id !== selectedGameId) {
-			selectGame(item.id, item.status);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [status, games, listCursorIndex, selectedGameId, moveCursor, selectGame]);
-
-	const previousCursor = useRef<string | null>(pageCursor);
-
-	useEffect(() => {
-		if (status !== 'success' || games.length === 0) return;
-		if (previousCursor.current !== pageCursor) {
-			moveCursor(-listCursorIndex, games.length - 1);
-			previousCursor.current = pageCursor;
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [pageCursor, status, games.length, listCursorIndex, moveCursor]);
-
-	const previousGameId = useRef<string | null>(null);
-	const previousTab = useRef<string | null>(null);
-
-	useEffect(() => {
-		if (previousGameId.current !== selectedGameId || previousTab.current !== detailTab) {
-			if (previousGameId.current !== null || previousTab.current !== null) {
-				useAppStore.setState({ playsScrollIndex: 0 });
-			}
-			previousGameId.current = selectedGameId;
-			previousTab.current = detailTab;
-		}
-	}, [selectedGameId, detailTab]);
+	// Auto-select game at cursor + reset scroll on navigation
+	useGameSelection({
+		status,
+		games,
+		listCursorIndex,
+		selectedGameId,
+		detailTab,
+		pageCursor,
+		moveCursor,
+		selectGame,
+	});
 
 	const quit = () => {
 		exit();
@@ -217,19 +110,7 @@ const GamesScreen: React.FC = () => {
 		process.exit(0);
 	};
 
-	const playsCount =
-		detailTab === 'plays' && displayGame?.plays
-			? displayGame.plays.length
-			: detailTab === 'players' && displayGame?.boxscore
-				? [
-						...(displayGame.boxscore.playerByGameStats.awayTeam.forwards || []),
-						...(displayGame.boxscore.playerByGameStats.awayTeam.defense || []),
-						...(displayGame.boxscore.playerByGameStats.awayTeam.goalies || []),
-						...(displayGame.boxscore.playerByGameStats.homeTeam.forwards || []),
-						...(displayGame.boxscore.playerByGameStats.homeTeam.defense || []),
-						...(displayGame.boxscore.playerByGameStats.homeTeam.goalies || []),
-					].length + 3
-				: 0;
+	const playsCount = getPlaysCount(detailTab, displayGame);
 
 	useGamesKeyBindings({
 		focusedPane,
@@ -253,23 +134,15 @@ const GamesScreen: React.FC = () => {
 		onInteraction: resetTimer,
 	});
 
-	const header = useMemo(() => {
-		if (status === 'loading') return 'Loading games';
-		if (status === 'error') return 'Games';
-		const dateStr = pageCursor || formatDate(new Date());
-		const filterSuffix = gameTeamFilter ? ` (Filtered: ${gameTeamFilter})` : '';
-		return `Games for ${dateStr} (${games.length})${filterSuffix}`;
-	}, [status, games.length, pageCursor, gameTeamFilter]);
+	const header = useMemo(
+		() => getGamesHeader(status, games.length, pageCursor, gameTeamFilter),
+		[status, games.length, pageCursor, gameTeamFilter],
+	);
 
-	const teamStandings = useMemo(() => {
-		if (!displayGame || !standings.data) return null;
-
-		const allStandings = standings.data.league;
-		const homeTeam = allStandings.find((t) => t.teamAbbrev === displayGame.homeTeamAbbrev);
-		const awayTeam = allStandings.find((t) => t.teamAbbrev === displayGame.awayTeamAbbrev);
-
-		return { home: homeTeam ?? null, away: awayTeam ?? null };
-	}, [displayGame, standings.data]);
+	const teamStandings = useMemo(
+		() => getTeamStandings(displayGame, standings.data),
+		[displayGame, standings.data],
+	);
 
 	const detailPane = () => {
 		if (!selectedGameId) {

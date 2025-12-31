@@ -18,6 +18,12 @@ const PlaysTab: React.FC<PlaysTabProps> = ({ plays, scrollIndex, sortOrder, heig
 	const end = Math.min(sortedPlays.length, start + windowSize);
 	const visiblePlays = sortedPlays.slice(start, end);
 
+	const getRowColor = (play: Play, isSelected: boolean) => {
+		if (isSelected) return 'yellow';
+		if (play.description?.toLowerCase()?.includes('goal')) return 'green';
+		return 'white';
+	}
+
 	return (
 		<Box flexDirection="column">
 			{visiblePlays.map((play, idx) => {
@@ -25,7 +31,7 @@ const PlaysTab: React.FC<PlaysTabProps> = ({ plays, scrollIndex, sortOrder, heig
 				const isSelected = absoluteIndex === scrollIndex;
 				return (
 					<Box key={absoluteIndex}>
-						<Text color={isSelected ? 'cyan' : undefined}>
+						<Text color={getRowColor(play, isSelected)}>
 							{`${isSelected ? '> ' : '  '}${play.time} ${play.description}`}
 						</Text>
 					</Box>
