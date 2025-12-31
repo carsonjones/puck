@@ -1,6 +1,7 @@
 import { Box, Text, useStdout } from "ink";
 import type React from "react";
-import type { GameDetail as GameDetailType } from "@/data/api/client.js";
+import type { GameDetail as GameDetailType, StandingListItem } from "@/data/api/client.js";
+import type { StandingsViewMode } from "@/state/useAppStore.js";
 import Tabs from "@/ui/components/Tabs.js";
 import GameHeader from "@/ui/components/game-detail/GameHeader.js";
 import PlaysTab from "@/ui/components/game-detail/PlaysTab.js";
@@ -14,6 +15,8 @@ type GameDetailProps = {
   playsScrollIndex: number;
   playsSortOrder: "asc" | "desc";
   height: number;
+  teamStandings?: { home: StandingListItem | null; away: StandingListItem | null } | null;
+  standingsViewMode?: StandingsViewMode;
 };
 
 const GameDetail: React.FC<GameDetailProps> = ({
@@ -23,6 +26,8 @@ const GameDetail: React.FC<GameDetailProps> = ({
   playsScrollIndex,
   playsSortOrder,
   height,
+  teamStandings,
+  standingsViewMode = "all",
 }) => {
   const { stdout } = useStdout();
   const width = stdout?.columns ?? 80;
@@ -62,7 +67,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
           <Tabs tabs={["stats", "plays", "players"]} active={detailTab} />
           <Box>
             {detailTab === "stats" ? (
-              <StatsTab game={game} />
+              <StatsTab game={game} teamStandings={teamStandings} standingsViewMode={standingsViewMode} />
             ) : detailTab === "plays" ? (
               <PlaysTab
                 plays={game.plays}

@@ -182,7 +182,7 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
     <Box flexDirection="column">
       <Box>
         <Text bold>
-          {`${"  "}${"#".padEnd(4)} ${"Name".padEnd(20)} ${"Pos".padEnd(4)} ${"G".padEnd(3)} ${"A".padEnd(3)} ${"SOG".padEnd(4)} ${"HTS".padEnd(4)} ${"SV".padEnd(4)} ${"SV%"}`}
+          {`${"  "}${"#".padEnd(4)} ${"Name".padEnd(20)} ${"Pos".padEnd(4)} ${"G".padEnd(3)} ${"A".padEnd(3)} ${"PTS".padEnd(4)} ${"SOG".padEnd(4)} ${"HTS".padEnd(4)} ${"SV".padEnd(4)} ${"SV%"}`}
         </Text>
       </Box>
       {visiblePlayers.map((player, idx) => {
@@ -209,7 +209,7 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
           return (
             <Box key={absoluteIndex}>
               <Text color={isSelected ? "cyan" : undefined}>
-                {`${isSelected ? "> " : "  "}${displayNum} ${displayName} ${displayPos} ${"-".padEnd(3)} ${"-".padEnd(3)} ${"-".padEnd(4)} ${"-".padEnd(4)} ${displaySaves} ${displaySavePct}`}
+                {`${isSelected ? "> " : "  "}${displayNum} ${displayName} ${displayPos} ${"-".padEnd(3)} ${"-".padEnd(3)} ${"-".padEnd(4)} ${"-".padEnd(4)} ${"-".padEnd(4)} ${displaySaves} ${displaySavePct}`}
               </Text>
             </Box>
           );
@@ -217,13 +217,14 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 
         const displayGoals = String(player.goals ?? 0).padEnd(3);
         const displayAssists = String(player.assists ?? 0).padEnd(3);
+        const displayPoints = String((player.goals ?? 0) + (player.assists ?? 0)).padEnd(4);
         const displayShots = String(player.shots ?? 0).padEnd(4);
         const displayHits = String(player.hits ?? 0).padEnd(4);
 
         return (
           <Box key={absoluteIndex}>
             <Text color={isSelected ? "cyan" : undefined}>
-              {`${isSelected ? "> " : "  "}${displayNum} ${displayName} ${displayPos} ${displayGoals} ${displayAssists} ${displayShots} ${displayHits} ${"-".padEnd(4)} ${"-"}`}
+              {`${isSelected ? "> " : "  "}${displayNum} ${displayName} ${displayPos} ${displayGoals} ${displayAssists} ${displayPoints} ${displayShots} ${displayHits} ${"-".padEnd(4)} ${"-"}`}
             </Text>
           </Box>
         );

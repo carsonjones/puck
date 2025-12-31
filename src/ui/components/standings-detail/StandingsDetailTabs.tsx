@@ -41,13 +41,19 @@ const StandingsDetailTabs: React.FC<StandingsDetailTabsProps> = ({ team, height 
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginBottom={1}>
-        <Text bold>{`${team.teamName}${viewLabel}`}</Text>
-        <Text dimColor>
-          {`${team.conferenceName} - ${team.divisionName}`}
-        </Text>
-        <Text>
-          {`${getRecord()} (${getPoints()} pts)`}
-        </Text>
+        <Box minHeight={1}>
+          <Text bold>{`${team.teamName}${viewLabel}`}</Text>
+        </Box>
+        <Box minHeight={1}>
+          <Text dimColor>
+            {`${team.conferenceName} - ${team.divisionName}`}
+          </Text>
+        </Box>
+        <Box minHeight={1}>
+          <Text>
+            {`${getRecord()} (${getPoints()} pts)`}
+          </Text>
+        </Box>
       </Box>
       {/*<Text dimColor>{"─".repeat(lineWidth)}</Text>*/}
       <TeamPlayersTab

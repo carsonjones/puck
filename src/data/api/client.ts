@@ -252,7 +252,14 @@ export const listGames = async ({
   cursor: string | null;
   limit: number;
 }): Promise<GamesPage> => {
-  const target = cursor ? new Date(cursor) : new Date();
+  let target: Date;
+  if (cursor) {
+    // Parse YYYY-MM-DD in local timezone (not UTC)
+    const [y, m, d] = cursor.split('-').map(Number);
+    target = new Date(y, m - 1, d);
+  } else {
+    target = new Date();
+  }
   if (Number.isNaN(target.getTime())) {
     throw new Error(`Invalid cursor date: ${cursor}`);
   }

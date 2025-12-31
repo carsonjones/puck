@@ -4,8 +4,9 @@ import type { GameDetail as GameDetailType } from "@/data/api/client.js";
 import { formatDate } from "@/data/api/client.js";
 import { useGame } from "@/data/hooks/useGame.js";
 import { useGamesPage } from "@/data/hooks/useGamesPage.js";
+import { useStandings } from "@/data/hooks/useStandings.js";
 import { useAppStore } from "@/state/useAppStore.js";
-import { useKeyBindings } from "@/hooks/useKeyBindings.js";
+import { useGamesKeyBindings } from "@/hooks/useGamesKeyBindings.js";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh.js";
 import { queryClient } from "@/data/query/queryClient.js";
 import { queryKeys } from "@/data/query/keys.js";
@@ -13,6 +14,7 @@ import GameDetail from "@/ui/components/game-detail/GameDetail.js";
 import List from "@/ui/components/List.js";
 import SplitPane from "@/ui/components/SplitPane.js";
 import StatusBar from "@/ui/components/StatusBar.js";
+import TeamSearchModal from "@/ui/components/TeamSearchModal.js";
 
 const GamesScreen: React.FC = () => {
   const { exit } = useApp();
@@ -27,6 +29,9 @@ const GamesScreen: React.FC = () => {
     detailTab,
     playsScrollIndex,
     playsSortOrder,
+    teamSearchOpen,
+    gameTeamFilter,
+    standingsViewMode,
     moveCursor,
     selectGame,
     setFocusedPane,
@@ -38,7 +43,16 @@ const GamesScreen: React.FC = () => {
 
   const listHeight = Math.max(6, height - 4);
   const { data, status, error, limit } = useGamesPage({ cursor: pageCursor, limit: listHeight });
-  const games = useMemo(() => data?.items ?? [], [data]);
+  const standings = useStandings();
+  const games = useMemo(() => {
+    const allGames = data?.items ?? [];
+    if (!gameTeamFilter) return allGames;
+    return allGames.filter(
+      (game) =>
+        game.homeTeam.includes(gameTeamFilter) ||
+        game.awayTeam.includes(gameTeamFilter)
+    );
+  }, [data, gameTeamFilter]);
   const detail = useGame(selectedGameId);
 
   // Auto-advance to next day if all today's games are final
@@ -219,7 +233,7 @@ const GamesScreen: React.FC = () => {
         ].length + 3
       : 0;
 
-  useKeyBindings({
+  useGamesKeyBindings({
     focusedPane,
     detailTab,
     games,
@@ -244,8 +258,19 @@ const GamesScreen: React.FC = () => {
     if (status === "loading") return "Loading games";
     if (status === "error") return "Games";
     const dateStr = pageCursor || formatDate(new Date());
-    return `Games for ${dateStr} (${games.length})`;
-  }, [status, games.length, pageCursor]);
+    const filterSuffix = gameTeamFilter ? ` (Filtered: ${gameTeamFilter})` : "";
+    return `Games for ${dateStr} (${games.length})${filterSuffix}`;
+  }, [status, games.length, pageCursor, gameTeamFilter]);
+
+  const teamStandings = useMemo(() => {
+    if (!displayGame || !standings.data) return null;
+
+    const allStandings = standings.data.league;
+    const homeTeam = allStandings.find(t => t.teamAbbrev === displayGame.homeTeamAbbrev);
+    const awayTeam = allStandings.find(t => t.teamAbbrev === displayGame.awayTeamAbbrev);
+
+    return { home: homeTeam ?? null, away: awayTeam ?? null };
+  }, [displayGame, standings.data]);
 
   const detailPane = () => {
     if (!selectedGameId) {
@@ -260,6 +285,8 @@ const GamesScreen: React.FC = () => {
         playsScrollIndex={playsScrollIndex}
         playsSortOrder={playsSortOrder}
         height={height}
+        teamStandings={teamStandings}
+        standingsViewMode={standingsViewMode}
       />
     );
   };
@@ -306,6 +333,7 @@ const GamesScreen: React.FC = () => {
         loading={status === "loading"}
         error={error instanceof Error ? error.message : null}
       />
+      {teamSearchOpen && <TeamSearchModal />}
     </Box>
   );
 };

@@ -5,7 +5,7 @@ import { queryKeys } from "@/data/query/keys.js";
 import { queryClient } from "@/data/query/queryClient.js";
 import { useAppStore, type FocusedPane, type GameStatus } from "@/state/useAppStore.js";
 
-type KeyBindingsConfig = {
+type GamesKeyBindingsConfig = {
   focusedPane: FocusedPane;
   detailTab: string;
   games: GameListItem[];
@@ -26,7 +26,7 @@ type KeyBindingsConfig = {
   onInteraction?: () => void;
 };
 
-export const useKeyBindings = (config: KeyBindingsConfig) => {
+export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
   const {
     focusedPane,
     detailTab,
@@ -49,67 +49,83 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
   } = config;
 
   const resolveCursorDate = (value: string | null) => {
-    const base = value ? new Date(value) : new Date();
+    if (!value) return new Date();
+    // Parse YYYY-MM-DD in local timezone (not UTC)
+    const [y, m, d] = value.split('-').map(Number);
+    const base = new Date(y, m - 1, d);
     return Number.isNaN(base.getTime()) ? new Date() : base;
   };
 
   useInput((input, key) => {
     onInteraction?.();
 
-    // Check if team search modal is open - if so, don't process keys here
-    const { teamSearchOpen } = useAppStore.getState();
-    if (teamSearchOpen) {
-      return;
-    }
+    const { teamSearchOpen, cycleStandingsViewMode } = useAppStore.getState();
+    if (teamSearchOpen) return;
 
-    // Team search modal trigger
+    // Team search modal
     if (input === "/" || (key.ctrl && input === "t")) {
       useAppStore.getState().openTeamSearch();
       return;
     }
 
-    // Clear game team filter
+    // Clear team filter
     if (input === "x") {
       useAppStore.getState().setGameTeamFilter(null);
       return;
     }
 
+    // Global: Quit
     if (input.toLowerCase() === "q" || (key.ctrl && input === "c")) {
       onQuit();
       return;
     }
 
+    // Global: View switching
     if (input === "w") {
       useAppStore.getState().setViewMode("standings");
       return;
     }
-
     if (input === "c") {
       useAppStore.getState().setViewMode("games");
       return;
     }
-
     if (input === "p") {
       useAppStore.getState().setViewMode("players");
       return;
     }
 
+    // Toggle view mode (all/home/road)
+    if (input === "v") {
+      cycleStandingsViewMode();
+      return;
+    }
+
+    // Pane switching
     if (key.escape) {
       setFocusedPane("list");
       return;
     }
-
     if (input === "\t" || key.tab) {
-      setFocusedPane(focusedPane === "list" ? "detail" : "list");
+      if (focusedPane === "list") {
+        setFocusedPane("detail");
+        return;
+      }
+      // In detail pane: cycle through tabs
+      const tabs = ["stats", "plays", "players"] as const;
+      const currentIndex = tabs.indexOf(detailTab as typeof tabs[number]);
+      const nextIndex = (currentIndex + 1) % tabs.length;
+      setDetailTab(tabs[nextIndex]);
       return;
     }
 
+    // Refresh
     if (input === "r") {
       queryClient.invalidate(queryKeys.gamesList(pageCursor, limit));
       if (selectedGameId) queryClient.invalidate(queryKeys.gameDetail(selectedGameId));
       return;
     }
 
+    // Tab switching
     if (input === "1") {
       setDetailTab("stats");
       return;
@@ -123,11 +139,13 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
       return;
     }
 
+    // Sort toggle
     if (input === "s") {
       togglePlaysSortOrder();
       return;
     }
 
+    // List navigation
     if (focusedPane === "list") {
       if (input === "j" || key.downArrow) {
         moveCursor(1, Math.max(0, games.length - 1));
@@ -152,12 +170,16 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
         setPageCursor(formatDate(prev));
         return;
       }
-      if (key.rightArrow && data?.nextCursor) {
-        setPageCursor(data.nextCursor);
+      if (key.rightArrow) {
+        const current = resolveCursorDate(pageCursor);
+        const next = new Date(current);
+        next.setDate(next.getDate() + 1);
+        setPageCursor(formatDate(next));
         return;
       }
     }
 
+    // Detail navigation
     if (focusedPane === "detail") {
       if (input === "h" || key.leftArrow) {
         setFocusedPane("list");

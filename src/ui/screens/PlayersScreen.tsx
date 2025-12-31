@@ -10,6 +10,7 @@ import SplitPane from "@/ui/components/SplitPane.js";
 import PlayersList from "@/ui/components/PlayersList.js";
 import PlayerDetail from "@/ui/components/player-detail/PlayerDetail.js";
 import StatusBar from "@/ui/components/StatusBar.js";
+import TeamSearchModal from "@/ui/components/TeamSearchModal.js";
 
 const PlayersScreen: React.FC = () => {
   const { exit } = useApp();
@@ -23,12 +24,14 @@ const PlayersScreen: React.FC = () => {
     selectedPlayerId,
     playerDetailTab,
     playerDetailScrollIndex,
+    teamSearchOpen,
     movePlayersCursor,
     selectPlayer,
     setFocusedPane,
     setPlayerDetailTab,
     movePlayerDetailScroll,
     setViewMode,
+    openTeamSearch,
   } = useAppStore();
 
   const listHeight = Math.max(6, height - 4);
@@ -103,6 +106,17 @@ const PlayersScreen: React.FC = () => {
   // Keyboard bindings
   useInput((input, key) => {
     resetTimer();
+
+    // Check if team search modal is open - if so, don't process keys here
+    if (teamSearchOpen) {
+      return;
+    }
+
+    // Team search modal trigger
+    if (input === "/" || (key.ctrl && input === "t")) {
+      openTeamSearch();
+      return;
+    }
 
     if (input.toLowerCase() === "q" || (key.ctrl && input === "c")) {
       quit();
@@ -253,6 +267,7 @@ const PlayersScreen: React.FC = () => {
         loading={status === "loading"}
         error={error instanceof Error ? error.message : null}
       />
+      {teamSearchOpen && <TeamSearchModal />}
     </Box>
   );
 };

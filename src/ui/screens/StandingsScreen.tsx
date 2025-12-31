@@ -1,15 +1,17 @@
-import { Box, Text, useApp, useInput, useStdout } from "ink";
+import { Box, Text, useApp, useStdout } from "ink";
 import { useEffect, useMemo } from "react";
 import { useStandings } from "@/data/hooks/useStandings.js";
 import { queryKeys } from "@/data/query/keys.js";
 import { queryClient } from "@/data/query/queryClient.js";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh.js";
+import { useStandingsKeyBindings } from "@/hooks/useStandingsKeyBindings.js";
 import { useAppStore } from "@/state/useAppStore.js";
 import SplitPane from "@/ui/components/SplitPane.js";
 import StandingsList from "@/ui/components/StandingsList.js";
 import StatusBar from "@/ui/components/StatusBar.js";
 import StandingsDetail from "@/ui/components/standings-detail/StandingsDetail.js";
 import Tabs from "@/ui/components/Tabs.js";
+import TeamSearchModal from "@/ui/components/TeamSearchModal.js";
 import { useTeamRosterData } from "@/ui/components/standings-detail/useTeamRosterData.js";
 
 const StandingsScreen: React.FC = () => {
@@ -26,6 +28,7 @@ const StandingsScreen: React.FC = () => {
     standingsConference,
     standingsDivision,
     standingsViewMode,
+    teamSearchOpen,
     moveStandingsCursor,
     setFocusedPane,
     setStandingsTab,
@@ -36,6 +39,7 @@ const StandingsScreen: React.FC = () => {
     setViewMode,
     selectPlayer,
     setPreviousStandingsState,
+    openTeamSearch,
   } = useAppStore();
 
   const listHeight = Math.max(6, height - 4);
@@ -90,130 +94,22 @@ const StandingsScreen: React.FC = () => {
     process.exit(0);
   };
 
-  // Key bindings
-  useInput((input, key) => {
-    resetTimer();
+  const allRoster = useMemo(() => [...roster.players, ...roster.goalies], [roster.players, roster.goalies]);
 
-    if (input.toLowerCase() === "q" || (key.ctrl && input === "c")) {
-      quit();
-      return;
-    }
-
-    if (input === "c") {
-      setViewMode("games");
-      return;
-    }
-
-    if (input === "w") {
-      setViewMode("standings");
-      return;
-    }
-
-    if (key.escape) {
-      setFocusedPane("list");
-      return;
-    }
-
-    if (input === "\t" || key.tab) {
-      if (focusedPane === "list") {
-        // Cycle through subtabs when in list pane
-        if (standingsTab === "conference") {
-          setStandingsConference(standingsConference === "eastern" ? "western" : "eastern");
-          return;
-        } else if (standingsTab === "division") {
-          const divs: Array<"atlantic" | "metropolitan" | "central" | "pacific"> = [
-            "atlantic",
-            "metropolitan",
-            "central",
-            "pacific",
-          ];
-          const idx = divs.indexOf(standingsDivision);
-          const nextDiv = divs[(idx + 1) % divs.length];
-          if (nextDiv) setStandingsDivision(nextDiv);
-          return;
-        }
-      }
-      // Switch panes if in league tab or in detail pane
-      setFocusedPane(focusedPane === "list" ? "detail" : "list");
-      return;
-    }
-
-    if (input === "r") {
-      queryClient.invalidate(queryKeys.standings());
-      return;
-    }
-
-    if (input === "v") {
-      cycleStandingsViewMode();
-      return;
-    }
-
-    // Tab switching
-    if (input === "1") {
-      setStandingsTab("league");
-      return;
-    }
-    if (input === "2") {
-      setStandingsTab("conference");
-      return;
-    }
-    if (input === "3") {
-      setStandingsTab("division");
-      return;
-    }
-
-    if (focusedPane === "list") {
-      if (input === "j" || key.downArrow) {
-        moveStandingsCursor(1, Math.max(0, items.length - 1));
-        return;
-      }
-      if (input === "k" || key.upArrow) {
-        moveStandingsCursor(-1, Math.max(0, items.length - 1));
-        return;
-      }
-      if (input === "l" || key.rightArrow || key.return) {
-        setFocusedPane("detail");
-        return;
-      }
-    }
-
-    if (focusedPane === "detail") {
-      if (input === "h" || key.leftArrow) {
-        setFocusedPane("list");
-        return;
-      }
-
-      if (selectedTeam) {
-        if (input === "j" || key.downArrow) {
-          moveStandingsPlayersScroll(1, 999);
-          return;
-        }
-        if (input === "k" || key.upArrow) {
-          moveStandingsPlayersScroll(-1);
-          return;
-        }
-        if (key.return) {
-          // Make sure roster data is loaded
-          if (roster.loading || (!roster.players.length && !roster.goalies.length)) {
-            return;
-          }
-
-          const allRoster = [...roster.players, ...roster.goalies];
-          const selectedPlayer = allRoster[standingsPlayersScrollIndex];
-
-          if (selectedPlayer) {
-            setPreviousStandingsState({
-              teamAbbrev: selectedTeam.teamAbbrev,
-              playerIndex: standingsPlayersScrollIndex,
-            });
-            selectPlayer(selectedPlayer.id);
-            setFocusedPane("detail"); // Focus on detail pane to show the player immediately
-            setViewMode("players");
-          }
-          return;
-        }
-      }
-    }
+  useStandingsKeyBindings({
+    focusedPane,
+    items,
+    standingsCursorIndex,
+    standingsTab,
+    standingsConference,
+    standingsDivision,
+    standingsPlayersScrollIndex,
+    selectedTeam,
+    rosterLoading: roster.loading,
+    rosterCount: allRoster.length,
+    allRoster,
+    onQuit: quit,
+    onInteraction: resetTimer,
   });
 
   const header = useMemo(() => {
@@ -279,6 +175,7 @@ const StandingsScreen: React.FC = () => {
         <SplitPane left={listPane()} right={detailPane()} />
       </Box>
       <StatusBar focus={focusedPane} pageCursor={null} loading={status === "loading"} error={error instanceof Error ? error.message : null} />
+      {teamSearchOpen && <TeamSearchModal />}
     </Box>
   );
 };
