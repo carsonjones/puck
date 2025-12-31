@@ -9,7 +9,7 @@ const StatusBar: React.FC<{
   error?: string | null;
 }> = ({ focus, loading, error }) => {
   const viewMode = useAppStore((state) => state.viewMode);
-  const viewName = viewMode === "standings" ? "Standings" : "Games";
+  const viewName = viewMode === "standings" ? "Standings" : viewMode === "players" ? "Players" : "Games";
 
   return (
     <Box justifyContent="space-between" width="100%">
@@ -21,7 +21,7 @@ const StatusBar: React.FC<{
           ? "Loading"
           : error
             ? `Error: ${error}`
-            : "[w] standings [c] calendar [q] quit"}
+            : "[c] calendar [w] standings [p] players [q] quit"}
       </Text>
     </Box>
   );

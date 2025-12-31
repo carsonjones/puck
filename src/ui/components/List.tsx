@@ -30,10 +30,12 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
       {visible.map((item, index) => {
         const absoluteIndex = start + index;
         const isSelected = absoluteIndex === cursorIndex;
+        const awayWins = item.status === "final" && item.awayScore > item.homeScore;
+        const homeWins = item.status === "final" && item.homeScore > item.awayScore;
         return (
           <Box key={item.id} justifyContent="space-between">
             <Text inverse={isSelected}>
-              {item.awayTeam} @ {item.homeTeam}
+              {item.awayTeam}{awayWins ? "*" : ""} @ {item.homeTeam}{homeWins ? "*" : ""}
             </Text>
             <Text inverse={isSelected}>{item.startTime}</Text>
           </Box>

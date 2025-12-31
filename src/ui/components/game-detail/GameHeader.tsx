@@ -31,10 +31,13 @@ const GameHeader: React.FC<GameHeaderProps> = ({
   clock,
   broadcasts,
 }) => {
+  const awayWins = status === "final" && awayScore !== undefined && homeScore !== undefined && awayScore > homeScore;
+  const homeWins = status === "final" && awayScore !== undefined && homeScore !== undefined && homeScore > awayScore;
+
   return (
     <Box flexDirection="column">
       <Text>
-        {awayTeam} @ {homeTeam}
+        {awayTeam}{awayWins ? "*" : ""} @ {homeTeam}{homeWins ? "*" : ""}
       </Text>
       <Text>
         {date} • {startTime} • {venue}

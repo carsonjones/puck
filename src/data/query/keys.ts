@@ -5,4 +5,7 @@ export const queryKeys = {
   standings: () => "standings:current",
   teamRoster: (abbrev: string) => `team:roster:${abbrev}`,
   playerStats: (playerId: number) => `player:stats:${playerId}`,
+  playersLeaderboard: () => "players:leaderboard",
+  playerDetail: (playerId: number) => `player:detail:${playerId}`,
+  playerGameLog: (playerId: number) => `player:game-log:${playerId}`,
 };

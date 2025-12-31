@@ -70,6 +70,11 @@ export const useKeyBindings = (config: KeyBindingsConfig) => {
       return;
     }
 
+    if (input === "p") {
+      useAppStore.getState().setViewMode("players");
+      return;
+    }
+
     if (key.escape) {
       setFocusedPane("list");
       return;

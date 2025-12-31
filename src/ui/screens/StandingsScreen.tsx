@@ -10,6 +10,7 @@ import StandingsList from "@/ui/components/StandingsList.js";
 import StatusBar from "@/ui/components/StatusBar.js";
 import StandingsDetail from "@/ui/components/standings-detail/StandingsDetail.js";
 import Tabs from "@/ui/components/Tabs.js";
+import { useTeamRosterData } from "@/ui/components/standings-detail/useTeamRosterData.js";
 
 const StandingsScreen: React.FC = () => {
   const { exit } = useApp();
@@ -31,6 +32,8 @@ const StandingsScreen: React.FC = () => {
     setStandingsConference,
     setStandingsDivision,
     setViewMode,
+    selectPlayer,
+    setPreviousStandingsState,
   } = useAppStore();
 
   const listHeight = Math.max(6, height - 4);
@@ -50,6 +53,7 @@ const StandingsScreen: React.FC = () => {
   }, [data, standingsTab, standingsConference, standingsDivision]);
 
   const selectedTeam = items[standingsCursorIndex] ?? null;
+  const roster = useTeamRosterData(selectedTeam?.teamAbbrev ?? null);
 
   // Auto-refresh every 5 minutes (300s)
   const { resetTimer } = useAutoRefresh({
@@ -122,7 +126,8 @@ const StandingsScreen: React.FC = () => {
             "pacific",
           ];
           const idx = divs.indexOf(standingsDivision);
-          setStandingsDivision(divs[(idx + 1) % divs.length]);
+          const nextDiv = divs[(idx + 1) % divs.length];
+          if (nextDiv) setStandingsDivision(nextDiv);
           return;
         }
       }
@@ -178,6 +183,26 @@ const StandingsScreen: React.FC = () => {
         }
         if (input === "k" || key.upArrow) {
           moveStandingsPlayersScroll(-1);
+          return;
+        }
+        if (key.return) {
+          // Make sure roster data is loaded
+          if (roster.loading || (!roster.players.length && !roster.goalies.length)) {
+            return;
+          }
+
+          const allRoster = [...roster.players, ...roster.goalies];
+          const selectedPlayer = allRoster[standingsPlayersScrollIndex];
+
+          if (selectedPlayer) {
+            setPreviousStandingsState({
+              teamAbbrev: selectedTeam.teamAbbrev,
+              playerIndex: standingsPlayersScrollIndex,
+            });
+            selectPlayer(selectedPlayer.id);
+            setFocusedPane("detail"); // Focus on detail pane to show the player immediately
+            setViewMode("players");
+          }
           return;
         }
       }

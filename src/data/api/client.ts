@@ -17,6 +17,8 @@ export type GameListItem = {
   awayTeam: string;
   startTime: string;
   status: "scheduled" | "in_progress" | "final";
+  homeScore: number;
+  awayScore: number;
 };
 
 export type GameDetail = GameListItem & {
@@ -66,6 +68,16 @@ export type StandingListItem = {
   rank: number;
   streakCode: string;
   streakCount: number;
+  homeWins: number;
+  homeLosses: number;
+  homeOtLosses: number;
+  homePoints: number;
+  homeGamesPlayed: number;
+  roadWins: number;
+  roadLosses: number;
+  roadOtLosses: number;
+  roadPoints: number;
+  roadGamesPlayed: number;
 };
 
 export type StandingsData = {
@@ -90,7 +102,12 @@ const requireToken = () => {
 
 
 
-const formatDate = (date: Date) => date.toISOString().slice(0, 10);
+const formatDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const addDays = (date: Date, days: number) => {
   const next = new Date(date);
@@ -122,6 +139,8 @@ const mapGameListItem = (game: NhlGame): GameListItem => ({
   awayTeam: game.awayTeam.commonName?.default ?? game.awayTeam.name.default,
   startTime: formatLocalTime(game.startTimeUTC),
   status: mapGameStatus(game.gameState),
+  homeScore: game.homeTeam.score,
+  awayScore: game.awayTeam.score,
 });
 
 const sumHits = (players: PlayerStats[]) => players.reduce((total, player) => total + (player.hits ?? 0), 0);
@@ -275,6 +294,16 @@ export const getStandings = async (): Promise<StandingsData> => {
     rank: team.leagueSequence,
     streakCode: team.streakCode,
     streakCount: team.streakCount,
+    homeWins: team.homeWins,
+    homeLosses: team.homeLosses,
+    homeOtLosses: team.homeOtLosses,
+    homePoints: team.homePoints,
+    homeGamesPlayed: team.homeGamesPlayed,
+    roadWins: team.wins - team.homeWins,
+    roadLosses: team.losses - team.homeLosses,
+    roadOtLosses: team.otLosses - team.homeOtLosses,
+    roadPoints: team.points - team.homePoints,
+    roadGamesPlayed: team.gamesPlayed - team.homeGamesPlayed,
   }));
 
   const sortByStandings = (a: StandingListItem, b: StandingListItem) =>
@@ -286,7 +315,7 @@ export const getStandings = async (): Promise<StandingsData> => {
     return sorted.map((team, idx) => {
       if (idx > 0) {
         const prev = sorted[idx - 1];
-        if (team.points !== prev.points || team.wins !== prev.wins) {
+        if (prev && (team.points !== prev.points || team.wins !== prev.wins)) {
           rank = idx + 1;
         }
       }
@@ -306,4 +335,277 @@ export const getStandings = async (): Promise<StandingsData> => {
   };
 
   return { league, eastern, western, divisions };
+};
+
+export type PlayerLeaderboardItem = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  sweaterNumber: number;
+  headshot: string;
+  teamAbbrev: string;
+  teamName: string;
+  position: string;
+  points: number;
+};
+
+export type PlayerDetailData = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  sweaterNumber: number;
+  position: string;
+  teamAbbrev: string;
+  headshot: string;
+  birthDate: string;
+  birthCity: string;
+  birthCountry: string;
+  birthStateProvince: string | null;
+  heightInInches: number;
+  weightInPounds: number;
+  shootsCatches: string;
+  seasonStats: {
+    gamesPlayed: number;
+    goals: number;
+    assists: number;
+    points: number;
+    plusMinus: number;
+    pim: number;
+    shots: number;
+    shootingPctg: number;
+    ppGoals: number;
+    shGoals: number;
+    gwGoals: number;
+    avgToi: string;
+  } | null;
+};
+
+export type PlayerGameLog = {
+  gameId: number;
+  date: string;
+  opponent: string;
+  homeAway: "home" | "away";
+  goals: number;
+  assists: number;
+  points: number;
+  plusMinus: number;
+  pim: number;
+  shots: number;
+  toi: string;
+};
+
+const getCurrentSeasonId = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const startYear = month < 8 ? year - 1 : year;
+  return Number(`${startYear}${startYear + 1}`);
+};
+
+export const getPlayersLeaderboard = async (): Promise<PlayerLeaderboardItem[]> => {
+  const currentSeason = getCurrentSeasonId();
+  const response = await nhlClient.getStatsLeaders(currentSeason);
+
+  // Merge ALL stat categories to get ~30-40 unique players (much faster than fetching all rosters)
+  const allPlayers = new Map<number, PlayerLeaderboardItem>();
+
+  // Helper to add players from a category
+  const addPlayersFromCategory = (players: typeof response.points) => {
+    players.forEach((player) => {
+      if (!allPlayers.has(player.id)) {
+        allPlayers.set(player.id, {
+          id: player.id,
+          firstName: player.firstName.default,
+          lastName: player.lastName.default,
+          sweaterNumber: player.sweaterNumber,
+          headshot: player.headshot,
+          teamAbbrev: player.teamAbbrev,
+          teamName: player.teamName.default,
+          position: player.position,
+          points: 0, // Will be filled in
+        });
+      }
+    });
+  };
+
+  // Add players from ALL stat categories (9 categories × 5 players = up to 45, likely ~30-35 unique)
+  addPlayersFromCategory(response.points);
+  addPlayersFromCategory(response.goals);
+  addPlayersFromCategory(response.assists);
+  addPlayersFromCategory(response.plusMinus);
+  addPlayersFromCategory(response.goalsSh);
+  addPlayersFromCategory(response.goalsPp);
+  addPlayersFromCategory(response.penaltyMins);
+  addPlayersFromCategory(response.faceoffLeaders);
+  addPlayersFromCategory(response.toi);
+
+  // Fetch actual points for all players
+  const playerIds = Array.from(allPlayers.keys());
+  const pointsPromises = playerIds.map(async (playerId) => {
+    try {
+      const stats = await nhlClient.getPlayerSeasonStats(playerId);
+      const seasonStats = stats.seasonTotals?.find(
+        (s) => s.season === currentSeason && s.gameTypeId === 2
+      );
+      return { id: playerId, points: seasonStats?.points || 0 };
+    } catch {
+      return { id: playerId, points: 0 };
+    }
+  });
+
+  const pointsResults = await Promise.all(pointsPromises);
+  pointsResults.forEach(({ id, points }) => {
+    const player = allPlayers.get(id);
+    if (player) player.points = points;
+  });
+
+  // Sort by points and return
+  return Array.from(allPlayers.values())
+    .sort((a, b) => b.points - a.points);
+};
+
+const findPlayerInRosters = async (playerId: number) => {
+  const teams = await nhlClient.getTeams();
+
+  for (const team of teams.teams) {
+    try {
+      const roster = await nhlClient.getTeamRoster(team.abbreviation);
+      const allPlayers = [...roster.forwards, ...roster.defensemen, ...roster.goalies];
+      const player = allPlayers.find((p) => p.id === playerId);
+
+      if (player) {
+        return { playerInfo: player, teamAbbrev: team.abbreviation };
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+};
+
+export const getPlayerDetail = async (playerId: number, teamAbbrev?: string): Promise<PlayerDetailData> => {
+  const landing = await nhlClient.getPlayerSeasonStats(playerId);
+
+  const currentSeason = getCurrentSeasonId();
+  const seasonStats = landing.seasonTotals?.find(
+    (s) => s.season === currentSeason && s.gameTypeId === 2
+  );
+
+  // If teamAbbrev provided, fetch roster directly; otherwise search all rosters
+  let rosters;
+  if (teamAbbrev) {
+    try {
+      const roster = await nhlClient.getTeamRoster(teamAbbrev);
+      const allPlayers = [...roster.forwards, ...roster.defensemen, ...roster.goalies];
+      const player = allPlayers.find((p) => p.id === playerId);
+      if (player) {
+        rosters = { playerInfo: player, teamAbbrev };
+      }
+    } catch {
+      rosters = null;
+    }
+  }
+
+  if (!rosters) {
+    rosters = await findPlayerInRosters(playerId);
+  }
+
+  if (!rosters?.playerInfo) {
+    throw new Error(`Player ${playerId} not found in rosters`);
+  }
+
+  const player = rosters.playerInfo;
+
+  return {
+    id: player.id,
+    firstName: player.firstName.default,
+    lastName: player.lastName.default,
+    sweaterNumber: player.sweaterNumber,
+    position: player.positionCode,
+    teamAbbrev: rosters.teamAbbrev,
+    headshot: player.headshot,
+    birthDate: player.birthDate,
+    birthCity: player.birthCity.default,
+    birthCountry: player.birthCountry,
+    birthStateProvince: player.birthStateProvince?.default || null,
+    heightInInches: player.heightInInches,
+    weightInPounds: player.weightInPounds,
+    shootsCatches: player.shootsCatches,
+    seasonStats: seasonStats
+      ? {
+          gamesPlayed: seasonStats.gamesPlayed,
+          goals: seasonStats.goals || 0,
+          assists: seasonStats.assists || 0,
+          points: seasonStats.points || 0,
+          plusMinus: seasonStats.plusMinus || 0,
+          pim: seasonStats.pim || 0,
+          shots: seasonStats.shots || 0,
+          shootingPctg: seasonStats.shootingPctg || 0,
+          ppGoals: seasonStats.powerPlayGoals || 0,
+          shGoals: seasonStats.shorthandedGoals || 0,
+          gwGoals: seasonStats.gameWinningGoals || 0,
+          avgToi: seasonStats.avgToi || "0:00",
+        }
+      : null,
+  };
+};
+
+export const getPlayerGameLog = async (playerId: number, limit: number = 20): Promise<PlayerGameLog[]> => {
+  const playerDetail = await getPlayerDetail(playerId);
+
+  const teams = await nhlClient.getTeams();
+  const team = teams.teams.find((t) => t.abbreviation === playerDetail.teamAbbrev);
+  if (!team) return [];
+
+  const currentSeason = getCurrentSeasonId();
+  const schedule = await nhlClient.getTeamSchedule(team, currentSeason);
+
+  const completedGames = schedule.games
+    .filter((g) => g.gameState === "OFF" || g.gameState.includes("FINAL"))
+    .sort((a, b) => new Date(b.gameDate).getTime() - new Date(a.gameDate).getTime())
+    .slice(0, limit);
+
+  const gameLogPromises = completedGames.map(async (game) => {
+    try {
+      const boxscore = await nhlClient.getGameBoxscore(game.id);
+      const isHome = game.homeTeam.id === team.id;
+      const teamStats = isHome
+        ? boxscore.playerByGameStats.homeTeam
+        : boxscore.playerByGameStats.awayTeam;
+
+      const allPlayers = [
+        ...(teamStats.forwards || []),
+        ...(teamStats.defense || []),
+        ...(teamStats.goalies || []),
+      ];
+
+      const playerStats = allPlayers.find((p) => p.playerId === playerId);
+      if (!playerStats) return null;
+
+      const opponent = isHome ? game.awayTeam.abbrev : game.homeTeam.abbrev;
+
+      // Type guard for skater stats
+      const isSkater = "goals" in playerStats;
+
+      return {
+        gameId: game.id,
+        date: game.gameDate.slice(0, 10),
+        opponent,
+        homeAway: isHome ? "home" as const : "away" as const,
+        goals: isSkater ? (playerStats.goals || 0) : 0,
+        assists: isSkater ? (playerStats.assists || 0) : 0,
+        points: isSkater ? (playerStats.points || 0) : 0,
+        plusMinus: isSkater ? (playerStats.plusMinus || 0) : 0,
+        pim: playerStats.pim || 0,
+        shots: isSkater ? (playerStats.sog || 0) : 0,
+        toi: playerStats.toi || "0:00",
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const results = await Promise.all(gameLogPromises);
+  return results.filter((log): log is PlayerGameLog => log !== null);
 };
