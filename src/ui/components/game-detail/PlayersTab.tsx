@@ -76,13 +76,13 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
         <Box flexDirection="column">
           <Text bold>{game.awayTeam}</Text>
           {awayPlayers.map((p, idx) => (
-            <Text key={idx}>  #{p.number} {p.name} ({p.position})</Text>
+            <Text key={idx}>{`  #${p.number} ${p.name} (${p.position})`}</Text>
           ))}
         </Box>
         <Box flexDirection="column" marginTop={1}>
           <Text bold>{game.homeTeam}</Text>
           {homePlayers.map((p, idx) => (
-            <Text key={idx}>  #{p.number} {p.name} ({p.position})</Text>
+            <Text key={idx}>{`  #${p.number} ${p.name} (${p.position})`}</Text>
           ))}
         </Box>
       </Box>
@@ -182,7 +182,7 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
     <Box flexDirection="column">
       <Box>
         <Text bold>
-          {"  "}{"#".padEnd(4)} {"Name".padEnd(20)} {"Pos".padEnd(4)} {"G".padEnd(3)} {"A".padEnd(3)} {"SOG".padEnd(4)} {"HTS".padEnd(4)} {"SV".padEnd(4)} {"SV%"}
+          {`${"  "}${"#".padEnd(4)} ${"Name".padEnd(20)} ${"Pos".padEnd(4)} ${"G".padEnd(3)} ${"A".padEnd(3)} ${"SOG".padEnd(4)} ${"HTS".padEnd(4)} ${"SV".padEnd(4)} ${"SV%"}`}
         </Text>
       </Box>
       {visiblePlayers.map((player, idx) => {
@@ -209,8 +209,7 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
           return (
             <Box key={absoluteIndex}>
               <Text color={isSelected ? "cyan" : undefined}>
-                {isSelected ? "> " : "  "}
-                {displayNum} {displayName} {displayPos} {"-".padEnd(3)} {"-".padEnd(3)} {"-".padEnd(4)} {"-".padEnd(4)} {displaySaves} {displaySavePct}
+                {`${isSelected ? "> " : "  "}${displayNum} ${displayName} ${displayPos} ${"-".padEnd(3)} ${"-".padEnd(3)} ${"-".padEnd(4)} ${"-".padEnd(4)} ${displaySaves} ${displaySavePct}`}
               </Text>
             </Box>
           );
@@ -224,8 +223,7 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
         return (
           <Box key={absoluteIndex}>
             <Text color={isSelected ? "cyan" : undefined}>
-              {isSelected ? "> " : "  "}
-              {displayNum} {displayName} {displayPos} {displayGoals} {displayAssists} {displayShots} {displayHits} {"-".padEnd(4)} {"-"}
+              {`${isSelected ? "> " : "  "}${displayNum} ${displayName} ${displayPos} ${displayGoals} ${displayAssists} ${displayShots} ${displayHits} ${"-".padEnd(4)} ${"-"}`}
             </Text>
           </Box>
         );

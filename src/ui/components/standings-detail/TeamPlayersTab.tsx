@@ -48,7 +48,7 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
         <>
           <Box>
             <Text bold>
-              {"  "}{"#".padEnd(4)} {"Name".padEnd(20)} {"Pos".padEnd(4)} {"GP".padStart(4)} {"G".padStart(3)} {"A".padStart(3)} {"Pts".padStart(4)} {"+/-".padStart(4)} {"SOG".padStart(4)} {"SH%".padStart(5)}
+              {`${"  "}${"#".padEnd(4)} ${"Name".padEnd(20)} ${"Pos".padEnd(4)} ${"GP".padStart(4)} ${"G".padStart(3)} ${"A".padStart(3)} ${"Pts".padStart(4)} ${"+/-".padStart(4)} ${"SOG".padStart(4)} ${"SH%".padStart(5)}`}
             </Text>
           </Box>
           {visiblePlayers.map((player, idx) => {
@@ -69,8 +69,7 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
             return (
               <Box key={absoluteIndex}>
                 <Text dimColor={!isSelected}>
-                  {isSelected ? "> " : "  "}
-                  {displayNum} {displayName} {displayPos} {displayGP} {displayGoals} {displayAssists} {displayPoints} {displayPlusMinus} {displayShots} {displayShootingPct}
+                  {`${isSelected ? "> " : "  "}${displayNum} ${displayName} ${displayPos} ${displayGP} ${displayGoals} ${displayAssists} ${displayPoints} ${displayPlusMinus} ${displayShots} ${displayShootingPct}`}
                 </Text>
               </Box>
             );
@@ -83,7 +82,7 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
           {showPlayersHeader && <Box marginTop={1} />}
           <Box>
             <Text bold>
-              {"  "}{"#".padEnd(4)} {"Name".padEnd(20)} {"GP".padStart(4)} {"W".padStart(3)} {"L".padStart(3)} {"OTL".padStart(4)} {"GAA".padStart(5)} {"SV%".padStart(5)} {"SO".padStart(3)}
+              {`${"  "}${"#".padEnd(4)} ${"Name".padEnd(20)} ${"GP".padStart(4)} ${"W".padStart(3)} ${"L".padStart(3)} ${"OTL".padStart(4)} ${"GAA".padStart(5)} ${"SV%".padStart(5)} ${"SO".padStart(3)}`}
             </Text>
           </Box>
           {visibleGoalies.map((goalie, idx) => {
@@ -103,8 +102,7 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
             return (
               <Box key={absoluteIndex}>
                 <Text dimColor={!isSelected}>
-                  {isSelected ? "> " : "  "}
-                  {displayNum} {displayName} {displayGP} {displayWins} {displayLosses} {displayOTL} {displayGAA} {displaySavePct} {displayShutouts}
+                  {`${isSelected ? "> " : "  "}${displayNum} ${displayName} ${displayGP} ${displayWins} ${displayLosses} ${displayOTL} ${displayGAA} ${displaySavePct} ${displayShutouts}`}
                 </Text>
               </Box>
             );

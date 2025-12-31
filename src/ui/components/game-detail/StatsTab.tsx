@@ -28,7 +28,7 @@ const StatsTab: React.FC<StatsTabProps> = ({ game }) => {
             <Box flexDirection="column" marginTop={1}>
               <Text bold>{game.awayTeam}</Text>
               {game.leaders.away.map((leader, idx) => (
-                <Text key={idx}>  {leader}</Text>
+                <Text key={idx}>{`  ${leader}`}</Text>
               ))}
             </Box>
           ) : null}
@@ -36,7 +36,7 @@ const StatsTab: React.FC<StatsTabProps> = ({ game }) => {
             <Box flexDirection="column" marginTop={1}>
               <Text bold>{game.homeTeam}</Text>
               {game.leaders.home.map((leader, idx) => (
-                <Text key={idx}>  {leader}</Text>
+                <Text key={idx}>{`  ${leader}`}</Text>
               ))}
             </Box>
           ) : null}
@@ -45,7 +45,7 @@ const StatsTab: React.FC<StatsTabProps> = ({ game }) => {
       {game.threeStars.length > 0 ? (
         <Box marginTop={1}>
           <Text>
-            <Text bold>Three Stars:</Text> {game.threeStars.join(", ")}
+            <Text bold>{"Three Stars:"}</Text>{` ${game.threeStars.join(", ")}`}
           </Text>
         </Box>
       ) : null}

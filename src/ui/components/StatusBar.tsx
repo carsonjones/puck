@@ -14,7 +14,7 @@ const StatusBar: React.FC<{
   return (
     <Box justifyContent="space-between" width="100%">
       <Text>
-        {viewName} | {focus === "list" ? "List" : "Detail"}
+        {`${viewName} | ${focus === "list" ? "List" : "Detail"}`}
       </Text>
       <Text>
         {loading

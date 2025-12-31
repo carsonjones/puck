@@ -1,5 +1,6 @@
 import { BaseURLWeb, SortOrder } from "@/data/nhl/constants.js";
 import { getCurrentSeasonId } from "@/data/nhl/formatters.js";
+import { formatDate } from "@/data/api/client.js";
 import type {
   BoxscoreResponse,
   FilteredScoreboardResponse,
@@ -64,7 +65,7 @@ export class NhlClient {
   }
 
   async getCurrentSchedule(): Promise<FilteredScoreboardResponse> {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = formatDate(new Date());
     return this.getScheduleByDate(today, "asc");
   }
 

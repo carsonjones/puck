@@ -38,8 +38,7 @@ const PlayerGamesTab: React.FC<PlayerGamesTabProps> = ({ playerId, scrollIndex, 
     <Box flexDirection="column">
       <Box>
         <Text bold>
-          {"Date".padEnd(12)} {"Opp".padEnd(8)} {"G".padStart(3)} {"A".padStart(3)} {"P".padStart(3)}{" "}
-          {"+/-".padStart(4)} {"SOG".padStart(4)} {"TOI".padStart(6)}
+          {`${"Date".padEnd(12)} ${"Opp".padEnd(8)} ${"G".padStart(3)} ${"A".padStart(3)} ${"P".padStart(3)} ${"+/-".padStart(4)} ${"SOG".padStart(4)} ${"TOI".padStart(6)}`}
         </Text>
       </Box>
       {visible.map((game, idx) => {
@@ -50,12 +49,7 @@ const PlayerGamesTab: React.FC<PlayerGamesTabProps> = ({ playerId, scrollIndex, 
         return (
           <Box key={game.gameId}>
             <Text dimColor={!isSelected}>
-              {isSelected ? "> " : "  "}
-              {game.date.padEnd(10)} {(vsPrefix + game.opponent).padEnd(8)}{" "}
-              {String(game.goals).padStart(3)} {String(game.assists).padStart(3)}{" "}
-              {String(game.points).padStart(3)}{" "}
-              {((game.plusMinus >= 0 ? "+" : "") + game.plusMinus).padStart(4)}{" "}
-              {String(game.shots).padStart(4)} {game.toi.padStart(6)}
+              {`${isSelected ? "> " : "  "}${game.date.padEnd(10)} ${(vsPrefix + game.opponent).padEnd(8)} ${String(game.goals).padStart(3)} ${String(game.assists).padStart(3)} ${String(game.points).padStart(3)} ${((game.plusMinus >= 0 ? "+" : "") + game.plusMinus).padStart(4)} ${String(game.shots).padStart(4)} ${game.toi.padStart(6)}`}
             </Text>
           </Box>
         );

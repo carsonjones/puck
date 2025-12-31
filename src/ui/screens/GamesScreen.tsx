@@ -1,6 +1,7 @@
 import { Box, Text, useApp, useStdout } from "ink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GameDetail as GameDetailType } from "@/data/api/client.js";
+import { formatDate } from "@/data/api/client.js";
 import { useGame } from "@/data/hooks/useGame.js";
 import { useGamesPage } from "@/data/hooks/useGamesPage.js";
 import { useAppStore } from "@/state/useAppStore.js";
@@ -49,7 +50,7 @@ const GamesScreen: React.FC = () => {
     if (allGamesFinal) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      setPageCursor(tomorrow.toISOString().slice(0, 10));
+      setPageCursor(formatDate(tomorrow));
     }
   }, [pageCursor, status, data, games, setPageCursor]);
 
@@ -242,7 +243,7 @@ const GamesScreen: React.FC = () => {
   const header = useMemo(() => {
     if (status === "loading") return "Loading games";
     if (status === "error") return "Games";
-    const dateStr = pageCursor || new Date().toISOString().slice(0, 10);
+    const dateStr = pageCursor || formatDate(new Date());
     return `Games for ${dateStr} (${games.length})`;
   }, [status, games.length, pageCursor]);
 

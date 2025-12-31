@@ -19,10 +19,10 @@ const PlayerDetailTabs: React.FC<PlayerDetailTabsProps> = ({ player, height }) =
     <Box flexDirection="column">
       <Box flexDirection="column" marginBottom={1}>
         <Text bold>
-          {player.firstName} {player.lastName} #{player.sweaterNumber}
+          {`${player.firstName} ${player.lastName} #${player.sweaterNumber}`}
         </Text>
         <Text dimColor>
-          {player.teamAbbrev} • {player.position}
+          {`${player.teamAbbrev} • ${player.position}`}
         </Text>
       </Box>
       <Tabs tabs={["season", "games", "bio"]} active={playerDetailTab} />

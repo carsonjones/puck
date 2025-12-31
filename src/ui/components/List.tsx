@@ -35,7 +35,7 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
         return (
           <Box key={item.id} justifyContent="space-between">
             <Text inverse={isSelected}>
-              {item.awayTeam}{awayWins ? "*" : ""} @ {item.homeTeam}{homeWins ? "*" : ""}
+              {`${item.awayTeam}${awayWins ? "✓" : ""} @ ${item.homeTeam}${homeWins ? "✓" : ""}`}
             </Text>
             <Text inverse={isSelected}>{item.startTime}</Text>
           </Box>

@@ -26,8 +26,7 @@ const PlaysTab: React.FC<PlaysTabProps> = ({ plays, scrollIndex, sortOrder, heig
         return (
           <Box key={absoluteIndex}>
             <Text color={isSelected ? "cyan" : undefined}>
-              {isSelected ? "> " : "  "}
-              {play.time} {play.description}
+              {`${isSelected ? "> " : "  "}${play.time} ${play.description}`}
             </Text>
           </Box>
         );

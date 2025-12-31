@@ -37,15 +37,15 @@ const GameHeader: React.FC<GameHeaderProps> = ({
   return (
     <Box flexDirection="column">
       <Text>
-        {awayTeam}{awayWins ? "*" : ""} @ {homeTeam}{homeWins ? "*" : ""}
+        {`${awayTeam}${awayWins ? "✓" : ""} @ ${homeTeam}${homeWins ? "✓" : ""}`}
       </Text>
       <Text>
-        {date} • {startTime} • {venue}
+        {`${date} • ${startTime} • ${venue}`}
       </Text>
       {status !== "scheduled" ? (
         <Box>
           <Text>
-            Score: {awayScore}-{homeScore}
+            {`Score: ${awayScore}-${homeScore}`}
           </Text>
           {status === "final" ? <Text> (FINAL)</Text> : null}
           {period && period > 0 && gameType && (status !== "final" || period > 3) ? (
@@ -54,7 +54,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({
           {clock && status !== "final" ? <Text> • {clock}</Text> : null}
         </Box>
       ) : null}
-      {broadcasts.length > 0 ? <Text>Broadcasts: {broadcasts.join(", ")}</Text> : null}
+      {broadcasts.length > 0 ? <Text>{`Broadcasts: ${broadcasts.join(", ")}`}</Text> : null}
     </Box>
   );
 };

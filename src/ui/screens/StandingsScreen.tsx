@@ -25,12 +25,14 @@ const StandingsScreen: React.FC = () => {
     standingsPlayersScrollIndex,
     standingsConference,
     standingsDivision,
+    standingsViewMode,
     moveStandingsCursor,
     setFocusedPane,
     setStandingsTab,
     moveStandingsPlayersScroll,
     setStandingsConference,
     setStandingsDivision,
+    cycleStandingsViewMode,
     setViewMode,
     selectPlayer,
     setPreviousStandingsState,
@@ -141,6 +143,11 @@ const StandingsScreen: React.FC = () => {
       return;
     }
 
+    if (input === "v") {
+      cycleStandingsViewMode();
+      return;
+    }
+
     // Tab switching
     if (input === "1") {
       setStandingsTab("league");
@@ -213,12 +220,14 @@ const StandingsScreen: React.FC = () => {
     if (status === "loading") return "Loading standings";
     if (status === "error") return "Standings";
 
-    if (standingsTab === "league") return "League Standings";
+    const viewSuffix = standingsViewMode === "home" ? " (Home)" : standingsViewMode === "road" ? " (Road)" : "";
+
+    if (standingsTab === "league") return `League Standings${viewSuffix}`;
     if (standingsTab === "conference") {
-      return `${standingsConference === "eastern" ? "Eastern" : "Western"} Conference`;
+      return `${standingsConference === "eastern" ? "Eastern" : "Western"} Conference${viewSuffix}`;
     }
-    return `${standingsDivision.charAt(0).toUpperCase() + standingsDivision.slice(1)} Division`;
-  }, [status, standingsTab, standingsConference, standingsDivision]);
+    return `${standingsDivision.charAt(0).toUpperCase() + standingsDivision.slice(1)} Division${viewSuffix}`;
+  }, [status, standingsTab, standingsConference, standingsDivision, standingsViewMode]);
 
   const detailPane = () => {
     return <StandingsDetail team={selectedTeam} height={height} />;
@@ -258,7 +267,7 @@ const StandingsScreen: React.FC = () => {
         <Tabs tabs={["league", "conference", "division"]} active={standingsTab} />
         {subtabs.length > 0 && <Tabs tabs={subtabs} active={activeSubtab} />}
         <Box marginTop={1}>
-          <StandingsList items={items} cursorIndex={standingsCursorIndex} height={listHeight} loading={status === "loading"} />
+          <StandingsList items={items} cursorIndex={standingsCursorIndex} height={listHeight} loading={status === "loading"} viewMode={standingsViewMode} />
         </Box>
       </Box>
     );

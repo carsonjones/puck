@@ -34,7 +34,7 @@ const PlayerBioTab: React.FC<PlayerBioTabProps> = ({ player }) => {
             <Text>Birth Date:</Text>
           </Box>
           <Text>
-            {player.birthDate} (Age {age})
+            {`${player.birthDate} (Age ${age})`}
           </Text>
         </Box>
         <Box>
@@ -47,7 +47,7 @@ const PlayerBioTab: React.FC<PlayerBioTabProps> = ({ player }) => {
           <Box width={20}>
             <Text>Weight:</Text>
           </Box>
-          <Text>{player.weightInPounds} lbs</Text>
+          <Text>{`${player.weightInPounds} lbs`}</Text>
         </Box>
         <Box>
           <Box width={20}>
