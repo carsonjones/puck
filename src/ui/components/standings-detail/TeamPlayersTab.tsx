@@ -6,9 +6,10 @@ type TeamPlayersTabProps = {
 	teamAbbrev: string;
 	scrollIndex: number;
 	height: number;
+	compact?: boolean;
 };
 
-const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex, height }) => {
+const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex, height, compact = false }) => {
 	const { players, goalies, loading, error } = useTeamRosterData(teamAbbrev);
 
 	if (loading) {
@@ -48,34 +49,37 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
 				<>
 					<Box>
 						<Text bold>
-							{`${'  '}${'#'.padEnd(4)} ${'Name'.padEnd(20)} ${'Pos'.padEnd(4)} ${'GP'.padStart(4)} ${'G'.padStart(3)} ${'A'.padStart(3)} ${'Pts'.padStart(4)} ${'+/-'.padStart(4)} ${'SOG'.padStart(4)} ${'SH%'.padStart(5)}`}
+							{compact
+								? `${'  '}${'#'.padEnd(3)} ${'Name'.padEnd(15)} ${'Pos'.padEnd(3)} ${'GP'.padStart(3)} ${'G'.padStart(2)} ${'A'.padStart(2)} ${'Pts'.padStart(3)} ${'+/-'.padStart(3)}`
+								: `${'  '}${'#'.padEnd(4)} ${'Name'.padEnd(20)} ${'Pos'.padEnd(4)} ${'GP'.padStart(4)} ${'G'.padStart(3)} ${'A'.padStart(3)} ${'Pts'.padStart(4)} ${'+/-'.padStart(4)} ${'SOG'.padStart(4)} ${'SH%'.padStart(5)}`
+							}
 						</Text>
 					</Box>
 					{visiblePlayers.map((player, idx) => {
 						const absoluteIndex = visiblePlayersStart + idx;
 						const isSelected = absoluteIndex === scrollIndex;
 
-						const displayNum = String(player.sweaterNumber).padEnd(4);
+						const nameLen = compact ? 15 : 20;
+						const displayNum = compact ? String(player.sweaterNumber ?? '').padEnd(3) : String(player.sweaterNumber ?? '').padEnd(4);
 						const displayName = `${player.firstName.charAt(0)}. ${player.lastName}`
-							.slice(0, 20)
-							.padEnd(20);
-						const displayPos = player.positionCode.padEnd(4);
-						const displayGP = String(player.gamesPlayed).padStart(4);
-						const displayGoals = String(player.goals).padStart(3);
-						const displayAssists = String(player.assists).padStart(3);
-						const displayPoints = String(player.points).padStart(4);
-						const displayPlusMinus = (
-							(player.plusMinus >= 0 ? '+' : '') + String(player.plusMinus)
-						).padStart(4);
-						const displayShots = String(player.shots).padStart(4);
-						const displayShootingPct = (
-							player.shootingPctg > 0 ? `${player.shootingPctg.toFixed(1)}%` : '0.0%'
-						).padStart(5);
+							.slice(0, nameLen)
+							.padEnd(nameLen);
+						const displayPos = compact ? player.positionCode.padEnd(3) : player.positionCode.padEnd(4);
+						const displayGP = compact ? String(player.gamesPlayed).padStart(3) : String(player.gamesPlayed).padStart(4);
+						const displayGoals = compact ? String(player.goals).padStart(2) : String(player.goals).padStart(3);
+						const displayAssists = compact ? String(player.assists).padStart(2) : String(player.assists).padStart(3);
+						const displayPoints = compact ? String(player.points).padStart(3) : String(player.points).padStart(4);
+						const displayPlusMinus = compact
+							? ((player.plusMinus >= 0 ? '+' : '') + String(player.plusMinus)).padStart(3)
+							: ((player.plusMinus >= 0 ? '+' : '') + String(player.plusMinus)).padStart(4);
 
 						return (
 							<Box key={absoluteIndex}>
 								<Text dimColor={!isSelected}>
-									{`${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayPos} ${displayGP} ${displayGoals} ${displayAssists} ${displayPoints} ${displayPlusMinus} ${displayShots} ${displayShootingPct}`}
+									{compact
+										? `${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayPos} ${displayGP} ${displayGoals} ${displayAssists} ${displayPoints} ${displayPlusMinus}`
+										: `${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayPos} ${displayGP} ${displayGoals} ${displayAssists} ${displayPoints} ${displayPlusMinus} ${String(player.shots).padStart(4)} ${(player.shootingPctg > 0 ? `${(player.shootingPctg * 100).toFixed(1)}%` : '0.0%').padStart(5)}`
+									}
 								</Text>
 							</Box>
 						);
@@ -88,31 +92,37 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
 					{showPlayersHeader && <Box marginTop={1} />}
 					<Box>
 						<Text bold>
-							{`${'  '}${'#'.padEnd(4)} ${'Name'.padEnd(20)} ${'GP'.padStart(4)} ${'W'.padStart(3)} ${'L'.padStart(3)} ${'OTL'.padStart(4)} ${'GAA'.padStart(5)} ${'SV%'.padStart(5)} ${'SO'.padStart(3)}`}
+							{compact
+								? `${'  '}${'#'.padEnd(3)} ${'Name'.padEnd(15)} ${'GP'.padStart(3)} ${'W'.padStart(2)} ${'L'.padStart(2)} ${'GAA'.padStart(4)} ${'SV%'.padStart(4)} ${'SO'.padStart(2)}`
+								: `${'  '}${'#'.padEnd(4)} ${'Name'.padEnd(20)} ${'GP'.padStart(4)} ${'W'.padStart(3)} ${'L'.padStart(3)} ${'OTL'.padStart(4)} ${'GAA'.padStart(5)} ${'SV%'.padStart(5)} ${'SO'.padStart(3)}`
+							}
 						</Text>
 					</Box>
 					{visibleGoalies.map((goalie, idx) => {
 						const absoluteIndex = players.length + visibleGoaliesStart + idx;
 						const isSelected = absoluteIndex === scrollIndex;
 
-						const displayNum = String(goalie.sweaterNumber).padEnd(4);
+						const nameLen = compact ? 15 : 20;
+						const displayNum = compact ? String(goalie.sweaterNumber ?? '').padEnd(3) : String(goalie.sweaterNumber ?? '').padEnd(4);
 						const displayName = `${goalie.firstName.charAt(0)}. ${goalie.lastName}`
-							.slice(0, 20)
-							.padEnd(20);
-						const displayGP = String(goalie.gamesPlayed).padStart(4);
-						const displayWins = String(goalie.wins).padStart(3);
-						const displayLosses = String(goalie.losses).padStart(3);
-						const displayOTL = String(goalie.otLosses).padStart(4);
-						const displayGAA = goalie.goalsAgainstAverage.toFixed(2).padStart(5);
-						const displaySavePct = (
-							goalie.savePct > 0 ? goalie.savePct.toFixed(3) : '0.000'
-						).padStart(5);
-						const displayShutouts = String(goalie.shutouts).padStart(3);
+							.slice(0, nameLen)
+							.padEnd(nameLen);
+						const displayGP = compact ? String(goalie.gamesPlayed).padStart(3) : String(goalie.gamesPlayed).padStart(4);
+						const displayWins = compact ? String(goalie.wins).padStart(2) : String(goalie.wins).padStart(3);
+						const displayLosses = compact ? String(goalie.losses).padStart(2) : String(goalie.losses).padStart(3);
+						const displayGAA = compact ? goalie.goalsAgainstAverage.toFixed(2).padStart(4) : goalie.goalsAgainstAverage.toFixed(2).padStart(5);
+						const displaySavePct = compact
+							? (goalie.savePct > 0 ? goalie.savePct.toFixed(3) : '.000').padStart(4)
+							: (goalie.savePct > 0 ? goalie.savePct.toFixed(3) : '0.000').padStart(5);
+						const displayShutouts = compact ? String(goalie.shutouts).padStart(2) : String(goalie.shutouts).padStart(3);
 
 						return (
 							<Box key={absoluteIndex}>
 								<Text dimColor={!isSelected}>
-									{`${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayGP} ${displayWins} ${displayLosses} ${displayOTL} ${displayGAA} ${displaySavePct} ${displayShutouts}`}
+									{compact
+										? `${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayGP} ${displayWins} ${displayLosses} ${displayGAA} ${displaySavePct} ${displayShutouts}`
+										: `${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayGP} ${displayWins} ${displayLosses} ${String(goalie.otLosses).padStart(4)} ${displayGAA} ${displaySavePct} ${displayShutouts}`
+									}
 								</Text>
 							</Box>
 						);

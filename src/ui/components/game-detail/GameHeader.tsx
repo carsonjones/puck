@@ -45,7 +45,6 @@ const GameHeader: React.FC<GameHeaderProps> = ({
 	return (
 		<Box flexDirection="column">
 			<Text>{`${awayTeam}${awayWins ? ' ✓' : ''} @ ${homeTeam}${homeWins ? ' ✓' : ''}`}</Text>
-			<Text dimColor={status === 'final'}>{`${date} • ${startTime} • ${venue}`}</Text>
 			{status !== 'scheduled' ? (
 				<Box>
 					<Text>{`Score: ${awayScore}-${homeScore}`}</Text>
@@ -56,6 +55,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({
 					{clock && status !== 'final' ? <Text> • {clock}</Text> : null}
 				</Box>
 			) : null}
+			<Text dimColor={['in_progress', 'final'].includes(status)}>{`${date} • ${startTime} • ${venue}`}</Text>
 			{['in_progress', 'scheduled'].includes(status) && broadcasts?.length ? (
 				<Text dimColor={true}>{`Broadcasts: ${broadcasts.join(', ')}`}</Text>
 			) : null}

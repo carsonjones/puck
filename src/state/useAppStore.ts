@@ -20,6 +20,8 @@ interface AppState {
 	detailTab: DetailTab;
 	playsScrollIndex: number;
 	playsSortOrder: PlaysSortOrder;
+	playersTeamTab: 'away' | 'home';
+	playersScrollIndex: number;
 	viewMode: ViewMode;
 	standingsTab: StandingsTab;
 	standingsCursorIndex: number;
@@ -48,6 +50,8 @@ interface AppState {
 	setDetailTab: (tab: DetailTab) => void;
 	movePlaysScroll: (delta: number, maxIndex?: number) => void;
 	togglePlaysSortOrder: () => void;
+	setPlayersTeamTab: (tab: 'away' | 'home') => void;
+	movePlayersScroll: (delta: number, maxIndex?: number) => void;
 	setViewMode: (mode: ViewMode) => void;
 	setStandingsTab: (tab: StandingsTab) => void;
 	moveStandingsCursor: (delta: number, maxIndex?: number) => void;
@@ -81,6 +85,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 	detailTab: 'stats',
 	playsScrollIndex: 0,
 	playsSortOrder: 'asc',
+	playersTeamTab: 'away',
+	playersScrollIndex: 0,
 	viewMode: 'games',
 	standingsTab: 'league',
 	standingsCursorIndex: 0,
@@ -114,10 +120,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 			return;
 		}
 		const sortOrder = status === 'in_progress' ? 'desc' : 'asc';
-		set({ selectedGameId: id, playsSortOrder: sortOrder });
+		set({ selectedGameId: id, playsSortOrder: sortOrder, playersScrollIndex: 0 });
 	},
 	setPageCursor: (cursor) => set({ pageCursor: cursor }),
-	setDetailTab: (tab) => set({ detailTab: tab }),
+	setDetailTab: (tab) => set({ detailTab: tab, playersScrollIndex: 0 }),
 	movePlaysScroll: (delta, maxIndex) => {
 		const nextIndex = get().playsScrollIndex + delta;
 		const clamped =
@@ -129,6 +135,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 	togglePlaysSortOrder: () => {
 		const current = get().playsSortOrder;
 		set({ playsSortOrder: current === 'asc' ? 'desc' : 'asc', playsScrollIndex: 0 });
+	},
+	setPlayersTeamTab: (tab) => set({ playersTeamTab: tab, playersScrollIndex: 0 }),
+	movePlayersScroll: (delta, maxIndex) => {
+		const nextIndex = get().playersScrollIndex + delta;
+		const clamped =
+			typeof maxIndex === 'number'
+				? Math.max(0, Math.min(maxIndex, nextIndex))
+				: Math.max(0, nextIndex);
+		set({ playersScrollIndex: clamped });
 	},
 	setViewMode: (mode) => set({ viewMode: mode, focusedPane: 'list' }),
 	setStandingsTab: (tab) => set({ standingsTab: tab, standingsCursorIndex: 0 }),

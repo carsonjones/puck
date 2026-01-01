@@ -1,9 +1,9 @@
 import { useInput } from 'ink';
 import type { GameListItem } from '@/data/api/client.js';
-import { formatDate } from '@/data/api/client.js';
 import { queryKeys } from '@/data/query/keys.js';
 import { queryClient } from '@/data/query/queryClient.js';
 import { type FocusedPane, type GameStatus, useAppStore } from '@/state/useAppStore.js';
+import { formatDate } from '@/utils/dateUtils.js';
 
 type KeyBindingsConfig = {
 	focusedPane: FocusedPane;

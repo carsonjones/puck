@@ -1,3 +1,3 @@
-# Puck ●
+# Puck •
 
 An NHL TUI

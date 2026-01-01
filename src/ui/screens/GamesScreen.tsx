@@ -1,6 +1,5 @@
 import { Box, Text, useApp, useStdout } from 'ink';
 import { useMemo } from 'react';
-import { formatDate } from '@/data/api/client.js';
 import { useGame } from '@/data/hooks/useGame.js';
 import { useGamesPage } from '@/data/hooks/useGamesPage.js';
 import { useStandings } from '@/data/hooks/useStandings.js';
@@ -19,6 +18,7 @@ import TeamSearchScreen from '@/ui/screens/TeamSearchScreen.js';
 import {
 	getGamesHeader,
 	getPlaysCount,
+	getPlayersRosterCount,
 	getRefreshInterval,
 	getTeamStandings,
 } from './GamesScreen.helpers.js';
@@ -36,6 +36,8 @@ const GamesScreen: React.FC = () => {
 		detailTab,
 		playsScrollIndex,
 		playsSortOrder,
+		playersTeamTab,
+		playersScrollIndex,
 		teamSearchOpen,
 		gameTeamFilter,
 		standingsViewMode,
@@ -46,6 +48,8 @@ const GamesScreen: React.FC = () => {
 		setDetailTab,
 		movePlaysScroll,
 		togglePlaysSortOrder,
+		setPlayersTeamTab,
+		movePlayersScroll,
 	} = useAppStore();
 
 	const listHeight = Math.max(6, height - 4);
@@ -111,6 +115,7 @@ const GamesScreen: React.FC = () => {
 	};
 
 	const playsCount = getPlaysCount(detailTab, displayGame);
+	const playersRosterCount = getPlayersRosterCount();
 
 	useGamesKeyBindings({
 		focusedPane,
@@ -123,6 +128,9 @@ const GamesScreen: React.FC = () => {
 		data: data ?? null,
 		limit,
 		playsCount,
+		playersTeamTab,
+		playersScrollIndex,
+		playersRosterCount,
 		onQuit: quit,
 		moveCursor,
 		selectGame,
@@ -131,6 +139,8 @@ const GamesScreen: React.FC = () => {
 		setDetailTab,
 		movePlaysScroll,
 		togglePlaysSortOrder,
+		setPlayersTeamTab,
+		movePlayersScroll,
 		onInteraction: resetTimer,
 	});
 
@@ -155,6 +165,7 @@ const GamesScreen: React.FC = () => {
 				status={displayStatus}
 				detailTab={detailTab}
 				playsScrollIndex={playsScrollIndex}
+				playersScrollIndex={playersScrollIndex}
 				playsSortOrder={playsSortOrder}
 				height={height}
 				teamStandings={teamStandings}

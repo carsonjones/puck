@@ -1,4 +1,5 @@
-import { formatDate, type GameDetail, type StandingListItem, type StandingsData } from '@/data/api/client.js';
+import type { GameDetail, StandingListItem, StandingsData } from '@/data/api/client.js';
+import { formatDate } from '@/utils/dateUtils.js';
 
 export function getRefreshInterval(
 	selectedGameId: string | null,
@@ -55,4 +56,10 @@ export function getTeamStandings(
 	const awayTeam = allStandings.find((t) => t.teamAbbrev === displayGame.awayTeamAbbrev);
 
 	return { home: homeTeam ?? null, away: awayTeam ?? null };
+}
+
+export function getPlayersRosterCount(): number {
+	// Default roster size (will be overridden by actual data when available)
+	// This is just for key binding max clamp - actual rendering uses real data
+	return 50;
 }

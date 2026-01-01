@@ -1,6 +1,7 @@
-import { Box, Text, useStdout } from 'ink';
+import { Box, Text } from 'ink';
 import React, { Fragment } from 'react';
 import type { GameDetail as GameDetailType, StandingListItem } from '@/data/api/client.js';
+import { useLineWidth } from '@/hooks/useLineWidth.js';
 import type { StandingsViewMode } from '@/state/useAppStore.js';
 import GameHeader from '@/ui/components/game-detail/GameHeader.js';
 import PlayersTab from '@/ui/components/game-detail/PlayersTab.js';
@@ -13,6 +14,7 @@ type GameDetailProps = {
 	status: 'loading' | 'error' | 'success';
 	detailTab: 'stats' | 'plays' | 'players';
 	playsScrollIndex: number;
+	playersScrollIndex: number;
 	playsSortOrder: 'asc' | 'desc';
 	height: number;
 	teamStandings?: { home: StandingListItem | null; away: StandingListItem | null } | null;
@@ -24,14 +26,13 @@ const GameDetail: React.FC<GameDetailProps> = ({
 	status,
 	detailTab,
 	playsScrollIndex,
+	playersScrollIndex,
 	playsSortOrder,
 	height,
 	teamStandings,
 	standingsViewMode = 'all',
 }) => {
-	const { stdout } = useStdout();
-	const width = stdout?.columns ?? 80;
-	const lineWidth = Math.max(1, Math.floor(width / 2) - 10); // Half width minus borders/margins
+	const lineWidth = useLineWidth();
 
 	// Only show loading message if no data yet (initial load)
 	if (status === 'loading' && !game) {
@@ -63,7 +64,12 @@ const GameDetail: React.FC<GameDetailProps> = ({
 				clock={game.clock}
 				broadcasts={game.broadcasts}
 			/>
-			{game.status !== 'scheduled' ? (
+			{game.status === 'scheduled' ? (
+				<Fragment key={`game-${game.id}-scheduled-players`}>
+					<Text dimColor>{'─'.repeat(lineWidth)}</Text>
+					<PlayersTab game={game} scrollIndex={playersScrollIndex} height={height} />
+				</Fragment>
+			) : (
   			<Fragment key={`game-${game.id}-details-tabs`}>
           <Text dimColor>{'─'.repeat(lineWidth)}</Text>
   				<Box flexDirection="column">
@@ -89,7 +95,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
   					</Box>
   				</Box>
   			</Fragment>
-			) : null}
+			)}
 		</Box>
 	);
 };

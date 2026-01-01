@@ -1,9 +1,9 @@
 import { useInput } from 'ink';
 import type { GameDetail, GameListItem } from '@/data/api/client.js';
-import { formatDate } from '@/data/api/client.js';
 import { queryKeys } from '@/data/query/keys.js';
 import { queryClient } from '@/data/query/queryClient.js';
 import { type FocusedPane, type GameStatus, useAppStore } from '@/state/useAppStore.js';
+import { formatDate } from '@/utils/dateUtils.js';
 
 type GamesKeyBindingsConfig = {
 	focusedPane: FocusedPane;
@@ -16,6 +16,9 @@ type GamesKeyBindingsConfig = {
 	data: { nextCursor?: string | null } | null;
 	limit: number;
 	playsCount: number;
+	playersTeamTab: 'away' | 'home';
+	playersScrollIndex: number;
+	playersRosterCount: number;
 	onQuit: () => void;
 	moveCursor: (delta: number, max: number) => void;
 	selectGame: (id: string | null, status?: GameStatus) => void;
@@ -24,6 +27,8 @@ type GamesKeyBindingsConfig = {
 	setDetailTab: (tab: 'stats' | 'plays' | 'players') => void;
 	movePlaysScroll: (delta: number, max: number) => void;
 	togglePlaysSortOrder: () => void;
+	setPlayersTeamTab: (tab: 'away' | 'home') => void;
+	movePlayersScroll: (delta: number, max: number) => void;
 	onInteraction?: () => void;
 };
 
@@ -39,6 +44,9 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 		data,
 		limit,
 		playsCount,
+		playersTeamTab,
+		playersScrollIndex,
+		playersRosterCount,
 		onQuit,
 		moveCursor,
 		selectGame,
@@ -47,6 +55,8 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 		setDetailTab,
 		movePlaysScroll,
 		togglePlaysSortOrder,
+		setPlayersTeamTab,
+		movePlayersScroll,
 		onInteraction,
 	} = config;
 
@@ -120,6 +130,15 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 		if (input === '\t' || key.tab) {
 			if (focusedPane === 'list') {
 				setFocusedPane('detail');
+				return;
+			}
+			// In detail pane on players tab with scheduled game: toggle team
+			if (
+				focusedPane === 'detail' &&
+				detailTab === 'players' &&
+				displayGame?.status === 'scheduled'
+			) {
+				setPlayersTeamTab(playersTeamTab === 'away' ? 'home' : 'away');
 				return;
 			}
 			// In detail pane: cycle through tabs
@@ -199,6 +218,20 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 				setFocusedPane('list');
 				return;
 			}
+			// Players tab with scheduled game - use playersScrollIndex
+			if (detailTab === 'players' && displayGame?.status === 'scheduled') {
+				if (playersRosterCount > 0) {
+					if (input === 'j' || key.downArrow) {
+						movePlayersScroll(1, playersRosterCount - 1);
+						return;
+					}
+					if (input === 'k' || key.upArrow) {
+						movePlayersScroll(-1, playersRosterCount - 1);
+						return;
+					}
+				}
+			}
+			// Plays tab or players tab with in-progress/final game - use playsScrollIndex
 			if ((detailTab === 'plays' || detailTab === 'players') && playsCount > 0) {
 				if (input === 'j' || key.downArrow) {
 					movePlaysScroll(1, playsCount - 1);

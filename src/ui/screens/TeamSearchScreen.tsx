@@ -146,7 +146,7 @@ const TeamSearchScreen: React.FC = () => {
 			{/* Search input */}
 			<Box marginTop={1} marginBottom={1}>
 				<Text>Query: </Text>
-				<Text color="cyan">{query || '(type to search)'}</Text>
+				<Text color="yellow">{query || '(type to search)'}</Text>
 				{query && <Text>█</Text>}
 			</Box>
 

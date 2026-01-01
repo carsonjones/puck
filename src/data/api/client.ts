@@ -7,6 +7,7 @@ import type {
 	PlayerStats,
 	RosterSpot,
 } from '@/data/nhl/models.js';
+import { addDays, formatDate, formatLocalTime } from '@/utils/dateUtils.js';
 
 export type GameListItem = {
 	id: string;
@@ -48,6 +49,7 @@ export type GameDetail = GameListItem & {
 export type Play = {
 	time: string;
 	description: string;
+	playType: string;
 };
 
 export type GamesPage = {
@@ -94,35 +96,12 @@ export type StandingsData = {
 
 const nhlClient = new NhlClient();
 
-export const formatDate = (date: Date) => {
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, '0');
-	const day = String(date.getDate()).padStart(2, '0');
-	return `${year}-${month}-${day}`;
-};
-
-const addDays = (date: Date, days: number) => {
-	const next = new Date(date);
-	next.setDate(next.getDate() + days);
-	return next;
-};
-
 const mapGameStatus = (gameState: string): GameListItem['status'] => {
 	const normalized = gameState.toLowerCase();
 	if (normalized.includes('final') || normalized === 'off') return 'final';
 	if (normalized.includes('live') || normalized.includes('inprogress') || normalized === 'crit')
 		return 'in_progress';
 	return 'scheduled';
-};
-
-const formatLocalTime = (isoTimestamp: string) => {
-	const parsed = new Date(isoTimestamp);
-	if (Number.isNaN(parsed.getTime())) return isoTimestamp.slice(11, 16);
-	return new Intl.DateTimeFormat(undefined, {
-		hour: 'numeric',
-		minute: '2-digit',
-		timeZoneName: 'short',
-	}).format(parsed);
 };
 
 const mapGameListItem = (game: NhlGame): GameListItem => ({
@@ -141,6 +120,12 @@ const mapGameListItem = (game: NhlGame): GameListItem => ({
 const sumHits = (players: PlayerStats[]) =>
 	players.reduce((total, player) => total + (player.hits ?? 0), 0);
 
+const calcFaceoffPct = (players: PlayerStats[]) => {
+	const pct = players.reduce((sum, p) => sum + (p.faceoffWinningPctg ?? 0), 0);
+	const count = players.filter(p => (p.faceoffWinningPctg ?? 0) > 0).length;
+	return count > 0 ? Math.round((pct / count) * 100) : 0;
+};
+
 const topScorers = (players: PlayerStats[], count: number) => {
 	const sorted = [...players].sort((a, b) => b.points - a.points || b.goals - a.goals);
 	return sorted
@@ -150,36 +135,145 @@ const topScorers = (players: PlayerStats[], count: number) => {
 		);
 };
 
+type RosterPlayer = {
+	firstName: string;
+	lastName: string;
+	number: number;
+	position: string;
+};
+
+const formatPlayerName = (player: RosterPlayer) => {
+	const initial = player.firstName.charAt(0);
+	return `${initial}. ${player.lastName} (${player.number})`;
+};
+
 const rosterMapFromPlayByPlay = (plays: PlayByPlayResponse | null) => {
-	const map = new Map<number, string>();
+	const map = new Map<number, RosterPlayer>();
 	if (!plays) return map;
 	plays.rosterSpots.forEach((spot: RosterSpot) => {
-		map.set(spot.playerId, `${spot.firstName.default} ${spot.lastName.default}`);
+		map.set(spot.playerId, {
+			firstName: spot.firstName.default,
+			lastName: spot.lastName.default,
+			number: spot.sweaterNumber,
+			position: spot.positionCode,
+		});
 	});
 	return map;
 };
 
+/**
+ * Formats a descKey from the API into a human-readable string.
+ * Handles various formats: lowercase, hyphens, underscores, camelCase, etc.
+ * Examples:
+ *   "high-sticking" -> "High Sticking"
+ *   "holding" -> "Holding"
+ *   "too-many-men" -> "Too Many Men"
+ *   "delayOfGame" -> "Delay Of Game"
+ */
+const formatDescKey = (descKey: string): string => {
+	// Special case mappings for descKeys and stoppage reasons
+	const specialCases: Record<string, string> = {
+		// Penalties
+		'boarding': 'Boarding',
+		'cross-checking': 'Cross Checking',
+		'delaying-game-puck-over-glass': 'Delay of Game - Puck Over Glass',
+		'delaying-game-unsuccessful-challenge': 'Delay of Game - Unsuccessful Challenge',
+		'fighting': 'Fighting',
+		'game-misconduct': 'Game Misconduct',
+		'high-sticking': 'High Sticking',
+		'high-sticking-double-minor': 'High Sticking (Double Minor)',
+		'holding': 'Holding',
+		'holding-the-stick': 'Holding the Stick',
+		'hooking': 'Hooking',
+		'interference': 'Interference',
+		'interference-goalkeeper': 'Goaltender Interference',
+		'misconduct': 'Misconduct',
+		'ps-slash-on-breakaway': 'Penalty Shot - Slash on Breakaway',
+		'roughing': 'Roughing',
+		'slashing': 'Slashing',
+		'too-many-men-on-the-ice': 'Too Many Men',
+		'tripping': 'Tripping',
+
+		// Stoppage reasons
+		'goalie-stopped-after-sog': 'Goalie Stops After Shot',
+		'goalie-puck-frozen-played-from-beyond-center': 'Puck Played From Beyond Center',
+		'hand-pass': 'Hand Pass',
+		'high-stick': 'High Stick',
+		'icing': 'Icing',
+		'offside': 'Offside',
+		'puck-frozen': 'Puck Frozen',
+		'puck-in-benches': 'Puck in Bench',
+		'puck-in-crowd': 'Puck in Crowd',
+		'puck-in-netting': 'Puck Out of Play',
+		'puck-in-penalty-benches': 'Puck in Penalty Box',
+		'referee-or-linesman': 'Referee or Linesman',
+		'net-dislodged-defensive-skater': 'Net Dislodged by Defensive Player',
+		'net-dislodged-offensive-skater': 'Net Dislodged by Offensive Player',
+		'objects-on-ice': 'Objects on Ice',
+		'player-equipment': 'Player Equipment',
+		'player-injury': 'Player Injury',
+		'rink-repair': 'Rink Repair',
+		'video-review': 'Video Review',
+
+		// Timeouts and challenges
+		'tv-timeout': 'TV Timeout',
+		'home-timeout': 'Home Timeout',
+		'visitor-timeout': 'Visitor Timeout',
+		'chlg-hm-goal-interference': 'Challenge - Goaltender Interference',
+		'chlg-hm-missed-stoppage': 'Challenge - Missed Stoppage',
+		'chlg-hm-off-side': 'Challenge - Offside',
+		'chlg-vis-off-side': 'Challenge - Offside',
+
+		// Play types
+		'period-start': 'Period Start',
+		'period-end': 'Period End',
+		'game-end': 'Game End',
+		'stoppage': 'Stoppage',
+		'giveaway': 'Giveaway',
+		'takeaway': 'Takeaway',
+		'faceoff': 'Faceoff',
+		'shot-on-goal': 'Shot on Goal',
+		'missed-shot': 'Missed Shot',
+		'blocked-shot': 'Blocked Shot',
+		'failed-shot-attempt': 'Failed Shot Attempt',
+		'shootout-complete': 'Shootout Complete',
+	};
+
+	// Check for special cases first
+	if (specialCases[descKey]) {
+		return specialCases[descKey];
+	}
+
+	// Default formatting for other cases
+	return descKey
+		// Replace hyphens and underscores with spaces
+		.replace(/[-_]/g, ' ')
+		// Add space before capital letters (for camelCase)
+		.replace(/([a-z])([A-Z])/g, '$1 $2')
+		// Split into words and capitalize each
+		.split(' ')
+		.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+		.join(' ');
+};
+
 const describePlay = (
 	play: PlayByPlayResponse['plays'][number],
-	rosterMap: Map<number, string>,
+	rosterMap: Map<number, RosterPlayer>,
 ) => {
 	const details = play.details;
-	const scorer = details?.scoringPlayerId ? rosterMap.get(details.scoringPlayerId) : undefined;
-	const assist1 = details?.assist1PlayerId ? rosterMap.get(details.assist1PlayerId) : undefined;
-	const assist2 = details?.assist2PlayerId ? rosterMap.get(details.assist2PlayerId) : undefined;
-	const shooter = details?.shootingPlayerId ? rosterMap.get(details.shootingPlayerId) : undefined;
-	const committer = details?.committedByPlayerId
-		? rosterMap.get(details.committedByPlayerId)
-		: undefined;
-	const drawnBy = details?.drawnByPlayerId ? rosterMap.get(details.drawnByPlayerId) : undefined;
-	const hitter = details?.hittingPlayerId ? rosterMap.get(details.hittingPlayerId) : undefined;
-	const hittee = details?.hitteePlayerId ? rosterMap.get(details.hitteePlayerId) : undefined;
-	const faceoffWinner = details?.winningPlayerId
-		? rosterMap.get(details.winningPlayerId)
-		: undefined;
-	const blocker = details?.blockingPlayerId
-		? rosterMap.get(details.blockingPlayerId)
-		: undefined;
+	const getPlayer = (id?: number) => (id ? rosterMap.get(id) : undefined);
+	const fmt = (player?: RosterPlayer) => (player ? formatPlayerName(player) : undefined);
+
+	const scorer = fmt(getPlayer(details?.scoringPlayerId));
+	const assist1 = fmt(getPlayer(details?.assist1PlayerId));
+	const assist2 = fmt(getPlayer(details?.assist2PlayerId));
+	const shooter = fmt(getPlayer(details?.shootingPlayerId));
+	const committer = fmt(getPlayer(details?.committedByPlayerId));
+	const drawnBy = fmt(getPlayer(details?.drawnByPlayerId));
+	const hitter = fmt(getPlayer(details?.hittingPlayerId));
+	const hittee = fmt(getPlayer(details?.hitteePlayerId));
+	const faceoffWinner = fmt(getPlayer(details?.winningPlayerId));
+	const blocker = fmt(getPlayer(details?.blockingPlayerId));
 
 	// Goal with assists
 	if (scorer) {
@@ -202,18 +296,18 @@ const describePlay = (
 
 	// Penalty
 	if (committer) {
-		const penalty = details?.descKey || 'Penalty';
+		const penalty = details?.descKey ? formatDescKey(details.descKey) : 'Penalty';
 		return drawnBy ? `${penalty} - ${committer} (drawn by ${drawnBy})` : `${penalty} - ${committer}`;
 	}
 
 	// Stoppage with reason
 	if (play.typeDescKey === 'stoppage' && details?.reason) {
-		return details.reason === 'icing' ? 'Icing' : details.reason;
+		return formatDescKey(details.reason);
 	}
 
 	// Fallback
-	if (details?.descKey) return details.descKey;
-	return play.typeDescKey;
+	if (details?.descKey) return formatDescKey(details.descKey);
+	return formatDescKey(play.typeDescKey);
 };
 
 const resolvePeriod = (plays: PlayByPlayResponse | null) => {
@@ -278,12 +372,13 @@ const mapGameDetail = (
 		stats: {
 			shots: { home: game.homeTeam.sog, away: game.awayTeam.sog },
 			hits: { home: sumHits(homePlayers), away: sumHits(awayPlayers) },
-			faceoffPct: { home: 0, away: 0 },
+			faceoffPct: { home: calcFaceoffPct(homePlayers), away: calcFaceoffPct(awayPlayers) },
 		},
 		plays:
 			plays?.plays?.map((play) => ({
 				time: `P${play.periodDescriptor.number} ${play.timeInPeriod}`,
 				description: describePlay(play, rosterMap),
+				playType: play.typeDescKey,
 			})) ?? [],
 		boxscore,
 		homeTeamAbbrev: game.homeTeam.abbrev,

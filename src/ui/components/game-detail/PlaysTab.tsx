@@ -20,7 +20,7 @@ const PlaysTab: React.FC<PlaysTabProps> = ({ plays, scrollIndex, sortOrder, heig
 
 	const getRowColor = (play: Play, isSelected: boolean) => {
 		if (isSelected) return 'yellow';
-		if (play.description?.toLowerCase()?.includes('goal')) return 'green';
+		if (play.playType === 'goal') return 'green';
 		return 'white';
 	}
 

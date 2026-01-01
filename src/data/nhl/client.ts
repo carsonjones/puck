@@ -1,5 +1,5 @@
-import { formatDate } from '@/data/api/client.js';
 import { BaseURLWeb, SortOrder } from '@/data/nhl/constants.js';
+import { formatDate } from '@/utils/dateUtils.js';
 import { getCurrentSeasonId } from '@/data/nhl/formatters.js';
 import type {
 	BoxscoreResponse,

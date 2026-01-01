@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { formatDate } from '@/data/api/client.js';
 import type { GameListItem } from '@/data/api/client.js';
+import { formatDate } from '@/utils/dateUtils.js';
 
 interface UseGameAutoAdvanceOptions {
 	pageCursor: string | null;

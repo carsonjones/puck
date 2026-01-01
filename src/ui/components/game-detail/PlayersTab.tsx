@@ -1,9 +1,10 @@
 import { Box, Text } from 'ink';
 import type React from 'react';
-import { useEffect, useState } from 'react';
 import type { GameDetail } from '@/data/api/client.js';
-import { NhlClient } from '@/data/nhl/client.js';
-import type { RosterResponse } from '@/data/nhl/models.js';
+import { useLineWidth } from '@/hooks/useLineWidth.js';
+import { useAppStore } from '@/state/useAppStore.js';
+import Tabs from '@/ui/components/Tabs.js';
+import TeamPlayersTab from '@/ui/components/standings-detail/TeamPlayersTab.js';
 
 type PlayersTabProps = {
 	game: GameDetail;
@@ -26,91 +27,23 @@ type PlayerRow = {
 };
 
 const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) => {
-	const [rosters, setRosters] = useState<{ away?: RosterResponse; home?: RosterResponse } | null>(
-		null,
-	);
-	const [loading, setLoading] = useState(false);
-
-	useEffect(() => {
-		if (game.status !== 'scheduled') return;
-
-		const fetchRosters = async () => {
-			setLoading(true);
-			const nhlClient = new NhlClient();
-			try {
-				const [away, home] = await Promise.all([
-					nhlClient.getTeamRoster(game.awayTeamAbbrev),
-					nhlClient.getTeamRoster(game.homeTeamAbbrev),
-				]);
-				setRosters({ away, home });
-			} catch {
-				setRosters({ away: undefined, home: undefined });
-			}
-			setLoading(false);
-		};
-
-		fetchRosters();
-	}, [game.status, game.awayTeamAbbrev, game.homeTeamAbbrev]);
+	const lineWidth = useLineWidth();
+	const { playersTeamTab, playersScrollIndex } = useAppStore();
 
 	if (game.status === 'scheduled') {
-		if (loading) {
-			return <Text dimColor>Loading rosters...</Text>;
-		}
-
-		if (!rosters?.away || !rosters?.home) {
-			return <Text color="red">Failed to load rosters.</Text>;
-		}
-
-		const awayPlayers = [
-			...rosters.away.forwards.map((p) => ({
-				number: p.sweaterNumber,
-				name: `${p.firstName.default} ${p.lastName.default}`,
-				position: p.positionCode,
-			})),
-			...rosters.away.defensemen.map((p) => ({
-				number: p.sweaterNumber,
-				name: `${p.firstName.default} ${p.lastName.default}`,
-				position: p.positionCode,
-			})),
-			...rosters.away.goalies.map((p) => ({
-				number: p.sweaterNumber,
-				name: `${p.firstName.default} ${p.lastName.default}`,
-				position: p.positionCode,
-			})),
-		];
-
-		const homePlayers = [
-			...rosters.home.forwards.map((p) => ({
-				number: p.sweaterNumber,
-				name: `${p.firstName.default} ${p.lastName.default}`,
-				position: p.positionCode,
-			})),
-			...rosters.home.defensemen.map((p) => ({
-				number: p.sweaterNumber,
-				name: `${p.firstName.default} ${p.lastName.default}`,
-				position: p.positionCode,
-			})),
-			...rosters.home.goalies.map((p) => ({
-				number: p.sweaterNumber,
-				name: `${p.firstName.default} ${p.lastName.default}`,
-				position: p.positionCode,
-			})),
-		];
+		const teamAbbrev = playersTeamTab === 'away' ? game.awayTeamAbbrev : game.homeTeamAbbrev;
+		const activeTeam = playersTeamTab === 'away' ? game.awayTeam : game.homeTeam;
 
 		return (
-			<Box flexDirection="column" gap={1}>
-				<Box flexDirection="column">
-					<Text bold>{game.awayTeam}</Text>
-					{awayPlayers.map((p, idx) => (
-						<Text key={idx}>{`  #${p.number} ${p.name} (${p.position})`}</Text>
-					))}
-				</Box>
-				<Box flexDirection="column" marginTop={1}>
-					<Text bold>{game.homeTeam}</Text>
-					{homePlayers.map((p, idx) => (
-						<Text key={idx}>{`  #${p.number} ${p.name} (${p.position})`}</Text>
-					))}
-				</Box>
+			<Box flexDirection="column">
+				<Tabs tabs={[game.awayTeam, game.homeTeam]} active={activeTeam} />
+				<Text dimColor>{'─'.repeat(lineWidth)}</Text>
+				<TeamPlayersTab
+					teamAbbrev={teamAbbrev}
+					scrollIndex={playersScrollIndex}
+					height={height}
+					compact={true}
+				/>
 			</Box>
 		);
 	}
@@ -234,7 +167,7 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 					const displaySavePct = player.savePct ? `${(player.savePct * 100).toFixed(1)}%` : 'n/a';
 					return (
 						<Box key={absoluteIndex}>
-							<Text color={isSelected ? 'cyan' : undefined}>
+							<Text color={isSelected ? 'yellow' : undefined}>
 								{`${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayPos} ${'-'.padEnd(3)} ${'-'.padEnd(3)} ${'-'.padEnd(4)} ${'-'.padEnd(4)} ${'-'.padEnd(4)} ${displaySaves} ${displaySavePct}`}
 							</Text>
 						</Box>
@@ -249,7 +182,7 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 
 				return (
 					<Box key={absoluteIndex}>
-						<Text color={isSelected ? 'cyan' : undefined}>
+						<Text color={isSelected ? 'yellow' : undefined}>
 							{`${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayPos} ${displayGoals} ${displayAssists} ${displayPoints} ${displayShots} ${displayHits} ${'-'.padEnd(4)} ${'-'}`}
 						</Text>
 					</Box>
