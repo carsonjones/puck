@@ -11,7 +11,13 @@ type PlayersListProps = {
 	hideSelection?: boolean;
 };
 
-const PlayersList: React.FC<PlayersListProps> = ({ items, cursorIndex, height, loading, hideSelection }) => {
+const PlayersList: React.FC<PlayersListProps> = ({
+	items,
+	cursorIndex,
+	height,
+	loading,
+	hideSelection,
+}) => {
 	const { stdout } = useStdout();
 	const terminalWidth = stdout?.columns || 80;
 	const containerWidth = Math.max(10, Math.floor(terminalWidth / 2) - 14);
@@ -29,7 +35,9 @@ const PlayersList: React.FC<PlayersListProps> = ({ items, cursorIndex, height, l
 	return (
 		<Box flexDirection="column">
 			<Box minHeight={1}>
-				<Text bold>{'Rank'.padEnd(5)} {'Player'.padEnd(20)} {'Team'.padEnd(5)} {'Pos'.padEnd(4)} {'Pts'}</Text>
+				<Text bold>
+					{'Rank'.padEnd(5)} {'Player'.padEnd(20)} {'Team'.padEnd(5)} {'Pos'.padEnd(4)} {'Pts'}
+				</Text>
 			</Box>
 			{visible.map((item, index) => {
 				const absoluteIndex = start + index;

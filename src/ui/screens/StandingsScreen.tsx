@@ -106,7 +106,12 @@ const StandingsScreen: React.FC = () => {
 			moveStandingsPlayersScroll(-standingsPlayersScrollIndex);
 			setPreviousStandingsState(null);
 		}
-	}, [previousStandingsState, standingsPlayersScrollIndex, moveStandingsPlayersScroll, setPreviousStandingsState]);
+	}, [
+		previousStandingsState,
+		standingsPlayersScrollIndex,
+		moveStandingsPlayersScroll,
+		setPreviousStandingsState,
+	]);
 
 	const quit = () => {
 		exit();

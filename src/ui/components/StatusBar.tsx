@@ -14,7 +14,8 @@ const StatusBar: React.FC<{
 	const viewName =
 		viewMode === 'standings' ? 'Standings' : viewMode === 'players' ? 'Players' : 'Games';
 
-	const hasFilter = (viewMode === 'games' && gameTeamFilter) || (viewMode === 'players' && playerFilter);
+	const hasFilter =
+		(viewMode === 'games' && gameTeamFilter) || (viewMode === 'players' && playerFilter);
 
 	const rightText = loading
 		? 'Loading'

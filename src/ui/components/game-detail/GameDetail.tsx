@@ -49,7 +49,7 @@ const GameDetail: React.FC<GameDetailProps> = ({
 	return (
 		<Box flexDirection="column">
 			<GameHeader
-	      key={`game-${game.id}-header`}
+				key={`game-${game.id}-header`}
 				awayTeam={game.awayTeam}
 				homeTeam={game.homeTeam}
 				awayTeamAbbrev={game.awayTeamAbbrev}
@@ -71,31 +71,31 @@ const GameDetail: React.FC<GameDetailProps> = ({
 					<PlayersTab game={game} scrollIndex={playersScrollIndex} height={height} />
 				</Fragment>
 			) : (
-  			<Fragment key={`game-${game.id}-details-tabs`}>
-          <Text dimColor>{'─'.repeat(lineWidth)}</Text>
-  				<Box flexDirection="column">
-  					<Tabs tabs={['stats', 'plays', 'players']} active={detailTab} />
-            <Text dimColor>{'─'.repeat(lineWidth)}</Text>
-  					<Box>
-  						{detailTab === 'stats' ? (
-  							<StatsTab
-  								game={game}
-  								teamStandings={teamStandings}
-  								standingsViewMode={standingsViewMode}
-  							/>
-  						) : detailTab === 'plays' ? (
-  							<PlaysTab
-  								plays={game.plays}
-  								scrollIndex={playsScrollIndex}
-  								sortOrder={playsSortOrder}
-  								height={height}
-  							/>
-  						) : (
-  							<PlayersTab game={game} scrollIndex={playsScrollIndex} height={height} />
-  						)}
-  					</Box>
-  				</Box>
-  			</Fragment>
+				<Fragment key={`game-${game.id}-details-tabs`}>
+					<Text dimColor>{'─'.repeat(lineWidth)}</Text>
+					<Box flexDirection="column">
+						<Tabs tabs={['stats', 'plays', 'players']} active={detailTab} />
+						<Text dimColor>{'─'.repeat(lineWidth)}</Text>
+						<Box>
+							{detailTab === 'stats' ? (
+								<StatsTab
+									game={game}
+									teamStandings={teamStandings}
+									standingsViewMode={standingsViewMode}
+								/>
+							) : detailTab === 'plays' ? (
+								<PlaysTab
+									plays={game.plays}
+									scrollIndex={playsScrollIndex}
+									sortOrder={playsSortOrder}
+									height={height}
+								/>
+							) : (
+								<PlayersTab game={game} scrollIndex={playsScrollIndex} height={height} />
+							)}
+						</Box>
+					</Box>
+				</Fragment>
 			)}
 		</Box>
 	);

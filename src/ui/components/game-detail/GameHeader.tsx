@@ -62,7 +62,9 @@ const GameHeader: React.FC<GameHeaderProps> = ({
 					{clock && status !== 'final' ? <Text> • {clock}</Text> : null}
 				</Box>
 			) : null}
-			<Text dimColor={['in_progress', 'final'].includes(status)}>{`${date} • ${startTime} • ${venue}`}</Text>
+			<Text
+				dimColor={['in_progress', 'final'].includes(status)}
+			>{`${date} • ${startTime} • ${venue}`}</Text>
 			{['in_progress', 'scheduled'].includes(status) && broadcasts?.length ? (
 				<Text dimColor={true}>{`Broadcasts: ${broadcasts.join(', ')}`}</Text>
 			) : null}

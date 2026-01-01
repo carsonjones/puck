@@ -126,7 +126,7 @@ const sumHits = (players: PlayerStats[]) =>
 
 const calcFaceoffPct = (players: PlayerStats[]) => {
 	const pct = players.reduce((sum, p) => sum + (p.faceoffWinningPctg ?? 0), 0);
-	const count = players.filter(p => (p.faceoffWinningPctg ?? 0) > 0).length;
+	const count = players.filter((p) => (p.faceoffWinningPctg ?? 0) > 0).length;
 	return count > 0 ? Math.round((pct / count) * 100) : 0;
 };
 
@@ -178,33 +178,33 @@ const formatDescKey = (descKey: string): string => {
 	// Special case mappings for descKeys and stoppage reasons
 	const specialCases: Record<string, string> = {
 		// Penalties
-		'boarding': 'Boarding',
+		boarding: 'Boarding',
 		'cross-checking': 'Cross Checking',
 		'delaying-game-puck-over-glass': 'Delay of Game - Puck Over Glass',
 		'delaying-game-unsuccessful-challenge': 'Delay of Game - Unsuccessful Challenge',
-		'fighting': 'Fighting',
+		fighting: 'Fighting',
 		'game-misconduct': 'Game Misconduct',
 		'high-sticking': 'High Sticking',
 		'high-sticking-double-minor': 'High Sticking (Double Minor)',
-		'holding': 'Holding',
+		holding: 'Holding',
 		'holding-the-stick': 'Holding the Stick',
-		'hooking': 'Hooking',
-		'interference': 'Interference',
+		hooking: 'Hooking',
+		interference: 'Interference',
 		'interference-goalkeeper': 'Goaltender Interference',
-		'misconduct': 'Misconduct',
+		misconduct: 'Misconduct',
 		'ps-slash-on-breakaway': 'Penalty Shot - Slash on Breakaway',
-		'roughing': 'Roughing',
-		'slashing': 'Slashing',
+		roughing: 'Roughing',
+		slashing: 'Slashing',
 		'too-many-men-on-the-ice': 'Too Many Men',
-		'tripping': 'Tripping',
+		tripping: 'Tripping',
 
 		// Stoppage reasons
 		'goalie-stopped-after-sog': 'Goalie Stops After Shot',
 		'goalie-puck-frozen-played-from-beyond-center': 'Puck Played From Beyond Center',
 		'hand-pass': 'Hand Pass',
 		'high-stick': 'High Stick',
-		'icing': 'Icing',
-		'offside': 'Offside',
+		icing: 'Icing',
+		offside: 'Offside',
 		'puck-frozen': 'Puck Frozen',
 		'puck-in-benches': 'Puck in Bench',
 		'puck-in-crowd': 'Puck in Crowd',
@@ -232,10 +232,10 @@ const formatDescKey = (descKey: string): string => {
 		'period-start': 'Period Start',
 		'period-end': 'Period End',
 		'game-end': 'Game End',
-		'stoppage': 'Stoppage',
-		'giveaway': 'Giveaway',
-		'takeaway': 'Takeaway',
-		'faceoff': 'Faceoff',
+		stoppage: 'Stoppage',
+		giveaway: 'Giveaway',
+		takeaway: 'Takeaway',
+		faceoff: 'Faceoff',
 		'shot-on-goal': 'Shot on Goal',
 		'missed-shot': 'Missed Shot',
 		'blocked-shot': 'Blocked Shot',
@@ -249,15 +249,17 @@ const formatDescKey = (descKey: string): string => {
 	}
 
 	// Default formatting for other cases
-	return descKey
-		// Replace hyphens and underscores with spaces
-		.replace(/[-_]/g, ' ')
-		// Add space before capital letters (for camelCase)
-		.replace(/([a-z])([A-Z])/g, '$1 $2')
-		// Split into words and capitalize each
-		.split(' ')
-		.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-		.join(' ');
+	return (
+		descKey
+			// Replace hyphens and underscores with spaces
+			.replace(/[-_]/g, ' ')
+			// Add space before capital letters (for camelCase)
+			.replace(/([a-z])([A-Z])/g, '$1 $2')
+			// Split into words and capitalize each
+			.split(' ')
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+			.join(' ')
+	);
 };
 
 const describePlay = (
@@ -301,7 +303,9 @@ const describePlay = (
 	// Penalty
 	if (committer) {
 		const penalty = details?.descKey ? formatDescKey(details.descKey) : 'Penalty';
-		return drawnBy ? `${penalty} - ${committer} (drawn by ${drawnBy})` : `${penalty} - ${committer}`;
+		return drawnBy
+			? `${penalty} - ${committer} (drawn by ${drawnBy})`
+			: `${penalty} - ${committer}`;
 	}
 
 	// Stoppage with reason

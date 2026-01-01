@@ -150,7 +150,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 	},
 	setStandingsDetailTab: (tab) => set({ standingsDetailTab: tab, standingsPlayersScrollIndex: 0 }),
 	moveStandingsPlayersScroll: (delta, maxIndex) => {
-		set({ standingsPlayersScrollIndex: clampIndex(get().standingsPlayersScrollIndex, delta, maxIndex) });
+		set({
+			standingsPlayersScrollIndex: clampIndex(get().standingsPlayersScrollIndex, delta, maxIndex),
+		});
 	},
 	movePlayersCursor: (delta, maxIndex) => {
 		set({ playersCursorIndex: clampIndex(get().playersCursorIndex, delta, maxIndex) });

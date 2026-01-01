@@ -38,9 +38,7 @@ export const useTeamInfo = (teamAbbrev: string | null): TeamInfo => {
 				const schedule = await nhlClient.getTeamSchedule(team, currentSeason);
 
 				// Find first home game with venue info
-				const homeGame = schedule.games.find(
-					(game) => game.homeTeam.id === team.id && game.venue
-				);
+				const homeGame = schedule.games.find((game) => game.homeTeam.id === team.id && game.venue);
 
 				setArena(homeGame?.venue?.default || null);
 			} catch (err) {

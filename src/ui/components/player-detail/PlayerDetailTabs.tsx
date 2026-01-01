@@ -22,7 +22,9 @@ const PlayerDetailTabs: React.FC<PlayerDetailTabsProps> = ({ player, height }) =
 		<Box flexDirection="column">
 			<Box flexDirection="column" marginBottom={1}>
 				<Text bold>{`${player.firstName} ${player.lastName} #${player.sweaterNumber}`}</Text>
-				<Text dimColor>{`${getFullTeamName(player.teamAbbrev)} • ${getFullPositionName(player.position)}`}</Text>
+				<Text
+					dimColor
+				>{`${getFullTeamName(player.teamAbbrev)} • ${getFullPositionName(player.position)}`}</Text>
 			</Box>
 			<Text dimColor>{'─'.repeat(lineWidth)}</Text>
 			<Tabs tabs={['season', 'about', 'games']} active={playerDetailTab} />

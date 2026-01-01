@@ -234,7 +234,8 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 					if (key.return) {
 						const selectedPlayer = allPlayers[playersScrollIndex];
 						if (selectedPlayer && selectedPlayer.id) {
-							const { selectPlayer, setPlayerFilter, setFocusedPane, setViewMode } = useAppStore.getState();
+							const { selectPlayer, setPlayerFilter, setFocusedPane, setViewMode } =
+								useAppStore.getState();
 							selectPlayer(selectedPlayer.id);
 							setPlayerFilter(selectedPlayer.id);
 							setFocusedPane('detail');
@@ -264,7 +265,11 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 					// For in-progress/final games, use playsScrollIndex not playersScrollIndex
 					const { playsScrollIndex: scrollIndex } = useAppStore.getState();
 					// scrollIndex includes 3 headers (awayTeam, separator, homeTeam)
-					if (scrollIndex === 0 || scrollIndex === awayPlayers.length + 1 || scrollIndex === awayPlayers.length + 2) {
+					if (
+						scrollIndex === 0 ||
+						scrollIndex === awayPlayers.length + 1 ||
+						scrollIndex === awayPlayers.length + 2
+					) {
 						// Selected a header row, ignore
 						return;
 					}
@@ -279,7 +284,8 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 					}
 
 					if (selectedPlayer && selectedPlayer.playerId) {
-						const { selectPlayer, setPlayerFilter, setFocusedPane, setViewMode } = useAppStore.getState();
+						const { selectPlayer, setPlayerFilter, setFocusedPane, setViewMode } =
+							useAppStore.getState();
 						selectPlayer(selectedPlayer.playerId);
 						setPlayerFilter(selectedPlayer.playerId);
 						setFocusedPane('detail');

@@ -27,7 +27,10 @@ const PlaysTab: React.FC<PlaysTabProps> = ({ plays, scrollIndex, sortOrder, heig
 
 				return (
 					<Box key={absoluteIndex}>
-						<Text inverse={isSelected} color={!isSelected && play.playType === 'goal' ? 'green' : undefined}>
+						<Text
+							inverse={isSelected}
+							color={!isSelected && play.playType === 'goal' ? 'green' : undefined}
+						>
 							{fullText}
 						</Text>
 					</Box>

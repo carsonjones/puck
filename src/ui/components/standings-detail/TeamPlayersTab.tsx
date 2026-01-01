@@ -11,7 +11,12 @@ type TeamPlayersTabProps = {
 	compact?: boolean;
 };
 
-const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex, height, compact = false }) => {
+const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({
+	teamAbbrev,
+	scrollIndex,
+	height,
+	compact = false,
+}) => {
 	const lineWidth = useLineWidth();
 	const { players, goalies, loading, error } = useTeamRosterData(teamAbbrev);
 
@@ -50,8 +55,7 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
 						<Text bold>
 							{compact
 								? `${'  '}${'#'.padEnd(3)} ${'Name'.padEnd(15)} ${'Pos'.padEnd(3)} ${'GP'.padStart(3)} ${'G'.padStart(2)} ${'A'.padStart(2)} ${'Pts'.padStart(3)} ${'+/-'.padStart(3)}`
-								: `${'  '}${'#'.padEnd(4)} ${'Name'.padEnd(20)} ${'Pos'.padEnd(4)} ${'GP'.padStart(4)} ${'G'.padStart(3)} ${'A'.padStart(3)} ${'Pts'.padStart(4)} ${'+/-'.padStart(4)} ${'SOG'.padStart(4)} ${'SH%'.padStart(5)}`
-							}
+								: `${'  '}${'#'.padEnd(4)} ${'Name'.padEnd(20)} ${'Pos'.padEnd(4)} ${'GP'.padStart(4)} ${'G'.padStart(3)} ${'A'.padStart(3)} ${'Pts'.padStart(4)} ${'+/-'.padStart(4)} ${'SOG'.padStart(4)} ${'SH%'.padStart(5)}`}
 						</Text>
 					</Box>
 					{visiblePlayers.map((player, idx) => {
@@ -59,15 +63,27 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
 						const isSelected = absoluteIndex === scrollIndex;
 
 						const nameLen = compact ? 15 : 20;
-						const displayNum = compact ? String(player.sweaterNumber ?? '').padEnd(3) : String(player.sweaterNumber ?? '').padEnd(4);
+						const displayNum = compact
+							? String(player.sweaterNumber ?? '').padEnd(3)
+							: String(player.sweaterNumber ?? '').padEnd(4);
 						const displayName = `${player.firstName.charAt(0)}. ${player.lastName}`
 							.slice(0, nameLen)
 							.padEnd(nameLen);
-						const displayPos = compact ? player.positionCode.padEnd(3) : player.positionCode.padEnd(4);
-						const displayGP = compact ? String(player.gamesPlayed).padStart(3) : String(player.gamesPlayed).padStart(4);
-						const displayGoals = compact ? String(player.goals).padStart(2) : String(player.goals).padStart(3);
-						const displayAssists = compact ? String(player.assists).padStart(2) : String(player.assists).padStart(3);
-						const displayPoints = compact ? String(player.points).padStart(3) : String(player.points).padStart(4);
+						const displayPos = compact
+							? player.positionCode.padEnd(3)
+							: player.positionCode.padEnd(4);
+						const displayGP = compact
+							? String(player.gamesPlayed).padStart(3)
+							: String(player.gamesPlayed).padStart(4);
+						const displayGoals = compact
+							? String(player.goals).padStart(2)
+							: String(player.goals).padStart(3);
+						const displayAssists = compact
+							? String(player.assists).padStart(2)
+							: String(player.assists).padStart(3);
+						const displayPoints = compact
+							? String(player.points).padStart(3)
+							: String(player.points).padStart(4);
 						const displayPlusMinus = compact
 							? ((player.plusMinus >= 0 ? '+' : '') + String(player.plusMinus)).padStart(3)
 							: ((player.plusMinus >= 0 ? '+' : '') + String(player.plusMinus)).padStart(4);
@@ -94,8 +110,7 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
 						<Text bold>
 							{compact
 								? `${'  '}${'#'.padEnd(3)} ${'Name'.padEnd(15)} ${'GP'.padStart(3)} ${'W'.padStart(2)} ${'L'.padStart(2)} ${'GAA'.padStart(4)} ${'SV%'.padStart(4)} ${'SO'.padStart(2)}`
-								: `${'  '}${'#'.padEnd(4)} ${'Name'.padEnd(20)} ${'GP'.padStart(4)} ${'W'.padStart(3)} ${'L'.padStart(3)} ${'OTL'.padStart(4)} ${'GAA'.padStart(5)} ${'SV%'.padStart(5)} ${'SO'.padStart(3)}`
-							}
+								: `${'  '}${'#'.padEnd(4)} ${'Name'.padEnd(20)} ${'GP'.padStart(4)} ${'W'.padStart(3)} ${'L'.padStart(3)} ${'OTL'.padStart(4)} ${'GAA'.padStart(5)} ${'SV%'.padStart(5)} ${'SO'.padStart(3)}`}
 						</Text>
 					</Box>
 					{visibleGoalies.map((goalie, idx) => {
@@ -103,18 +118,30 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
 						const isSelected = absoluteIndex === scrollIndex;
 
 						const nameLen = compact ? 15 : 20;
-						const displayNum = compact ? String(goalie.sweaterNumber ?? '').padEnd(3) : String(goalie.sweaterNumber ?? '').padEnd(4);
+						const displayNum = compact
+							? String(goalie.sweaterNumber ?? '').padEnd(3)
+							: String(goalie.sweaterNumber ?? '').padEnd(4);
 						const displayName = `${goalie.firstName.charAt(0)}. ${goalie.lastName}`
 							.slice(0, nameLen)
 							.padEnd(nameLen);
-						const displayGP = compact ? String(goalie.gamesPlayed).padStart(3) : String(goalie.gamesPlayed).padStart(4);
-						const displayWins = compact ? String(goalie.wins).padStart(2) : String(goalie.wins).padStart(3);
-						const displayLosses = compact ? String(goalie.losses).padStart(2) : String(goalie.losses).padStart(3);
-						const displayGAA = compact ? goalie.goalsAgainstAverage.toFixed(2).padStart(4) : goalie.goalsAgainstAverage.toFixed(2).padStart(5);
+						const displayGP = compact
+							? String(goalie.gamesPlayed).padStart(3)
+							: String(goalie.gamesPlayed).padStart(4);
+						const displayWins = compact
+							? String(goalie.wins).padStart(2)
+							: String(goalie.wins).padStart(3);
+						const displayLosses = compact
+							? String(goalie.losses).padStart(2)
+							: String(goalie.losses).padStart(3);
+						const displayGAA = compact
+							? goalie.goalsAgainstAverage.toFixed(2).padStart(4)
+							: goalie.goalsAgainstAverage.toFixed(2).padStart(5);
 						const displaySavePct = compact
 							? (goalie.savePct > 0 ? goalie.savePct.toFixed(3) : '.000').padStart(4)
 							: (goalie.savePct > 0 ? goalie.savePct.toFixed(3) : '0.000').padStart(5);
-						const displayShutouts = compact ? String(goalie.shutouts).padStart(2) : String(goalie.shutouts).padStart(3);
+						const displayShutouts = compact
+							? String(goalie.shutouts).padStart(2)
+							: String(goalie.shutouts).padStart(3);
 
 						const text = compact
 							? `${'  '}${displayNum} ${displayName} ${displayGP} ${displayWins} ${displayLosses} ${displayGAA} ${displaySavePct} ${displayShutouts}`

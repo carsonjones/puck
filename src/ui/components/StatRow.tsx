@@ -24,10 +24,14 @@ const StatRow: React.FC<StatRowProps> = ({
 				<Text bold={isHeader}>{label}</Text>
 			</Box>
 			<Box width={valueWidth}>
-				<Text bold={isHeader} wrap="truncate">{awayValue}</Text>
+				<Text bold={isHeader} wrap="truncate">
+					{awayValue}
+				</Text>
 			</Box>
 			<Box width={valueWidth}>
-				<Text bold={isHeader} wrap="truncate">{homeValue}</Text>
+				<Text bold={isHeader} wrap="truncate">
+					{homeValue}
+				</Text>
 			</Box>
 		</Box>
 	);

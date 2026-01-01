@@ -80,7 +80,15 @@ const PlayersScreen: React.FC = () => {
 		if (item && item.id !== selectedPlayerId) {
 			selectPlayer(item.id);
 		}
-	}, [status, items, playersCursorIndex, selectedPlayerId, selectPlayer, movePlayersCursor, playerFilter]);
+	}, [
+		status,
+		items,
+		playersCursorIndex,
+		selectedPlayerId,
+		selectPlayer,
+		movePlayersCursor,
+		playerFilter,
+	]);
 
 	// Sync cursor to pre-selected player (e.g., from team roster) - only when selectedPlayerId changes
 	useEffect(() => {
@@ -247,9 +255,10 @@ const PlayersScreen: React.FC = () => {
 	const header = useMemo(() => {
 		if (status === 'loading') return 'Loading players';
 		if (status === 'error') return 'Players';
-		const filterName = playerFilter !== null && playerDetail.data
-			? `${playerDetail.data.firstName.charAt(0)}. ${playerDetail.data.lastName}`
-			: null;
+		const filterName =
+			playerFilter !== null && playerDetail.data
+				? `${playerDetail.data.firstName.charAt(0)}. ${playerDetail.data.lastName}`
+				: null;
 		const filterSuffix = filterName ? ` (Filtered: ${filterName})` : '';
 		return `Top Scorers (${items.length})${filterSuffix}`;
 	}, [status, items.length, playerFilter, playerDetail.data]);

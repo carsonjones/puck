@@ -42,7 +42,9 @@ async function collectDescKeys() {
 
 			// Fetch play-by-play for each game
 			for (const game of scoreboard.games) {
-				console.log(`  Processing game ${game.id}: ${game.awayTeam.abbrev} @ ${game.homeTeam.abbrev}`);
+				console.log(
+					`  Processing game ${game.id}: ${game.awayTeam.abbrev} @ ${game.homeTeam.abbrev}`,
+				);
 
 				try {
 					const playByPlay = await nhlClient.getGamePlayByPlay(game.id);
