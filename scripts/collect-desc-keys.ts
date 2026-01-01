@@ -84,7 +84,7 @@ async function collectDescKeys() {
 		return;
 	}
 
-	console.log('\n' + '='.repeat(60));
+	console.log(`\n${'='.repeat(60)}`);
 	console.log('UNIQUE descKey VALUES:');
 	console.log('='.repeat(60));
 	const sortedDescKeys = Array.from(allDescKeys).sort();
@@ -92,7 +92,7 @@ async function collectDescKeys() {
 		console.log(`  "${key}"`);
 	}
 
-	console.log('\n' + '='.repeat(60));
+	console.log(`\n${'='.repeat(60)}`);
 	console.log('UNIQUE typeDescKey VALUES:');
 	console.log('='.repeat(60));
 	const sortedTypeDescKeys = Array.from(allTypeDescKeys).sort();
@@ -100,7 +100,7 @@ async function collectDescKeys() {
 		console.log(`  "${key}"`);
 	}
 
-	console.log('\n' + '='.repeat(60));
+	console.log(`\n${'='.repeat(60)}`);
 	console.log('UNIQUE STOPPAGE REASONS:');
 	console.log('='.repeat(60));
 	const sortedReasons = Array.from(allReasons).sort();
@@ -108,7 +108,7 @@ async function collectDescKeys() {
 		console.log(`  "${reason}"`);
 	}
 
-	console.log('\n' + '='.repeat(60));
+	console.log(`\n${'='.repeat(60)}`);
 	console.log('SUMMARY:');
 	console.log('='.repeat(60));
 	console.log(`Total games processed: ${totalGames}`);

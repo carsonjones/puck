@@ -1,9 +1,9 @@
 import { Box, Text, useInput, useStdout } from 'ink';
 import type { StandingListItem } from '@/data/api/client.js';
 import { useStandings } from '@/data/hooks/useStandings.js';
+import { useWindowedList } from '@/hooks/useWindowedList.js';
 import { useAppStore } from '@/state/useAppStore.js';
 import { fuzzyMatchTeams } from '@/utils/fuzzyMatch.js';
-import { useWindowedList } from '@/hooks/useWindowedList.js';
 
 const TeamSearchScreen: React.FC = () => {
 	const { stdout } = useStdout();
@@ -20,7 +20,6 @@ const TeamSearchScreen: React.FC = () => {
 		setGameTeamFilter,
 		setViewMode,
 		setStandingsTab,
-		setStandingsConference,
 		moveStandingsCursor,
 		setFocusedPane,
 		standingsCursorIndex,

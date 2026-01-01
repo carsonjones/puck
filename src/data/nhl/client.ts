@@ -1,5 +1,4 @@
 import { BaseURLWeb, SortOrder } from '@/data/nhl/constants.js';
-import { formatDate } from '@/utils/dateUtils.js';
 import { getCurrentSeasonId } from '@/data/nhl/formatters.js';
 import type {
 	BoxscoreResponse,
@@ -22,6 +21,7 @@ import type {
 	TeamScheduleResponse,
 	TeamsResponse,
 } from '@/data/nhl/models.js';
+import { formatDate } from '@/utils/dateUtils.js';
 
 type HttpResponse = {
 	ok: boolean;

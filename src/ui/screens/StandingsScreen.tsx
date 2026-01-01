@@ -32,16 +32,9 @@ const StandingsScreen: React.FC = () => {
 		pendingTeamNavigation,
 		previousStandingsState,
 		moveStandingsCursor,
-		setFocusedPane,
 		setStandingsTab,
 		moveStandingsPlayersScroll,
-		setStandingsConference,
-		setStandingsDivision,
-		cycleStandingsViewMode,
-		setViewMode,
-		selectPlayer,
 		setPreviousStandingsState,
-		openTeamSearch,
 		clearPendingTeamNavigation,
 	} = useAppStore();
 

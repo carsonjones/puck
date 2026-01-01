@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { type GameStatus, useAppStore } from '@/state/useAppStore.js';
 import type { GameListItem } from '@/data/api/client.js';
+import { type GameStatus, useAppStore } from '@/state/useAppStore.js';
 
 interface UseGameSelectionOptions {
 	status: 'idle' | 'loading' | 'success' | 'error';

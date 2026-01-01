@@ -21,6 +21,7 @@ const PlayersList: React.FC<PlayersListProps> = ({
 	const { stdout } = useStdout();
 	const terminalWidth = stdout?.columns || 80;
 	const containerWidth = Math.max(10, Math.floor(terminalWidth / 2) - 14);
+	const { visible, start } = useWindowedList(items, cursorIndex, height, 6);
 
 	if (loading) {
 		return <Text dimColor>Loading players...</Text>;
@@ -29,8 +30,6 @@ const PlayersList: React.FC<PlayersListProps> = ({
 	if (items.length === 0) {
 		return <Text dimColor>No player data available.</Text>;
 	}
-
-	const { visible, start } = useWindowedList(items, cursorIndex, height, 6);
 
 	return (
 		<Box flexDirection="column">

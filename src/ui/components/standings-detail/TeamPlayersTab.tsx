@@ -1,8 +1,8 @@
 import { Box, Text } from 'ink';
 import type React from 'react';
 import { useLineWidth } from '@/hooks/useLineWidth.js';
-import { useTeamRosterData } from '@/ui/components/standings-detail/useTeamRosterData.js';
 import { useWindowedList } from '@/hooks/useWindowedList.js';
+import { useTeamRosterData } from '@/ui/components/standings-detail/useTeamRosterData.js';
 
 type TeamPlayersTabProps = {
 	teamAbbrev: string;
@@ -19,6 +19,8 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({
 }) => {
 	const lineWidth = useLineWidth();
 	const { players, goalies, loading, error } = useTeamRosterData(teamAbbrev);
+	const allRoster = [...players, ...goalies];
+	const { start, end } = useWindowedList(allRoster, scrollIndex, height, 10);
 
 	if (loading) {
 		return <Text dimColor>Loading roster...</Text>;
@@ -31,9 +33,6 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({
 	if (players.length === 0 && goalies.length === 0) {
 		return <Text dimColor>No roster data available.</Text>;
 	}
-
-	const allRoster = [...players, ...goalies];
-	const { start, end } = useWindowedList(allRoster, scrollIndex, height, 10);
 
 	// Determine which players and goalies are visible
 	const visiblePlayersStart = Math.max(0, start);

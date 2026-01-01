@@ -15,6 +15,7 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
 	const { stdout } = useStdout();
 	const terminalWidth = stdout?.columns || 80;
 	const containerWidth = Math.floor(terminalWidth / 2) - 10; // half screen minus borders/padding
+	const { visible, start } = useWindowedList(items, cursorIndex, height, 2);
 
 	if (loading) {
 		return <Text dimColor>Loading games...</Text>;
@@ -35,8 +36,6 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
 		}
 		return item.startTime;
 	};
-
-	const { visible, start } = useWindowedList(items, cursorIndex, height, 2);
 
 	return (
 		<Box flexDirection="column">

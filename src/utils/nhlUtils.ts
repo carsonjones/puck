@@ -50,14 +50,18 @@ export const getFullPositionName = (position: string): string => {
 	return POSITION_NAMES[position] || position;
 };
 
-export const getBoxscorePlayersList = (boxscore: any): any[] => {
-	if (!boxscore?.playerByGameStats) return [];
+export const getBoxscorePlayersList = (boxscore: unknown): unknown[] => {
+	if (!boxscore || typeof boxscore !== 'object' || !('playerByGameStats' in boxscore)) return [];
+	const stats = boxscore.playerByGameStats as {
+		awayTeam?: { forwards?: unknown[]; defense?: unknown[]; goalies?: unknown[] };
+		homeTeam?: { forwards?: unknown[]; defense?: unknown[]; goalies?: unknown[] };
+	};
 	return [
-		...(boxscore.playerByGameStats.awayTeam?.forwards || []),
-		...(boxscore.playerByGameStats.awayTeam?.defense || []),
-		...(boxscore.playerByGameStats.awayTeam?.goalies || []),
-		...(boxscore.playerByGameStats.homeTeam?.forwards || []),
-		...(boxscore.playerByGameStats.homeTeam?.defense || []),
-		...(boxscore.playerByGameStats.homeTeam?.goalies || []),
+		...(stats.awayTeam?.forwards || []),
+		...(stats.awayTeam?.defense || []),
+		...(stats.awayTeam?.goalies || []),
+		...(stats.homeTeam?.forwards || []),
+		...(stats.homeTeam?.defense || []),
+		...(stats.homeTeam?.goalies || []),
 	];
 };

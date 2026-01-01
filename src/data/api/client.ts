@@ -395,13 +395,7 @@ const mapGameDetail = (
 	};
 };
 
-export const listGames = async ({
-	cursor,
-	limit,
-}: {
-	cursor: string | null;
-	limit: number;
-}): Promise<GamesPage> => {
+export const listGames = async ({ cursor }: { cursor: string | null }): Promise<GamesPage> => {
 	let target: Date;
 	if (cursor) {
 		// Parse YYYY-MM-DD in local timezone (not UTC)
@@ -654,7 +648,7 @@ export const getPlayerDetail = async (
 	);
 
 	// If teamAbbrev provided, fetch roster directly; otherwise search all rosters
-	let rosters;
+	let rosters: { playerInfo: unknown; teamAbbrev: string } | null | undefined;
 	if (teamAbbrev) {
 		try {
 			const roster = await nhlClient.getTeamRoster(teamAbbrev);

@@ -2,10 +2,10 @@ import { Box, Text } from 'ink';
 import type React from 'react';
 import type { GameDetail } from '@/data/api/client.js';
 import { useLineWidth } from '@/hooks/useLineWidth.js';
-import { useAppStore } from '@/state/useAppStore.js';
-import Tabs from '@/ui/components/Tabs.js';
-import TeamPlayersTab from '@/ui/components/standings-detail/TeamPlayersTab.js';
 import { useWindowedList } from '@/hooks/useWindowedList.js';
+import { useAppStore } from '@/state/useAppStore.js';
+import TeamPlayersTab from '@/ui/components/standings-detail/TeamPlayersTab.js';
+import Tabs from '@/ui/components/Tabs.js';
 
 type PlayersTabProps = {
 	game: GameDetail;
@@ -30,6 +30,91 @@ type PlayerRow = {
 const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) => {
 	const lineWidth = useLineWidth();
 	const { playersTeamTab, playersScrollIndex } = useAppStore();
+
+	// Build player data early for hook
+	const awayPlayers: PlayerRow[] = game.boxscore
+		? [
+				...(game.boxscore?.playerByGameStats?.awayTeam?.forwards.map((p) => ({
+					type: 'player' as const,
+					number: p.sweaterNumber,
+					name: p.name.default,
+					position: p.position,
+					goals: p.goals,
+					assists: p.assists,
+					shots: p.sog,
+					hits: p.hits,
+					isGoalie: false,
+				})) || []),
+				...(game.boxscore?.playerByGameStats?.awayTeam?.defense.map((p) => ({
+					type: 'player' as const,
+					number: p.sweaterNumber,
+					name: p.name.default,
+					position: p.position,
+					goals: p.goals,
+					assists: p.assists,
+					shots: p.sog,
+					hits: p.hits,
+					isGoalie: false,
+				})) || []),
+				...(game.boxscore?.playerByGameStats?.awayTeam?.goalies.map((p) => ({
+					type: 'player' as const,
+					number: p.sweaterNumber,
+					name: p.name.default,
+					position: p.position,
+					saves: p.saves,
+					savePct: p.savePctg,
+					isGoalie: true,
+				})) || []),
+			]
+		: [];
+
+	const homePlayers: PlayerRow[] = game.boxscore
+		? [
+				...(game.boxscore?.playerByGameStats?.homeTeam?.forwards.map((p) => ({
+					type: 'player' as const,
+					number: p.sweaterNumber,
+					name: p.name.default,
+					position: p.position,
+					goals: p.goals,
+					assists: p.assists,
+					shots: p.sog,
+					hits: p.hits,
+					isGoalie: false,
+				})) || []),
+				...(game.boxscore?.playerByGameStats?.homeTeam?.defense.map((p) => ({
+					type: 'player' as const,
+					number: p.sweaterNumber,
+					name: p.name.default,
+					position: p.position,
+					goals: p.goals,
+					assists: p.assists,
+					shots: p.sog,
+					hits: p.hits,
+					isGoalie: false,
+				})) || []),
+				...(game.boxscore?.playerByGameStats?.homeTeam?.goalies.map((p) => ({
+					type: 'player' as const,
+					number: p.sweaterNumber,
+					name: p.name.default,
+					position: p.position,
+					saves: p.saves,
+					savePct: p.savePctg,
+					isGoalie: true,
+				})) || []),
+			]
+		: [];
+
+	const allPlayers = game.boxscore
+		? [
+				{ type: 'header' as const, name: game.awayTeam },
+				...awayPlayers,
+				{ type: 'header' as const, name: '' },
+				{ type: 'header' as const, name: game.homeTeam },
+				...homePlayers,
+			]
+		: [];
+
+	const { visible: visiblePlayers, start } = useWindowedList(allPlayers, scrollIndex, height, 15);
 
 	if (game.status === 'scheduled') {
 		const teamAbbrev = playersTeamTab === 'away' ? game.awayTeamAbbrev : game.homeTeamAbbrev;
@@ -56,85 +141,6 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 	if (!game.boxscore && game.status !== 'scheduled') {
 		return <Text dimColor>No player stats available.</Text>;
 	}
-
-	const awayPlayers: PlayerRow[] = [
-		...(game.boxscore.playerByGameStats.awayTeam.forwards.map((p) => ({
-			type: 'player' as const,
-			number: p.sweaterNumber,
-			name: p.name.default,
-			position: p.position,
-			goals: p.goals,
-			assists: p.assists,
-			shots: p.sog,
-			hits: p.hits,
-			isGoalie: false,
-		})) || []),
-		...(game.boxscore.playerByGameStats.awayTeam.defense.map((p) => ({
-			type: 'player' as const,
-			number: p.sweaterNumber,
-			name: p.name.default,
-			position: p.position,
-			goals: p.goals,
-			assists: p.assists,
-			shots: p.sog,
-			hits: p.hits,
-			isGoalie: false,
-		})) || []),
-		...(game.boxscore.playerByGameStats.awayTeam.goalies.map((p) => ({
-			type: 'player' as const,
-			number: p.sweaterNumber,
-			name: p.name.default,
-			position: p.position,
-			saves: p.saves,
-			savePct: p.savePctg,
-			isGoalie: true,
-		})) || []),
-	];
-
-	const homePlayers: PlayerRow[] = [
-		...(game.boxscore.playerByGameStats.homeTeam.forwards.map((p) => ({
-			type: 'player' as const,
-			number: p.sweaterNumber,
-			name: p.name.default,
-			position: p.position,
-			goals: p.goals,
-			assists: p.assists,
-			shots: p.sog,
-			hits: p.hits,
-			isGoalie: false,
-		})) || []),
-		...(game.boxscore.playerByGameStats.homeTeam.defense.map((p) => ({
-			type: 'player' as const,
-			number: p.sweaterNumber,
-			name: p.name.default,
-			position: p.position,
-			goals: p.goals,
-			assists: p.assists,
-			shots: p.sog,
-			hits: p.hits,
-			isGoalie: false,
-		})) || []),
-		...(game.boxscore.playerByGameStats.homeTeam.goalies.map((p) => ({
-			type: 'player' as const,
-			number: p.sweaterNumber,
-			name: p.name.default,
-			position: p.position,
-			saves: p.saves,
-			savePct: p.savePctg,
-			isGoalie: true,
-		})) || []),
-	];
-
-	const allPlayers = [
-		{ type: 'header' as const, name: game.awayTeam },
-		...awayPlayers,
-		{ type: 'header' as const, name: '' },
-		{ type: 'header' as const, name: game.homeTeam },
-		...homePlayers,
-	];
-
-	// Scrolling window logic
-	const { visible: visiblePlayers, start } = useWindowedList(allPlayers, scrollIndex, height, 15);
 
 	return (
 		<Box flexDirection="column">

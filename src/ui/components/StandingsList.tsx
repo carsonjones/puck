@@ -1,8 +1,8 @@
 import { Box, Text, useStdout } from 'ink';
 import type React from 'react';
 import type { StandingListItem } from '@/data/api/client.js';
-import type { StandingsViewMode } from '@/state/useAppStore.js';
 import { useWindowedList } from '@/hooks/useWindowedList.js';
+import type { StandingsViewMode } from '@/state/useAppStore.js';
 
 type StandingsListProps = {
 	items: StandingListItem[];
@@ -22,6 +22,7 @@ const StandingsList: React.FC<StandingsListProps> = ({
 	const { stdout } = useStdout();
 	const terminalWidth = stdout?.columns || 80;
 	const containerWidth = Math.floor(terminalWidth / 2) - 10;
+	const { visible, start } = useWindowedList(items, cursorIndex, height, 6);
 
 	if (loading) {
 		return <Text dimColor>Loading standings...</Text>;
@@ -30,8 +31,6 @@ const StandingsList: React.FC<StandingsListProps> = ({
 	if (items.length === 0) {
 		return <Text dimColor>No standings data available.</Text>;
 	}
-
-	const { visible, start } = useWindowedList(items, cursorIndex, height, 6);
 
 	const getRecord = (item: StandingListItem) => {
 		if (viewMode === 'home') {

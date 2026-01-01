@@ -62,16 +62,16 @@ const StatsTab: React.FC<StatsTabProps> = ({ game, teamStandings, standingsViewM
 					{game.leaders.away.length > 0 ? (
 						<Box flexDirection="column" marginTop={1}>
 							<Text bold>{game.awayTeam}</Text>
-							{game.leaders.away.map((leader, idx) => (
-								<Text key={idx}>{`  ${leader}`}</Text>
+							{game.leaders.away.map((leader) => (
+								<Text key={`away-${leader}`}>{`  ${leader}`}</Text>
 							))}
 						</Box>
 					) : null}
 					{game.leaders.home.length > 0 ? (
 						<Box flexDirection="column" marginTop={1}>
 							<Text bold>{game.homeTeam}</Text>
-							{game.leaders.home.map((leader, idx) => (
-								<Text key={idx}>{`  ${leader}`}</Text>
+							{game.leaders.home.map((leader) => (
+								<Text key={`home-${leader}`}>{`  ${leader}`}</Text>
 							))}
 						</Box>
 					) : null}

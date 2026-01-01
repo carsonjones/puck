@@ -1,9 +1,9 @@
 import { Box, Text } from 'ink';
 import type React from 'react';
-import { useLineWidth } from '@/hooks/useLineWidth.js';
 import { usePlayerGameLog } from '@/data/hooks/usePlayerGameLog.js';
-import { useAppStore } from '@/state/useAppStore.js';
+import { useLineWidth } from '@/hooks/useLineWidth.js';
 import { useWindowedList } from '@/hooks/useWindowedList.js';
+import { useAppStore } from '@/state/useAppStore.js';
 
 type PlayerGamesTabProps = {
 	playerId: number;
@@ -17,6 +17,7 @@ const PlayerGamesTab: React.FC<PlayerGamesTabProps> = ({ playerId, scrollIndex, 
 	// Only fetch game log when on games tab (lazy load for performance)
 	const shouldFetch = playerDetailTab === 'games';
 	const { data: gameLog, status } = usePlayerGameLog(shouldFetch ? playerId : null);
+	const { visible, start } = useWindowedList(gameLog || [], scrollIndex, height, 12);
 
 	if (status === 'loading') {
 		return <Text dimColor>Loading game log...</Text>;
@@ -29,8 +30,6 @@ const PlayerGamesTab: React.FC<PlayerGamesTabProps> = ({ playerId, scrollIndex, 
 	if (!gameLog || gameLog.length === 0) {
 		return <Text dimColor>No game log available.</Text>;
 	}
-
-	const { visible, start } = useWindowedList(gameLog, scrollIndex, height, 12);
 
 	return (
 		<Box flexDirection="column">

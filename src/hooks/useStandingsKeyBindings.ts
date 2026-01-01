@@ -30,7 +30,6 @@ export const useStandingsKeyBindings = (config: StandingsKeyBindingsConfig) => {
 	const {
 		focusedPane,
 		items,
-		standingsCursorIndex,
 		standingsTab,
 		standingsConference,
 		standingsDivision,

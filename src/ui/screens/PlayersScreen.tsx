@@ -23,7 +23,6 @@ const PlayersScreen: React.FC = () => {
 		playersCursorIndex,
 		selectedPlayerId,
 		playerDetailTab,
-		playerDetailScrollIndex,
 		teamSearchOpen,
 		playerFilter,
 		movePlayersCursor,
@@ -103,7 +102,15 @@ const PlayersScreen: React.FC = () => {
 			setPlayerFilter(selectedPlayerId);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedPlayerId, items, status]);
+	}, [
+		selectedPlayerId,
+		items,
+		status,
+		movePlayersCursor,
+		playerFilter,
+		playersCursorIndex, // Player not in list and no filter set - set filter
+		setPlayerFilter,
+	]);
 
 	const quit = () => {
 		exit();

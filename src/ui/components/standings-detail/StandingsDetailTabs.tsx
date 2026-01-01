@@ -1,10 +1,10 @@
 import { Box, Text } from 'ink';
 import type React from 'react';
 import type { StandingListItem } from '@/data/api/client.js';
-import { useAppStore } from '@/state/useAppStore.js';
 import { useLineWidth } from '@/hooks/useLineWidth.js';
-import TeamPlayersTab from '@/ui/components/standings-detail/TeamPlayersTab.js';
+import { useAppStore } from '@/state/useAppStore.js';
 import TeamInfoTab from '@/ui/components/standings-detail/TeamInfoTab.js';
+import TeamPlayersTab from '@/ui/components/standings-detail/TeamPlayersTab.js';
 import Tabs from '@/ui/components/Tabs.js';
 
 type StandingsDetailTabsProps = {

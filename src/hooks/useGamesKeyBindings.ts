@@ -42,7 +42,6 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 		pageCursor,
 		selectedGameId,
 		displayGame,
-		data,
 		limit,
 		playsCount,
 		playersTeamTab,
@@ -72,7 +71,7 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 	useInput((input, key) => {
 		onInteraction?.();
 
-		const { teamSearchOpen, cycleStandingsViewMode } = useAppStore.getState();
+		const { teamSearchOpen } = useAppStore.getState();
 		if (teamSearchOpen) return;
 
 		// Team search modal
@@ -233,7 +232,7 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 					}
 					if (key.return) {
 						const selectedPlayer = allPlayers[playersScrollIndex];
-						if (selectedPlayer && selectedPlayer.id) {
+						if (selectedPlayer?.id) {
 							const { selectPlayer, setPlayerFilter, setFocusedPane, setViewMode } =
 								useAppStore.getState();
 							selectPlayer(selectedPlayer.id);
@@ -274,7 +273,7 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 						return;
 					}
 
-					let selectedPlayer;
+					let selectedPlayer: { playerId?: number } | undefined;
 					if (scrollIndex < awayPlayers.length + 1) {
 						// Away team player (index 1 to awayPlayers.length)
 						selectedPlayer = awayPlayers[scrollIndex - 1];
@@ -283,7 +282,7 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 						selectedPlayer = homePlayers[scrollIndex - awayPlayers.length - 3];
 					}
 
-					if (selectedPlayer && selectedPlayer.playerId) {
+					if (selectedPlayer?.playerId) {
 						const { selectPlayer, setPlayerFilter, setFocusedPane, setViewMode } =
 							useAppStore.getState();
 						selectPlayer(selectedPlayer.playerId);
