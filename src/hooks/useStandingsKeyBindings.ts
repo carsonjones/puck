@@ -112,10 +112,15 @@ export const useStandingsKeyBindings = (config: StandingsKeyBindingsConfig) => {
 					if (nextDiv) setStandingsDivision(nextDiv);
 					return;
 				}
+				// League tab: switch to detail pane
+				setFocusedPane('detail');
+				return;
+			} else {
+				// In detail pane: cycle through detail tabs
+				const { standingsDetailTab, setStandingsDetailTab } = useAppStore.getState();
+				setStandingsDetailTab(standingsDetailTab === 'players' ? 'info' : 'players');
+				return;
 			}
-			// Switch panes if in league tab or in detail pane
-			setFocusedPane(focusedPane === 'list' ? 'detail' : 'list');
-			return;
 		}
 
 		// Refresh

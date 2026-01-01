@@ -63,7 +63,7 @@ const PlayerSeasonTab: React.FC<PlayerSeasonTabProps> = ({ player }) => {
 					<Box width={20}>
 						<Text>Shooting %:</Text>
 					</Box>
-					<Text>{stats.shootingPctg.toFixed(1)}%</Text>
+					<Text>{(stats.shootingPctg * 100).toFixed(1)}%</Text>
 				</Box>
 				<Box>
 					<Box width={20}>

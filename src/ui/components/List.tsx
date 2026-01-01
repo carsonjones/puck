@@ -1,6 +1,7 @@
 import { Box, Text, useStdout } from 'ink';
 import type React from 'react';
 import type { GameListItem } from '@/data/api/client.js';
+import { useWindowedList } from '@/hooks/useWindowedList.js';
 
 type ListProps = {
 	items: GameListItem[];
@@ -35,11 +36,7 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
 		return item.startTime;
 	};
 
-	const windowSize = Math.max(1, height - 2);
-	const half = Math.floor(windowSize / 2);
-	const start = Math.max(0, Math.min(items.length - windowSize, cursorIndex - half));
-	const end = Math.min(items.length, start + windowSize);
-	const visible = items.slice(start, end);
+	const { visible, start } = useWindowedList(items, cursorIndex, height, 2);
 
 	return (
 		<Box flexDirection="column">

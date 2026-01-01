@@ -5,6 +5,7 @@ import { useLineWidth } from '@/hooks/useLineWidth.js';
 import { useAppStore } from '@/state/useAppStore.js';
 import Tabs from '@/ui/components/Tabs.js';
 import TeamPlayersTab from '@/ui/components/standings-detail/TeamPlayersTab.js';
+import { useWindowedList } from '@/hooks/useWindowedList.js';
 
 type PlayersTabProps = {
 	game: GameDetail;
@@ -133,12 +134,7 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 	];
 
 	// Scrolling window logic
-	const playersHeight = Math.max(5, height - 15);
-	const windowSize = Math.max(1, playersHeight);
-	const half = Math.floor(windowSize / 2);
-	const start = Math.max(0, Math.min(allPlayers.length - windowSize, scrollIndex - half));
-	const end = Math.min(allPlayers.length, start + windowSize);
-	const visiblePlayers = allPlayers.slice(start, end);
+	const { visible: visiblePlayers, start } = useWindowedList(allPlayers, scrollIndex, height, 15);
 
 	return (
 		<Box flexDirection="column">

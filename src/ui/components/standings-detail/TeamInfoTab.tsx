@@ -1,12 +1,15 @@
 import { Box, Text } from 'ink';
 import type React from 'react';
 import type { StandingListItem } from '@/data/api/client.js';
+import { useTeamInfo } from './useTeamInfo.js';
 
 type TeamInfoTabProps = {
 	team: StandingListItem;
 };
 
 const TeamInfoTab: React.FC<TeamInfoTabProps> = ({ team }) => {
+	const { arena, loading } = useTeamInfo(team.teamAbbrev);
+
 	return (
 		<Box flexDirection="column" gap={1}>
 			<Box flexDirection="column">
@@ -15,6 +18,14 @@ const TeamInfoTab: React.FC<TeamInfoTabProps> = ({ team }) => {
 					{team.conferenceName} - {team.divisionName}
 				</Text>
 			</Box>
+
+			{arena && !loading && (
+				<Box flexDirection="column">
+					<Text>
+						Arena: <Text bold>{arena}</Text>
+					</Text>
+				</Box>
+			)}
 
 			<Box flexDirection="column">
 				<Text>

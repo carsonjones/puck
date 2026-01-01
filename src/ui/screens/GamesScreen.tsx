@@ -16,10 +16,10 @@ import SplitPane from '@/ui/components/SplitPane.js';
 import StatusBar from '@/ui/components/StatusBar.js';
 import { useTeamRosterData } from '@/ui/components/standings-detail/useTeamRosterData.js';
 import TeamSearchScreen from '@/ui/screens/TeamSearchScreen.js';
+import { getBoxscorePlayersList } from '@/utils/nhlUtils.js';
 import {
 	getGamesHeader,
 	getPlaysCount,
-	getPlayersRosterCount,
 	getRefreshInterval,
 	getTeamStandings,
 } from './GamesScreen.helpers.js';
@@ -73,9 +73,12 @@ const GamesScreen: React.FC = () => {
 	const displayStatus = detail.status === 'idle' ? 'loading' : detail.status;
 
 	// Fetch roster for scheduled games
-	const teamAbbrevForRoster = displayGame?.status === 'scheduled'
-		? (playersTeamTab === 'away' ? displayGame.awayTeamAbbrev : displayGame.homeTeamAbbrev)
-		: null;
+	const teamAbbrevForRoster =
+		displayGame?.status === 'scheduled'
+			? playersTeamTab === 'away'
+				? displayGame.awayTeamAbbrev
+				: displayGame.homeTeamAbbrev
+			: null;
 	const roster = useTeamRosterData(teamAbbrevForRoster);
 
 	// Build allPlayers list based on game status
@@ -88,16 +91,7 @@ const GamesScreen: React.FC = () => {
 		}
 
 		// Use boxscore data for in-progress/final games
-		if (!displayGame.boxscore) return [];
-
-		return [
-			...(displayGame.boxscore.playerByGameStats.awayTeam.forwards || []),
-			...(displayGame.boxscore.playerByGameStats.awayTeam.defense || []),
-			...(displayGame.boxscore.playerByGameStats.awayTeam.goalies || []),
-			...(displayGame.boxscore.playerByGameStats.homeTeam.forwards || []),
-			...(displayGame.boxscore.playerByGameStats.homeTeam.defense || []),
-			...(displayGame.boxscore.playerByGameStats.homeTeam.goalies || []),
-		];
+		return getBoxscorePlayersList(displayGame.boxscore);
 	}, [displayGame, roster.players, roster.goalies]);
 
 	// Determine refresh interval using helper

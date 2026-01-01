@@ -3,6 +3,7 @@ import type { StandingListItem } from '@/data/api/client.js';
 import { useStandings } from '@/data/hooks/useStandings.js';
 import { useAppStore } from '@/state/useAppStore.js';
 import { fuzzyMatchTeams } from '@/utils/fuzzyMatch.js';
+import { useWindowedList } from '@/hooks/useWindowedList.js';
 
 const TeamSearchScreen: React.FC = () => {
 	const { stdout } = useStdout();
@@ -35,11 +36,7 @@ const TeamSearchScreen: React.FC = () => {
 	const filteredTeams = filteredMatches.map((m) => m.team);
 
 	// Scrolling window for results
-	const listHeight = height - 12; // Account for header, input, footer, margins
-	const half = Math.floor(listHeight / 2);
-	const start = Math.max(0, Math.min(filteredTeams.length - listHeight, cursorIndex - half));
-	const end = Math.min(filteredTeams.length, start + listHeight);
-	const visibleTeams = filteredTeams.slice(start, end);
+	const { visible: visibleTeams, start } = useWindowedList(filteredTeams, cursorIndex, height, 12);
 
 	const handleTeamSelection = (team: StandingListItem, action: 'context' | 'roster' | 'games') => {
 		if (action === 'roster') {

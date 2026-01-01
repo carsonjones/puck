@@ -4,6 +4,7 @@ import { queryKeys } from '@/data/query/keys.js';
 import { queryClient } from '@/data/query/queryClient.js';
 import { type FocusedPane, type GameStatus, useAppStore } from '@/state/useAppStore.js';
 import { formatDate } from '@/utils/dateUtils.js';
+import { getBoxscorePlayersList } from '@/utils/nhlUtils.js';
 
 type GamesKeyBindingsConfig = {
 	focusedPane: FocusedPane;
@@ -256,31 +257,25 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 				// Enter key for players tab with in-progress/final game
 				if (detailTab === 'players' && key.return) {
 					// Calculate player index accounting for headers
-					const awayPlayers = [
-						...(displayGame?.boxscore?.playerByGameStats?.awayTeam?.forwards || []),
-						...(displayGame?.boxscore?.playerByGameStats?.awayTeam?.defense || []),
-						...(displayGame?.boxscore?.playerByGameStats?.awayTeam?.goalies || []),
-					];
-					const homePlayers = [
-						...(displayGame?.boxscore?.playerByGameStats?.homeTeam?.forwards || []),
-						...(displayGame?.boxscore?.playerByGameStats?.homeTeam?.defense || []),
-						...(displayGame?.boxscore?.playerByGameStats?.homeTeam?.goalies || []),
-					];
+					const allBoxscorePlayers = getBoxscorePlayersList(displayGame?.boxscore);
+					const awayPlayers = allBoxscorePlayers.slice(0, allBoxscorePlayers.length / 2);
+					const homePlayers = allBoxscorePlayers.slice(allBoxscorePlayers.length / 2);
 
+					// For in-progress/final games, use playsScrollIndex not playersScrollIndex
+					const { playsScrollIndex: scrollIndex } = useAppStore.getState();
 					// scrollIndex includes 3 headers (awayTeam, separator, homeTeam)
-					let playerIndex = playersScrollIndex;
-					if (playerIndex === 0 || playerIndex === awayPlayers.length + 1 || playerIndex === awayPlayers.length + 2) {
+					if (scrollIndex === 0 || scrollIndex === awayPlayers.length + 1 || scrollIndex === awayPlayers.length + 2) {
 						// Selected a header row, ignore
 						return;
 					}
 
 					let selectedPlayer;
-					if (playerIndex < awayPlayers.length + 1) {
+					if (scrollIndex < awayPlayers.length + 1) {
 						// Away team player (index 1 to awayPlayers.length)
-						selectedPlayer = awayPlayers[playerIndex - 1];
+						selectedPlayer = awayPlayers[scrollIndex - 1];
 					} else {
 						// Home team player (index > awayPlayers.length + 2)
-						selectedPlayer = homePlayers[playerIndex - awayPlayers.length - 3];
+						selectedPlayer = homePlayers[scrollIndex - awayPlayers.length - 3];
 					}
 
 					if (selectedPlayer && selectedPlayer.playerId) {

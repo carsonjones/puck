@@ -1,8 +1,11 @@
-import { Box, Text, useStdout } from 'ink';
+import { Box, Text } from 'ink';
 import type React from 'react';
 import type { StandingListItem } from '@/data/api/client.js';
 import { useAppStore } from '@/state/useAppStore.js';
+import { useLineWidth } from '@/hooks/useLineWidth.js';
 import TeamPlayersTab from '@/ui/components/standings-detail/TeamPlayersTab.js';
+import TeamInfoTab from '@/ui/components/standings-detail/TeamInfoTab.js';
+import Tabs from '@/ui/components/Tabs.js';
 
 type StandingsDetailTabsProps = {
 	team: StandingListItem | null;
@@ -10,11 +13,8 @@ type StandingsDetailTabsProps = {
 };
 
 const StandingsDetailTabs: React.FC<StandingsDetailTabsProps> = ({ team, height }) => {
-	const { stdout } = useStdout();
-	const width = stdout?.columns ?? 80;
-	const _lineWidth = Math.max(10, Math.floor(width / 2) - 14);
-
-	const { standingsPlayersScrollIndex, standingsViewMode } = useAppStore();
+	const { standingsPlayersScrollIndex, standingsDetailTab, standingsViewMode } = useAppStore();
+	const lineWidth = useLineWidth();
 
 	if (!team) {
 		return <Text dimColor>Select a team to view details.</Text>;
@@ -52,12 +52,22 @@ const StandingsDetailTabs: React.FC<StandingsDetailTabsProps> = ({ team, height 
 					<Text>{`${getRecord()} (${getPoints()} pts)`}</Text>
 				</Box>
 			</Box>
-			{/*<Text dimColor>{"─".repeat(lineWidth)}</Text>*/}
-			<TeamPlayersTab
-				teamAbbrev={team.teamAbbrev}
-				scrollIndex={standingsPlayersScrollIndex}
-				height={height}
-			/>
+			<Text dimColor>{'─'.repeat(lineWidth)}</Text>
+			<Box flexDirection="column">
+				<Tabs tabs={['players', 'info']} active={standingsDetailTab} />
+				<Text dimColor>{'─'.repeat(lineWidth)}</Text>
+				<Box>
+					{standingsDetailTab === 'players' ? (
+						<TeamPlayersTab
+							teamAbbrev={team.teamAbbrev}
+							scrollIndex={standingsPlayersScrollIndex}
+							height={height}
+						/>
+					) : (
+						<TeamInfoTab team={team} />
+					)}
+				</Box>
+			</Box>
 		</Box>
 	);
 };

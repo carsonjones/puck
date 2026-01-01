@@ -106,14 +106,13 @@ class QueryClient {
 		try {
 			const data = await fetcher();
 
-			// Only update cache and notify if data actually changed
+			// Only notify if data actually changed
 			if (!deepEqual(existing.data, data)) {
 				this.cache.set(key, { status: 'success', data, updatedAt: Date.now() });
 				this.notify(key);
 			} else {
 				// Data unchanged, just update timestamp to mark as fresh
 				this.cache.set(key, { status: 'success', data: existing.data, updatedAt: Date.now() });
-				this.notify(key);
 			}
 
 			return data;

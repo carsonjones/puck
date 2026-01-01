@@ -1,6 +1,7 @@
 import { Box, Text, useStdout } from 'ink';
 import type React from 'react';
 import type { PlayerLeaderboardItem } from '@/data/api/client.js';
+import { useWindowedList } from '@/hooks/useWindowedList.js';
 
 type PlayersListProps = {
 	items: PlayerLeaderboardItem[];
@@ -23,11 +24,7 @@ const PlayersList: React.FC<PlayersListProps> = ({ items, cursorIndex, height, l
 		return <Text dimColor>No player data available.</Text>;
 	}
 
-	const windowSize = Math.max(1, height - 6);
-	const half = Math.floor(windowSize / 2);
-	const start = Math.max(0, Math.min(items.length - windowSize, cursorIndex - half));
-	const end = Math.min(items.length, start + windowSize);
-	const visible = items.slice(start, end);
+	const { visible, start } = useWindowedList(items, cursorIndex, height, 6);
 
 	return (
 		<Box flexDirection="column">

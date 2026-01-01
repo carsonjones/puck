@@ -3,6 +3,7 @@ import type React from 'react';
 import { useLineWidth } from '@/hooks/useLineWidth.js';
 import { usePlayerGameLog } from '@/data/hooks/usePlayerGameLog.js';
 import { useAppStore } from '@/state/useAppStore.js';
+import { useWindowedList } from '@/hooks/useWindowedList.js';
 
 type PlayerGamesTabProps = {
 	playerId: number;
@@ -29,12 +30,7 @@ const PlayerGamesTab: React.FC<PlayerGamesTabProps> = ({ playerId, scrollIndex, 
 		return <Text dimColor>No game log available.</Text>;
 	}
 
-	const gamesHeight = Math.max(5, height - 12);
-	const windowSize = Math.max(1, gamesHeight);
-	const half = Math.floor(windowSize / 2);
-	const start = Math.max(0, Math.min(gameLog.length - windowSize, scrollIndex - half));
-	const end = Math.min(gameLog.length, start + windowSize);
-	const visible = gameLog.slice(start, end);
+	const { visible, start } = useWindowedList(gameLog, scrollIndex, height, 12);
 
 	return (
 		<Box flexDirection="column">

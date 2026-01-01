@@ -49,3 +49,15 @@ export const getFullTeamName = (abbrev: string): string => {
 export const getFullPositionName = (position: string): string => {
 	return POSITION_NAMES[position] || position;
 };
+
+export const getBoxscorePlayersList = (boxscore: any): any[] => {
+	if (!boxscore?.playerByGameStats) return [];
+	return [
+		...(boxscore.playerByGameStats.awayTeam?.forwards || []),
+		...(boxscore.playerByGameStats.awayTeam?.defense || []),
+		...(boxscore.playerByGameStats.awayTeam?.goalies || []),
+		...(boxscore.playerByGameStats.homeTeam?.forwards || []),
+		...(boxscore.playerByGameStats.homeTeam?.defense || []),
+		...(boxscore.playerByGameStats.homeTeam?.goalies || []),
+	];
+};

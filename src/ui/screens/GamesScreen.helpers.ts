@@ -1,5 +1,6 @@
 import type { GameDetail, StandingListItem, StandingsData } from '@/data/api/client.js';
 import { formatDate } from '@/utils/dateUtils.js';
+import { getBoxscorePlayersList } from '@/utils/nhlUtils.js';
 
 export function getRefreshInterval(
 	selectedGameId: string | null,
@@ -20,14 +21,7 @@ export function getPlaysCount(
 		return displayGame.plays.length;
 	}
 	if (detailTab === 'players' && displayGame?.boxscore) {
-		return [
-			...(displayGame?.boxscore?.playerByGameStats?.awayTeam?.forwards || []),
-			...(displayGame?.boxscore?.playerByGameStats?.awayTeam?.defense || []),
-			...(displayGame?.boxscore?.playerByGameStats?.awayTeam?.goalies || []),
-			...(displayGame?.boxscore?.playerByGameStats?.homeTeam?.forwards || []),
-			...(displayGame?.boxscore?.playerByGameStats?.homeTeam?.defense || []),
-			...(displayGame?.boxscore?.playerByGameStats?.homeTeam?.goalies || []),
-		].length + 3;
+		return getBoxscorePlayersList(displayGame.boxscore).length + 3;
 	}
 	return 0;
 }

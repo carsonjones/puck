@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { clampIndex } from '@/utils/indexUtils.js';
 
 export type FocusedPane = 'list' | 'detail';
 export type DetailTab = 'stats' | 'plays' | 'players';
@@ -92,7 +93,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 	viewMode: 'games',
 	standingsTab: 'league',
 	standingsCursorIndex: 0,
-	standingsDetailTab: 'info',
+	standingsDetailTab: 'players',
 	standingsPlayersScrollIndex: 0,
 	standingsConference: 'eastern',
 	standingsDivision: 'atlantic',
@@ -110,12 +111,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 	pendingTeamNavigation: null,
 	setFocusedPane: (pane) => set({ focusedPane: pane }),
 	moveCursor: (delta, maxIndex) => {
-		const nextIndex = get().listCursorIndex + delta;
-		const clamped =
-			typeof maxIndex === 'number'
-				? Math.max(0, Math.min(maxIndex, nextIndex))
-				: Math.max(0, nextIndex);
-		set({ listCursorIndex: clamped });
+		set({ listCursorIndex: clampIndex(get().listCursorIndex, delta, maxIndex) });
 	},
 	selectGame: (id, status) => {
 		if (id === null) {
@@ -128,12 +124,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 	setPageCursor: (cursor) => set({ pageCursor: cursor }),
 	setDetailTab: (tab) => set({ detailTab: tab, playersScrollIndex: 0 }),
 	movePlaysScroll: (delta, maxIndex) => {
-		const nextIndex = get().playsScrollIndex + delta;
-		const clamped =
-			typeof maxIndex === 'number'
-				? Math.max(0, Math.min(maxIndex, nextIndex))
-				: Math.max(0, nextIndex);
-		set({ playsScrollIndex: clamped });
+		set({ playsScrollIndex: clampIndex(get().playsScrollIndex, delta, maxIndex) });
 	},
 	togglePlaysSortOrder: () => {
 		const current = get().playsSortOrder;
@@ -141,22 +132,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 	},
 	setPlayersTeamTab: (tab) => set({ playersTeamTab: tab, playersScrollIndex: 0 }),
 	movePlayersScroll: (delta, maxIndex) => {
-		const nextIndex = get().playersScrollIndex + delta;
-		const clamped =
-			typeof maxIndex === 'number'
-				? Math.max(0, Math.min(maxIndex, nextIndex))
-				: Math.max(0, nextIndex);
-		set({ playersScrollIndex: clamped });
+		set({ playersScrollIndex: clampIndex(get().playersScrollIndex, delta, maxIndex) });
 	},
 	setViewMode: (mode) => set({ viewMode: mode, focusedPane: 'list' }),
 	setStandingsTab: (tab) => set({ standingsTab: tab, standingsCursorIndex: 0 }),
 	moveStandingsCursor: (delta, maxIndex) => {
-		const nextIndex = get().standingsCursorIndex + delta;
-		const clamped =
-			typeof maxIndex === 'number'
-				? Math.max(0, Math.min(maxIndex, nextIndex))
-				: Math.max(0, nextIndex);
-		set({ standingsCursorIndex: clamped });
+		set({ standingsCursorIndex: clampIndex(get().standingsCursorIndex, delta, maxIndex) });
 	},
 	setStandingsConference: (conf) => set({ standingsConference: conf, standingsCursorIndex: 0 }),
 	setStandingsDivision: (div) => set({ standingsDivision: div, standingsCursorIndex: 0 }),
@@ -169,30 +150,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 	},
 	setStandingsDetailTab: (tab) => set({ standingsDetailTab: tab, standingsPlayersScrollIndex: 0 }),
 	moveStandingsPlayersScroll: (delta, maxIndex) => {
-		const nextIndex = get().standingsPlayersScrollIndex + delta;
-		const clamped =
-			typeof maxIndex === 'number'
-				? Math.max(0, Math.min(maxIndex, nextIndex))
-				: Math.max(0, nextIndex);
-		set({ standingsPlayersScrollIndex: clamped });
+		set({ standingsPlayersScrollIndex: clampIndex(get().standingsPlayersScrollIndex, delta, maxIndex) });
 	},
 	movePlayersCursor: (delta, maxIndex) => {
-		const nextIndex = get().playersCursorIndex + delta;
-		const clamped =
-			typeof maxIndex === 'number'
-				? Math.max(0, Math.min(maxIndex, nextIndex))
-				: Math.max(0, nextIndex);
-		set({ playersCursorIndex: clamped });
+		set({ playersCursorIndex: clampIndex(get().playersCursorIndex, delta, maxIndex) });
 	},
 	selectPlayer: (id) => set({ selectedPlayerId: id, playerDetailScrollIndex: 0 }),
 	setPlayerDetailTab: (tab) => set({ playerDetailTab: tab, playerDetailScrollIndex: 0 }),
 	movePlayerDetailScroll: (delta, maxIndex) => {
-		const nextIndex = get().playerDetailScrollIndex + delta;
-		const clamped =
-			typeof maxIndex === 'number'
-				? Math.max(0, Math.min(maxIndex, nextIndex))
-				: Math.max(0, nextIndex);
-		set({ playerDetailScrollIndex: clamped });
+		set({ playerDetailScrollIndex: clampIndex(get().playerDetailScrollIndex, delta, maxIndex) });
 	},
 	setPreviousStandingsState: (state) => set({ previousStandingsState: state }),
 	openTeamSearch: () =>
@@ -200,12 +166,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 	closeTeamSearch: () => set({ teamSearchOpen: false }),
 	setTeamSearchQuery: (query) => set({ teamSearchQuery: query, teamSearchCursorIndex: 0 }),
 	moveTeamSearchCursor: (delta, maxIndex) => {
-		const nextIndex = get().teamSearchCursorIndex + delta;
-		const clamped =
-			typeof maxIndex === 'number'
-				? Math.max(0, Math.min(maxIndex, nextIndex))
-				: Math.max(0, nextIndex);
-		set({ teamSearchCursorIndex: clamped });
+		set({ teamSearchCursorIndex: clampIndex(get().teamSearchCursorIndex, delta, maxIndex) });
 	},
 	setGameTeamFilter: (abbrev) => set({ gameTeamFilter: abbrev }),
 	setPlayerFilter: (playerId) => set({ playerFilter: playerId }),

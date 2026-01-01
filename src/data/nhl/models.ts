@@ -274,6 +274,7 @@ export type ScheduleGame = {
 	season: number;
 	gameType: number;
 	gameDate: string;
+	venue?: Venue;
 	startTimeUTC: string;
 	venueUTCOffset: string;
 	gameState: string;

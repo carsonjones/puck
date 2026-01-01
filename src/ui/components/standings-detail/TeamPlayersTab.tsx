@@ -2,6 +2,7 @@ import { Box, Text } from 'ink';
 import type React from 'react';
 import { useLineWidth } from '@/hooks/useLineWidth.js';
 import { useTeamRosterData } from '@/ui/components/standings-detail/useTeamRosterData.js';
+import { useWindowedList } from '@/hooks/useWindowedList.js';
 
 type TeamPlayersTabProps = {
 	teamAbbrev: string;
@@ -26,12 +27,8 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
 		return <Text dimColor>No roster data available.</Text>;
 	}
 
-	const totalRoster = players.length + goalies.length;
-	const playersHeight = Math.max(5, height - 10);
-	const windowSize = Math.max(1, playersHeight);
-	const half = Math.floor(windowSize / 2);
-	const start = Math.max(0, Math.min(totalRoster - windowSize, scrollIndex - half));
-	const end = Math.min(totalRoster, start + windowSize);
+	const allRoster = [...players, ...goalies];
+	const { start, end } = useWindowedList(allRoster, scrollIndex, height, 10);
 
 	// Determine which players and goalies are visible
 	const visiblePlayersStart = Math.max(0, start);
