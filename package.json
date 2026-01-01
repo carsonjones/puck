@@ -1,5 +1,5 @@
 {
-	"name": "puck",
+	"name": "@jonze/puck",
 	"version": "0.1.0",
 	"description": "NHL Terminal UI for real-time stats and game tracking",
 	"license": "MIT",
