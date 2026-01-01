@@ -1,11 +1,32 @@
 {
-	"name": "nhl-tui",
+	"name": "puck",
+	"version": "0.1.0",
+	"description": "NHL Terminal UI for real-time stats and game tracking",
+	"license": "MIT",
+	"author": "Carson Jones",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/carsonjones/puck.git"
+	},
+	"homepage": "https://github.com/carsonjones/puck",
+	"keywords": [
+		"nhl",
+		"cli",
+		"tui",
+		"hockey",
+		"terminal"
+	],
+	"bin": {
+		"puck": "./dist/index.js"
+	},
 	"module": "src/index.tsx",
 	"type": "module",
-	"private": true,
 	"scripts": {
 		"dev": "bun --watch src/index.tsx",
+		"prebuild": "rm -rf dist",
 		"build": "tsc -p tsconfig.json",
+		"postbuild": "chmod +x dist/index.js",
+		"prepublishOnly": "bun run build",
 		"start": "bun src/index.tsx",
 		"format": "biome format --write .",
 		"format:check": "biome format .",

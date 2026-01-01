@@ -1,0 +1,7 @@
+name = "puck"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+account_id = "51896faf06b25bbb6b110a5fa2e22156"
+
+[env.production]
+name = "puck"

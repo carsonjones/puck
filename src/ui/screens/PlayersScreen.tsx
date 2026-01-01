@@ -197,7 +197,7 @@ const PlayersScreen: React.FC = () => {
 			return;
 		}
 		if (input === '2') {
-			setPlayerDetailTab('about');
+			setPlayerDetailTab('bio');
 			return;
 		}
 		if (input === '3') {
@@ -223,10 +223,10 @@ const PlayersScreen: React.FC = () => {
 		if (focusedPane === 'detail') {
 			// Tab navigation with arrow keys
 			if (input === 'l' || key.rightArrow) {
-				// Cycle through tabs: season → about → games
+				// Cycle through tabs: season → bio → games
 				if (playerDetailTab === 'season') {
-					setPlayerDetailTab('about');
-				} else if (playerDetailTab === 'about') {
+					setPlayerDetailTab('bio');
+				} else if (playerDetailTab === 'bio') {
 					setPlayerDetailTab('games');
 				}
 				// Stay on games if already there
@@ -237,10 +237,10 @@ const PlayersScreen: React.FC = () => {
 				// Go back through tabs, or back to list if on first tab
 				if (playerDetailTab === 'season') {
 					setFocusedPane('list');
-				} else if (playerDetailTab === 'about') {
+				} else if (playerDetailTab === 'bio') {
 					setPlayerDetailTab('season');
 				} else if (playerDetailTab === 'games') {
-					setPlayerDetailTab('about');
+					setPlayerDetailTab('bio');
 				}
 				return;
 			}

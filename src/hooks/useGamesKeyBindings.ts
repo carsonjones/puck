@@ -63,7 +63,9 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 	const resolveCursorDate = (value: string | null) => {
 		if (!value) return new Date();
 		// Parse YYYY-MM-DD in local timezone (not UTC)
-		const [y, m, d] = value.split('-').map(Number);
+		const parts = value.split('-').map(Number);
+		if (parts.length !== 3 || parts.some((p) => p === undefined)) return new Date();
+		const [y, m, d] = parts as [number, number, number];
 		const base = new Date(y, m - 1, d);
 		return Number.isNaN(base.getTime()) ? new Date() : base;
 	};
@@ -148,7 +150,8 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 			const nextIndex = key.shift
 				? (currentIndex - 1 + tabs.length) % tabs.length
 				: (currentIndex + 1) % tabs.length;
-			setDetailTab(tabs[nextIndex]);
+			const nextTab = tabs[nextIndex];
+			if (nextTab) setDetailTab(nextTab);
 			return;
 		}
 
@@ -276,10 +279,10 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 					let selectedPlayer: { playerId?: number } | undefined;
 					if (scrollIndex < awayPlayers.length + 1) {
 						// Away team player (index 1 to awayPlayers.length)
-						selectedPlayer = awayPlayers[scrollIndex - 1];
+						selectedPlayer = awayPlayers[scrollIndex - 1] as { playerId?: number } | undefined;
 					} else {
 						// Home team player (index > awayPlayers.length + 2)
-						selectedPlayer = homePlayers[scrollIndex - awayPlayers.length - 3];
+						selectedPlayer = homePlayers[scrollIndex - awayPlayers.length - 3] as { playerId?: number } | undefined;
 					}
 
 					if (selectedPlayer?.playerId) {

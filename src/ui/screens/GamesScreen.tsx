@@ -82,7 +82,7 @@ const GamesScreen: React.FC = () => {
 	const roster = useTeamRosterData(teamAbbrevForRoster);
 
 	// Build allPlayers list based on game status
-	const allPlayers = useMemo(() => {
+	const allPlayers: Array<{ id?: number; playerId?: number }> = useMemo(() => {
 		if (!displayGame) return [];
 
 		if (displayGame.status === 'scheduled') {

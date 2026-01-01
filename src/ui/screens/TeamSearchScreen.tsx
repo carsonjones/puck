@@ -92,17 +92,20 @@ const TeamSearchScreen: React.FC = () => {
 		}
 
 		if (key.return && filteredTeams.length > 0) {
-			handleTeamSelection(filteredTeams[cursorIndex], 'context');
+			const selected = filteredTeams[cursorIndex];
+			if (selected) handleTeamSelection(selected, 'context');
 			return;
 		}
 
 		if (input === 'r' && filteredTeams.length > 0) {
-			handleTeamSelection(filteredTeams[cursorIndex], 'roster');
+			const selected = filteredTeams[cursorIndex];
+			if (selected) handleTeamSelection(selected, 'roster');
 			return;
 		}
 
 		if (input === 'g' && filteredTeams.length > 0) {
-			handleTeamSelection(filteredTeams[cursorIndex], 'games');
+			const selected = filteredTeams[cursorIndex];
+			if (selected) handleTeamSelection(selected, 'games');
 			return;
 		}
 
@@ -157,7 +160,7 @@ const TeamSearchScreen: React.FC = () => {
 
 			{/* Results list */}
 			<Box flexDirection="column" flexGrow={1}>
-				{status === 'pending' ? (
+				{status === 'loading' ? (
 					<Text dimColor>Loading teams...</Text>
 				) : filteredTeams.length === 0 ? (
 					<Text dimColor>No teams found</Text>

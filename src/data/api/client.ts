@@ -4,6 +4,7 @@ import type {
 	Game as NhlGame,
 	GameDetails as NhlGameDetails,
 	PlayByPlayResponse,
+	PlayerInfo,
 	PlayerStats,
 	RosterSpot,
 } from '@/data/nhl/models.js';
@@ -395,11 +396,15 @@ const mapGameDetail = (
 	};
 };
 
-export const listGames = async ({ cursor }: { cursor: string | null }): Promise<GamesPage> => {
+export const listGames = async ({ cursor, limit }: { cursor: string | null; limit?: number }): Promise<GamesPage> => {
 	let target: Date;
 	if (cursor) {
 		// Parse YYYY-MM-DD in local timezone (not UTC)
-		const [y, m, d] = cursor.split('-').map(Number);
+		const parts = cursor.split('-').map(Number);
+		if (parts.length !== 3 || parts.some((p) => p === undefined)) {
+			throw new Error(`Invalid cursor date format: ${cursor}`);
+		}
+		const [y, m, d] = parts as [number, number, number];
 		target = new Date(y, m - 1, d);
 	} else {
 		target = new Date();
@@ -618,7 +623,9 @@ export const getPlayersLeaderboard = async (): Promise<PlayerLeaderboardItem[]> 
 	return Array.from(allPlayers.values()).sort((a, b) => b.points - a.points);
 };
 
-const findPlayerInRosters = async (playerId: number) => {
+const findPlayerInRosters = async (
+	playerId: number,
+): Promise<{ playerInfo: PlayerInfo; teamAbbrev: string } | null> => {
 	const teams = await nhlClient.getTeams();
 
 	for (const team of teams.teams) {
@@ -648,7 +655,7 @@ export const getPlayerDetail = async (
 	);
 
 	// If teamAbbrev provided, fetch roster directly; otherwise search all rosters
-	let rosters: { playerInfo: unknown; teamAbbrev: string } | null | undefined;
+	let rosters: { playerInfo: PlayerInfo; teamAbbrev: string } | null | undefined;
 	if (teamAbbrev) {
 		try {
 			const roster = await nhlClient.getTeamRoster(teamAbbrev);

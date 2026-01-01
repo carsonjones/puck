@@ -20,10 +20,11 @@ export const useGamesPage = ({
 
 	useEffect(() => {
 		if (state.status !== 'success' || !state.data?.nextCursor) return;
-		const nextKey = queryKeys.gamesList(state.data.nextCursor, limit);
+		const nextCursor = state.data.nextCursor;
+		const nextKey = queryKeys.gamesList(nextCursor, limit);
 		if (lastPrefetchedRef.current === nextKey) return;
 		lastPrefetchedRef.current = nextKey;
-		queryClient.prefetchQuery(nextKey, () => listGames({ cursor: state.data?.nextCursor, limit }), {
+		queryClient.prefetchQuery(nextKey, () => listGames({ cursor: nextCursor, limit }), {
 			staleTimeMs: 20_000,
 		});
 	}, [state.status, state.data, limit]);

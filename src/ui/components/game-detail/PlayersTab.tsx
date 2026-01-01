@@ -138,7 +138,7 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 	}
 
 	// In-progress or final games - show stats (only shown after initial load)
-	if (!game.boxscore && game.status !== 'scheduled') {
+	if (!game.boxscore && (game.status === 'in_progress' || game.status === 'final')) {
 		return <Text dimColor>No player stats available.</Text>;
 	}
 

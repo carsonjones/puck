@@ -7,6 +7,7 @@
 		"jsx": "react-jsx",
 		"types": ["node"],
 		"esModuleInterop": true,
+		"resolveJsonModule": true,
 		"strict": true,
 		"skipLibCheck": true,
 		"noFallthroughCasesInSwitch": true,
@@ -19,5 +20,6 @@
 			"@/*": ["src/*"]
 		}
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"exclude": ["**/*.test.ts", "**/*.test.tsx"]
 }

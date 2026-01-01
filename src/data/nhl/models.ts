@@ -263,6 +263,13 @@ export type SeasonTotal = {
 	teamName: {
 		default: string;
 	};
+	// Goalie stats
+	wins?: number;
+	losses?: number;
+	otLosses?: number;
+	goalsAgainstAverage?: number;
+	savePctg?: number;
+	shutouts?: number;
 };
 
 export type TeamScheduleResponse = {

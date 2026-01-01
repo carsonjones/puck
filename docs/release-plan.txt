@@ -1,0 +1,300 @@
+
+ * ▐▛███▜▌ *   Claude Code v2.0.76
+* ▝▜█████▛▘ *  Sonnet 4.5 · Claude Pro
+ *  ▘▘ ▝▝  *   ~/src/nhl-tui
+
+> alrighty, let's start to prep this for distribution. I'm thinking that we 
+can distribute in 2 ways, with brew and with npm. we'll want to prepare some
+ build scripts and necessary versioning. speaking of versions, with terminal
+ apps we need to be cognizant of versions people start loading, that way we 
+can ensure backwards compatibility. how I've solved this in the past --- 
+create a simple api server I can specify a min version, then when client 
+first load it checks to see that version is compatible, if not, action is 
+blocked and user is encouraged to upgrade. 
+
+⏺ I'll help you prepare this for distribution via npm and Homebrew, plus set up version checking. This is a multi-step task - let me enter plan mode to explore the codebase and design the approach.
+                                                                   
+⏺ Entered plan mode
+  Claude is now exploring and designing an implementation approach.
+
+⏺ Now in plan mode. Let me explore the codebase to understand the current structure and then design the distribution setup.
+
+⏺ Explore(Explore project structure) Haiku 4.5
+  ⎿  Done (21 tool uses · 30.6k tokens · 39s)                              
+
+⏺ Read(package.json)
+  ⎿  Read 34 lines
+
+⏺ Read(src/index.tsx)
+  ⎿  Read 20 lines
+                                                                           
+⏺ User answered Claude's questions:
+  ⎿  · Where should the version check API be hosted? Do you have a preferred
+      hosting solution? → Cloudflare Workers
+     · What should the CLI command name be when users install via npm/brew? 
+     → puck
+
+     · Should version check block app startup or just show a warning? → what
+      do you recommend?
+
+> I'm wondering if having a server we can deploy to somewhere, cloudflare, 
+etc might be best. that way we can use it later for simple telemetary, 
+additional data we don't get through the nhl api, etc. 
+
+⏺ Good choice on Cloudflare Workers - gives you a foundation for future features. For version checking, I recommend blocking with --skip-version-check flag - ensures compatibility while giving power users an escape hatch.
+
+  Let me design the implementation plan:
+
+⏺ Plan(Design distribution setup) Haiku 4.5
+  ⎿  Done (22 tool uses · 27.6k tokens · 60s)                              
+
+⏺ Read(tsconfig.json)
+  ⎿  Read 24 lines
+
+⏺ Now let me create the final implementation plan:
+
+⏺ Updated plan
+  ⎿  /plan to preview
+                                                                           
+⏺ User approved Claude's plan
+  ⎿  Plan saved to: ~/.claude/plans/gentle-painting-cupcake.md · /plan to 
+     edit
+     NHL TUI Distribution & Version Management Plan
+
+     Goal
+
+     Prepare puck (NHL TUI) for distribution via npm and Homebrew, with 
+     version enforcement via Cloudflare Workers.
+
+     Distribution Details
+
+     - CLI command: puck
+     - Initial version: 0.1.0 (beta)
+     - Version check: Block startup if outdated (with --skip-version-check 
+     flag)
+     - API hosting: Cloudflare Workers (enables future telemetry/data 
+     features)
+
+     ---
+     Phase 1: npm Distribution Setup
+
+     1.1 Update package.json
+
+     File: /Users/jones/src/nhl-tui/package.json
+
+     Changes needed:
+     - Remove "private": true
+     - Change "name" from "nhl-tui" to "puck"
+     - Add "version": "0.1.0"
+     - Add "bin": { "puck": "./dist/index.js" }
+     - Add metadata:
+     "description": "NHL Terminal UI for real-time stats and game tracking",
+     "license": "MIT",
+     "keywords": ["nhl", "cli", "tui", "hockey", "terminal"],
+     "repository": "github:username/nhl-tui",
+     "homepage": "https://github.com/username/nhl-tui",
+     "author": "your name"
+     - Add scripts:
+     "prepublishOnly": "bun run build",
+     "prebuild": "rm -rf dist"
+
+     1.2 Add shebang to entry point
+
+     File: /Users/jones/src/nhl-tui/src/index.tsx
+
+     Add as first line: #!/usr/bin/env bun
+
+     Note: Build process must preserve shebang in dist/index.js
+
+     1.3 Make executable after build
+
+     After running bun run build, ensure: chmod +x dist/index.js
+
+     ---
+     Phase 2: Version Check Infrastructure
+
+     2.1 Create Cloudflare Worker
+
+     File: /Users/jones/src/nhl-tui/cf-worker/version.ts
+
+     Simple API endpoint:
+     // GET /api/version
+     {
+       minVersion: "0.1.0",
+       latestVersion: "0.1.0",
+       downloadUrl: "https://www.npmjs.com/package/puck",
+       homebrewUrl: "brew install username/puck/puck"
+     }
+
+     Initial implementation: hardcoded values (evolve to KV store later for 
+     dynamic updates)
+
+     2.2 Create version check utility
+
+     File: /Users/jones/src/nhl-tui/src/utils/versionCheck.ts
+
+     Implement:
+     - checkVersion(currentVersion: string, apiUrl: string): 
+     Promise<VersionCheckResult>
+     - 3-second timeout (fail-open on network error/timeout)
+     - Returns: { isAllowed: boolean, message?: string, 
+     upgradeInstructions?: string }
+     - Error handling: network failures allow startup (log warning only)
+
+     2.3 Integrate version check in index.tsx
+
+     File: /Users/jones/src/nhl-tui/src/index.tsx
+
+     Before terminal manipulation:
+     1. Parse --skip-version-check flag from process.argv
+     2. If flag not present:
+       - Read version from package.json
+       - Call checkVersion()
+       - If blocked: print upgrade message + process.exit(1)
+     3. Then proceed with terminal setup and render
+
+     Upgrade message format:
+     ⚠️  Version 0.1.0 is no longer supported (minimum: 0.2.0)
+
+     Upgrade:
+       npm: npm install -g puck@latest
+       brew: brew upgrade puck
+
+     To skip this check: puck --skip-version-check
+
+     ---
+     Phase 3: Homebrew Distribution
+
+     3.1 Create Homebrew formula
+
+     File: /Users/jones/src/nhl-tui/puck.rb
+
+     class Puck < Formula
+       desc "NHL Terminal UI for real-time stats and game tracking"
+       homepage "https://github.com/username/nhl-tui"
+       url "https://registry.npmjs.org/puck/-/puck-0.1.0.tgz"
+       sha256 "..." # calculated after first npm publish
+       license "MIT"
+
+       depends_on "bun"
+
+       def install
+         bin.install "package/dist/index.js" => "puck"
+       end
+     end
+
+     3.2 Create Homebrew tap (separate repo)
+
+     Repository: username/homebrew-puck
+
+     Structure:
+     homebrew-puck/
+     └── Formula/
+         └── puck.rb
+
+     Users install via:
+     brew tap username/puck
+     brew install puck
+
+     Or direct: brew install username/puck/puck
+
+     ---
+     Phase 4: Build & Release Scripts
+
+     4.1 Release script
+
+     File: /Users/jones/src/nhl-tui/scripts/release.sh
+
+     Steps:
+     1. Verify clean git state
+     2. Bump version in package.json (manual or via npm version)
+     3. Run bun run build
+     4. Verify build output and executable permissions
+     5. Create git tag (e.g., v0.1.0)
+     6. npm publish
+     7. Push tags to GitHub
+     8. Create GitHub release (optional)
+     9. Update Homebrew formula SHA256 with new tarball hash
+
+     ---
+     Critical Files to Modify/Create
+
+     Create:
+
+     1. src/utils/versionCheck.ts - Version check logic
+     2. cf-worker/version.ts - Cloudflare Worker API
+     3. puck.rb - Homebrew formula
+     4. scripts/release.sh - Release automation
+
+     Modify:
+
+     1. package.json - Distribution metadata and bin field
+     2. src/index.tsx - Add shebang + version check integration
+
+     ---
+     Key Implementation Notes
+
+     Path Aliases in Build Output
+
+     - Current tsconfig uses @/* aliases
+     - baseUrl: "." should resolve in dist/, but verify after first build
+     - If imports break: may need tsc path plugin or post-build rewrite
+
+     Bun Runtime Dependency
+
+     - Require Bun installation (not bundled)
+     - Document in README and npm description
+     - Homebrew formula enforces via depends_on "bun"
+
+     Keytar Native Module
+
+     - Optional dependency for credential storage
+     - Wrap in try-catch if not critical
+     - If required: Homebrew formula needs build tools
+
+     Version Check Fail-Open
+
+     - Network failures → allow startup (log warning)
+     - Only block on successful API response with outdated version
+     - Prevents startup hangs from network issues
+
+     Testing Checklist
+
+     - Local npm pack + install → verify puck command works
+     - Version check with mock API responses (blocked, allowed, timeout)
+     - Local Homebrew formula install
+     - Build output has shebang and executable permissions
+     - Path aliases resolve in compiled dist/
+
+     ---
+     Deployment Sequence
+
+     1. Local testing: Build + test locally with npm pack
+     2. Deploy Cloudflare Worker: Set up version API endpoint
+     3. First npm publish: Publish v0.1.0 to npm registry
+     4. Create Homebrew tap: Set up separate repo with formula
+     5. Update formula SHA: Calculate tarball hash from npm publish
+     6. Test Homebrew install: brew install username/puck/puck
+     7. Production validation: Test version check end-to-end
+
+     ---
+     Future Enhancements
+
+     - Cloudflare KV store for dynamic minVersion updates
+     - Telemetry/analytics via Worker (usage stats, crash reports)
+     - Pre-built binaries for non-Bun users
+     - CI/CD pipeline (GitHub Actions) for automated releases
+     - Version check result caching (reduce API calls)
+
+
+
+⏺ Plan approved! Let me create a todo list and start implementation:
+
+> /export 
+  ⎿  Interrupted · What should Claude do instead?
+
+> /export history/release-plan.md 
+  ⎿  Failed to export conversation: ENOENT: no such file or directory, open '/Users/jones/src/nhl-tui/history/release-plan.txt'
+
+
+
