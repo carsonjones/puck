@@ -35,16 +35,21 @@ const TeamSearchScreen: React.FC = () => {
 	const filteredTeams = filteredMatches.map((m) => m.team);
 
 	// Scrolling window for results
-	const listHeight = height - 6; // Account for header, input, footer
+	const listHeight = height - 12; // Account for header, input, footer, margins
 	const half = Math.floor(listHeight / 2);
 	const start = Math.max(0, Math.min(filteredTeams.length - listHeight, cursorIndex - half));
 	const end = Math.min(filteredTeams.length, start + listHeight);
 	const visibleTeams = filteredTeams.slice(start, end);
 
-	const handleTeamSelection = (team: StandingListItem, action: 'context' | 'roster') => {
+	const handleTeamSelection = (team: StandingListItem, action: 'context' | 'roster' | 'games') => {
 		if (action === 'roster') {
-			// Always go to standings detail for roster
+			// Go to standings detail for roster
 			navigateToTeamInStandings(team, 'detail');
+		} else if (action === 'games') {
+			// Go to games filtered by team
+			setGameTeamFilter(team.teamAbbrev);
+			setViewMode('games');
+			setFocusedPane('list');
 		} else {
 			// Context-aware action
 			if (viewMode === 'games') {
@@ -62,26 +67,25 @@ const TeamSearchScreen: React.FC = () => {
 	};
 
 	const navigateToTeamInStandings = (team: StandingListItem, focusPane: 'list' | 'detail') => {
-		// Determine correct tab/subtab for team
-		if (team.conferenceName === 'Eastern') {
-			setStandingsTab('conference');
-			setStandingsConference('eastern');
-		} else if (team.conferenceName === 'Western') {
-			setStandingsTab('conference');
-			setStandingsConference('western');
-		}
+		if (!allTeams || allTeams.length === 0) return;
 
 		// Find team index in league-wide list
 		const teamIndex = allTeams.findIndex((t) => t.teamAbbrev === team.teamAbbrev);
+		if (teamIndex < 0) return;
 
-		if (teamIndex >= 0) {
-			// Move cursor to team position
-			const delta = teamIndex - standingsCursorIndex;
-			moveStandingsCursor(delta, allTeams.length - 1);
+		// Calculate absolute delta to target position
+		const delta = teamIndex - standingsCursorIndex;
+
+		// Clear games filter only when navigating from games view
+		if (viewMode === 'games') {
+			setGameTeamFilter(null);
 		}
 
+		// Apply all state changes together
+		setStandingsTab('league');
 		setViewMode('standings');
 		setFocusedPane(focusPane);
+		moveStandingsCursor(delta, allTeams.length - 1);
 	};
 
 	// Handle keyboard input
@@ -96,8 +100,13 @@ const TeamSearchScreen: React.FC = () => {
 			return;
 		}
 
-		if (key.ctrl && input === 'd' && filteredTeams.length > 0) {
+		if (input === 'r' && filteredTeams.length > 0) {
 			handleTeamSelection(filteredTeams[cursorIndex], 'roster');
+			return;
+		}
+
+		if (input === 'g' && filteredTeams.length > 0) {
+			handleTeamSelection(filteredTeams[cursorIndex], 'games');
 			return;
 		}
 
@@ -128,9 +137,9 @@ const TeamSearchScreen: React.FC = () => {
 	// Context-specific hint
 	let contextHint = 'select';
 	if (viewMode === 'games') {
-		contextHint = 'filter games';
+		contextHint = 'stay';
 	} else if (viewMode === 'standings') {
-		contextHint = 'jump to team';
+		contextHint = 'jump';
 	}
 
 	const lineWidth = Math.max(20, width - 4);
@@ -165,10 +174,13 @@ const TeamSearchScreen: React.FC = () => {
 							{visibleTeams.map((team, index) => {
 								const absoluteIndex = start + index;
 								const isSelected = absoluteIndex === cursorIndex;
+								const text = `${team.teamAbbrev} - ${team.teamName}`;
+								const padding = Math.max(0, lineWidth - text.length);
+								const fullText = `${text}${' '.repeat(padding)}`;
 								return (
-									<Text key={team.teamAbbrev} inverse={isSelected}>
-										{team.teamAbbrev} - {team.teamName}
-									</Text>
+									<Box key={`${absoluteIndex}-${team.teamAbbrev}`} minHeight={1}>
+										<Text inverse={isSelected}>{fullText}</Text>
+									</Box>
 								);
 							})}
 						</Box>
@@ -179,7 +191,7 @@ const TeamSearchScreen: React.FC = () => {
 			{/* Footer hints */}
 			<Box marginTop={1} borderStyle="single" borderTop>
 				<Text dimColor>
-					[↑↓/jk] navigate | [Enter] {contextHint} | [Ctrl+D] roster | [Esc] close
+					[↑↓/jk] nav | [enter] {contextHint} | [g] games | [r] roster | [esc] close
 				</Text>
 			</Box>
 		</Box>

@@ -15,7 +15,7 @@ const StatRow: React.FC<StatRowProps> = ({
 	awayValue,
 	homeValue,
 	labelWidth = 15,
-	valueWidth = 12,
+	valueWidth = 16,
 	isHeader = false,
 }) => {
 	return (
@@ -24,10 +24,10 @@ const StatRow: React.FC<StatRowProps> = ({
 				<Text bold={isHeader}>{label}</Text>
 			</Box>
 			<Box width={valueWidth}>
-				<Text bold={isHeader}>{awayValue}</Text>
+				<Text bold={isHeader} wrap="truncate">{awayValue}</Text>
 			</Box>
 			<Box width={valueWidth}>
-				<Text bold={isHeader}>{homeValue}</Text>
+				<Text bold={isHeader} wrap="truncate">{homeValue}</Text>
 			</Box>
 		</Box>
 	);

@@ -1,5 +1,6 @@
 import { Box, Text } from 'ink';
 import type React from 'react';
+import { useLineWidth } from '@/hooks/useLineWidth.js';
 import { useTeamRosterData } from '@/ui/components/standings-detail/useTeamRosterData.js';
 
 type TeamPlayersTabProps = {
@@ -10,6 +11,7 @@ type TeamPlayersTabProps = {
 };
 
 const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex, height, compact = false }) => {
+	const lineWidth = useLineWidth();
 	const { players, goalies, loading, error } = useTeamRosterData(teamAbbrev);
 
 	if (loading) {
@@ -73,14 +75,15 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
 							? ((player.plusMinus >= 0 ? '+' : '') + String(player.plusMinus)).padStart(3)
 							: ((player.plusMinus >= 0 ? '+' : '') + String(player.plusMinus)).padStart(4);
 
+						const text = compact
+							? `${'  '}${displayNum} ${displayName} ${displayPos} ${displayGP} ${displayGoals} ${displayAssists} ${displayPoints} ${displayPlusMinus}`
+							: `${'  '}${displayNum} ${displayName} ${displayPos} ${displayGP} ${displayGoals} ${displayAssists} ${displayPoints} ${displayPlusMinus} ${String(player.shots).padStart(4)} ${(player.shootingPctg > 0 ? `${(player.shootingPctg * 100).toFixed(1)}%` : '0.0%').padStart(5)}`;
+						const padding = Math.max(0, lineWidth - text.length);
+						const fullText = `${text}${' '.repeat(padding)}`;
+
 						return (
 							<Box key={absoluteIndex}>
-								<Text dimColor={!isSelected}>
-									{compact
-										? `${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayPos} ${displayGP} ${displayGoals} ${displayAssists} ${displayPoints} ${displayPlusMinus}`
-										: `${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayPos} ${displayGP} ${displayGoals} ${displayAssists} ${displayPoints} ${displayPlusMinus} ${String(player.shots).padStart(4)} ${(player.shootingPctg > 0 ? `${(player.shootingPctg * 100).toFixed(1)}%` : '0.0%').padStart(5)}`
-									}
-								</Text>
+								<Text inverse={isSelected}>{fullText}</Text>
 							</Box>
 						);
 					})}
@@ -116,14 +119,15 @@ const TeamPlayersTab: React.FC<TeamPlayersTabProps> = ({ teamAbbrev, scrollIndex
 							: (goalie.savePct > 0 ? goalie.savePct.toFixed(3) : '0.000').padStart(5);
 						const displayShutouts = compact ? String(goalie.shutouts).padStart(2) : String(goalie.shutouts).padStart(3);
 
+						const text = compact
+							? `${'  '}${displayNum} ${displayName} ${displayGP} ${displayWins} ${displayLosses} ${displayGAA} ${displaySavePct} ${displayShutouts}`
+							: `${'  '}${displayNum} ${displayName} ${displayGP} ${displayWins} ${displayLosses} ${String(goalie.otLosses).padStart(4)} ${displayGAA} ${displaySavePct} ${displayShutouts}`;
+						const padding = Math.max(0, lineWidth - text.length);
+						const fullText = `${text}${' '.repeat(padding)}`;
+
 						return (
 							<Box key={absoluteIndex}>
-								<Text dimColor={!isSelected}>
-									{compact
-										? `${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayGP} ${displayWins} ${displayLosses} ${displayGAA} ${displaySavePct} ${displayShutouts}`
-										: `${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayGP} ${displayWins} ${displayLosses} ${String(goalie.otLosses).padStart(4)} ${displayGAA} ${displaySavePct} ${displayShutouts}`
-									}
-								</Text>
+								<Text inverse={isSelected}>{fullText}</Text>
 							</Box>
 						);
 					})}

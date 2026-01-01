@@ -5,6 +5,8 @@ import { formatPeriod } from '@/data/nhl/formatters.js';
 type GameHeaderProps = {
 	awayTeam: string;
 	homeTeam: string;
+	awayTeamAbbrev?: string;
+	homeTeamAbbrev?: string;
 	date: string;
 	startTime: string;
 	venue: string;
@@ -20,6 +22,8 @@ type GameHeaderProps = {
 const GameHeader: React.FC<GameHeaderProps> = ({
 	awayTeam,
 	homeTeam,
+	awayTeamAbbrev,
+	homeTeamAbbrev,
 	date,
 	startTime,
 	venue,
@@ -42,9 +46,12 @@ const GameHeader: React.FC<GameHeaderProps> = ({
 		homeScore !== undefined &&
 		homeScore > awayScore;
 
+	const awayDisplay = awayTeam || awayTeamAbbrev || 'Away';
+	const homeDisplay = homeTeam || homeTeamAbbrev || 'Home';
+
 	return (
 		<Box flexDirection="column">
-			<Text>{`${awayTeam}${awayWins ? ' ✓' : ''} @ ${homeTeam}${homeWins ? ' ✓' : ''}`}</Text>
+			<Text>{`${awayDisplay}${awayWins ? ' ✓' : ''} @ ${homeDisplay}${homeWins ? ' ✓' : ''}`}</Text>
 			{status !== 'scheduled' ? (
 				<Box>
 					<Text>{`Score: ${awayScore}-${homeScore}`}</Text>

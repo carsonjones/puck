@@ -34,12 +34,11 @@ const GameDetail: React.FC<GameDetailProps> = ({
 }) => {
 	const lineWidth = useLineWidth();
 
-	// Only show loading message if no data yet (initial load)
 	if (status === 'loading' && !game) {
 		return <Text dimColor>Loading game details...</Text>;
 	}
 
-	if (status === 'error' && !game) {
+	if (status === 'error') {
 		return <Text color="red">Failed to load game details.</Text>;
 	}
 
@@ -53,6 +52,8 @@ const GameDetail: React.FC<GameDetailProps> = ({
 	      key={`game-${game.id}-header`}
 				awayTeam={game.awayTeam}
 				homeTeam={game.homeTeam}
+				awayTeamAbbrev={game.awayTeamAbbrev}
+				homeTeamAbbrev={game.homeTeamAbbrev}
 				date={game.date}
 				startTime={game.startTime}
 				venue={game.venue}

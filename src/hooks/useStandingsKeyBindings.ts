@@ -58,6 +58,7 @@ export const useStandingsKeyBindings = (config: StandingsKeyBindingsConfig) => {
 			cycleStandingsViewMode,
 			moveStandingsPlayersScroll,
 			selectPlayer,
+			setPlayerFilter,
 			setPreviousStandingsState,
 		} = useAppStore.getState();
 
@@ -77,11 +78,11 @@ export const useStandingsKeyBindings = (config: StandingsKeyBindingsConfig) => {
 		}
 
 		// Global: View switching
-		if (input === 'c') {
+		if (input === 'g') {
 			setViewMode('games');
 			return;
 		}
-		if (input === 'w') {
+		if (input === 's') {
 			setViewMode('standings');
 			return;
 		}
@@ -186,6 +187,7 @@ export const useStandingsKeyBindings = (config: StandingsKeyBindingsConfig) => {
 							playerIndex: standingsPlayersScrollIndex,
 						});
 						selectPlayer(selectedPlayer.id);
+						setPlayerFilter(selectedPlayer.id);
 						setFocusedPane('detail');
 						setViewMode('players');
 					}

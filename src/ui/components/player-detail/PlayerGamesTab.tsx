@@ -1,5 +1,6 @@
 import { Box, Text } from 'ink';
 import type React from 'react';
+import { useLineWidth } from '@/hooks/useLineWidth.js';
 import { usePlayerGameLog } from '@/data/hooks/usePlayerGameLog.js';
 import { useAppStore } from '@/state/useAppStore.js';
 
@@ -10,6 +11,7 @@ type PlayerGamesTabProps = {
 };
 
 const PlayerGamesTab: React.FC<PlayerGamesTabProps> = ({ playerId, scrollIndex, height }) => {
+	const lineWidth = useLineWidth();
 	const { playerDetailTab } = useAppStore();
 	// Only fetch game log when on games tab (lazy load for performance)
 	const shouldFetch = playerDetailTab === 'games';
@@ -46,11 +48,13 @@ const PlayerGamesTab: React.FC<PlayerGamesTabProps> = ({ playerId, scrollIndex, 
 				const isSelected = absoluteIndex === scrollIndex;
 				const vsPrefix = game.homeAway === 'home' ? 'vs ' : '@ ';
 
+				const text = `${'  '}${game.date.padEnd(10)} ${(vsPrefix + game.opponent).padEnd(8)} ${String(game.goals).padStart(3)} ${String(game.assists).padStart(3)} ${String(game.points).padStart(3)} ${((game.plusMinus >= 0 ? '+' : '') + game.plusMinus).padStart(4)} ${String(game.shots).padStart(4)} ${game.toi.padStart(6)}`;
+				const padding = Math.max(0, lineWidth - text.length);
+				const fullText = `${text}${' '.repeat(padding)}`;
+
 				return (
 					<Box key={game.gameId}>
-						<Text dimColor={!isSelected}>
-							{`${isSelected ? '> ' : '  '}${game.date.padEnd(10)} ${(vsPrefix + game.opponent).padEnd(8)} ${String(game.goals).padStart(3)} ${String(game.assists).padStart(3)} ${String(game.points).padStart(3)} ${((game.plusMinus >= 0 ? '+' : '') + game.plusMinus).padStart(4)} ${String(game.shots).padStart(4)} ${game.toi.padStart(6)}`}
-						</Text>
+						<Text inverse={isSelected}>{fullText}</Text>
 					</Box>
 				);
 			})}

@@ -34,6 +34,9 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 		const teamAbbrev = playersTeamTab === 'away' ? game.awayTeamAbbrev : game.homeTeamAbbrev;
 		const activeTeam = playersTeamTab === 'away' ? game.awayTeam : game.homeTeam;
 
+		// Account for: GameHeader (4 lines) + separator + tabs + separator + StatusBar + padding
+		const adjustedHeight = Math.max(8, height - 6);
+
 		return (
 			<Box flexDirection="column">
 				<Tabs tabs={[game.awayTeam, game.homeTeam]} active={activeTeam} />
@@ -41,15 +44,15 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 				<TeamPlayersTab
 					teamAbbrev={teamAbbrev}
 					scrollIndex={playersScrollIndex}
-					height={height}
+					height={adjustedHeight}
 					compact={true}
 				/>
 			</Box>
 		);
 	}
 
-	// In-progress or final games - show stats
-	if (!game.boxscore) {
+	// In-progress or final games - show stats (only shown after initial load)
+	if (!game.boxscore && game.status !== 'scheduled') {
 		return <Text dimColor>No player stats available.</Text>;
 	}
 
@@ -165,11 +168,12 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 				if (player.isGoalie) {
 					const displaySaves = String(player.saves ?? 0).padEnd(4);
 					const displaySavePct = player.savePct ? `${(player.savePct * 100).toFixed(1)}%` : 'n/a';
+					const text = `${'  '}${displayNum} ${displayName} ${displayPos} ${'-'.padEnd(3)} ${'-'.padEnd(3)} ${'-'.padEnd(4)} ${'-'.padEnd(4)} ${'-'.padEnd(4)} ${displaySaves} ${displaySavePct}`;
+					const padding = Math.max(0, lineWidth - text.length);
+					const fullText = `${text}${' '.repeat(padding)}`;
 					return (
 						<Box key={absoluteIndex}>
-							<Text color={isSelected ? 'yellow' : undefined}>
-								{`${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayPos} ${'-'.padEnd(3)} ${'-'.padEnd(3)} ${'-'.padEnd(4)} ${'-'.padEnd(4)} ${'-'.padEnd(4)} ${displaySaves} ${displaySavePct}`}
-							</Text>
+							<Text inverse={isSelected}>{fullText}</Text>
 						</Box>
 					);
 				}
@@ -180,11 +184,12 @@ const PlayersTab: React.FC<PlayersTabProps> = ({ game, scrollIndex, height }) =>
 				const displayShots = String(player.shots ?? 0).padEnd(4);
 				const displayHits = String(player.hits ?? 0).padEnd(4);
 
+				const text = `${'  '}${displayNum} ${displayName} ${displayPos} ${displayGoals} ${displayAssists} ${displayPoints} ${displayShots} ${displayHits} ${'-'.padEnd(4)} ${'-'}`;
+				const padding = Math.max(0, lineWidth - text.length);
+				const fullText = `${text}${' '.repeat(padding)}`;
 				return (
 					<Box key={absoluteIndex}>
-						<Text color={isSelected ? 'yellow' : undefined}>
-							{`${isSelected ? '> ' : '  '}${displayNum} ${displayName} ${displayPos} ${displayGoals} ${displayAssists} ${displayPoints} ${displayShots} ${displayHits} ${'-'.padEnd(4)} ${'-'}`}
-						</Text>
+						<Text inverse={isSelected}>{fullText}</Text>
 					</Box>
 				);
 			})}

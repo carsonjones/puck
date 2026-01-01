@@ -14,6 +14,7 @@ import GameDetail from '@/ui/components/game-detail/GameDetail.js';
 import List from '@/ui/components/List.js';
 import SplitPane from '@/ui/components/SplitPane.js';
 import StatusBar from '@/ui/components/StatusBar.js';
+import { useTeamRosterData } from '@/ui/components/standings-detail/useTeamRosterData.js';
 import TeamSearchScreen from '@/ui/screens/TeamSearchScreen.js';
 import {
 	getGamesHeader,
@@ -59,7 +60,7 @@ const GamesScreen: React.FC = () => {
 		const allGames = data?.items ?? [];
 		if (!gameTeamFilter) return allGames;
 		return allGames.filter(
-			(game) => game.homeTeam.includes(gameTeamFilter) || game.awayTeam.includes(gameTeamFilter),
+			(game) => game.homeTeamAbbrev === gameTeamFilter || game.awayTeamAbbrev === gameTeamFilter,
 		);
 	}, [data, gameTeamFilter]);
 	const detail = useGame(selectedGameId);
@@ -70,6 +71,34 @@ const GamesScreen: React.FC = () => {
 	// Simplified state - use detail data directly
 	const displayGame = detail.data ?? null;
 	const displayStatus = detail.status === 'idle' ? 'loading' : detail.status;
+
+	// Fetch roster for scheduled games
+	const teamAbbrevForRoster = displayGame?.status === 'scheduled'
+		? (playersTeamTab === 'away' ? displayGame.awayTeamAbbrev : displayGame.homeTeamAbbrev)
+		: null;
+	const roster = useTeamRosterData(teamAbbrevForRoster);
+
+	// Build allPlayers list based on game status
+	const allPlayers = useMemo(() => {
+		if (!displayGame) return [];
+
+		if (displayGame.status === 'scheduled') {
+			// Use roster data for scheduled games
+			return [...roster.players, ...roster.goalies];
+		}
+
+		// Use boxscore data for in-progress/final games
+		if (!displayGame.boxscore) return [];
+
+		return [
+			...(displayGame.boxscore.playerByGameStats.awayTeam.forwards || []),
+			...(displayGame.boxscore.playerByGameStats.awayTeam.defense || []),
+			...(displayGame.boxscore.playerByGameStats.awayTeam.goalies || []),
+			...(displayGame.boxscore.playerByGameStats.homeTeam.forwards || []),
+			...(displayGame.boxscore.playerByGameStats.homeTeam.defense || []),
+			...(displayGame.boxscore.playerByGameStats.homeTeam.goalies || []),
+		];
+	}, [displayGame, roster.players, roster.goalies]);
 
 	// Determine refresh interval using helper
 	const refreshIntervalMs = getRefreshInterval(selectedGameId, displayGame);
@@ -115,7 +144,6 @@ const GamesScreen: React.FC = () => {
 	};
 
 	const playsCount = getPlaysCount(detailTab, displayGame);
-	const playersRosterCount = getPlayersRosterCount();
 
 	useGamesKeyBindings({
 		focusedPane,
@@ -130,7 +158,7 @@ const GamesScreen: React.FC = () => {
 		playsCount,
 		playersTeamTab,
 		playersScrollIndex,
-		playersRosterCount,
+		allPlayers,
 		onQuit: quit,
 		moveCursor,
 		selectGame,

@@ -18,7 +18,7 @@ type GamesKeyBindingsConfig = {
 	playsCount: number;
 	playersTeamTab: 'away' | 'home';
 	playersScrollIndex: number;
-	playersRosterCount: number;
+	allPlayers: Array<{ id?: number; playerId?: number }>;
 	onQuit: () => void;
 	moveCursor: (delta: number, max: number) => void;
 	selectGame: (id: string | null, status?: GameStatus) => void;
@@ -46,7 +46,7 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 		playsCount,
 		playersTeamTab,
 		playersScrollIndex,
-		playersRosterCount,
+		allPlayers,
 		onQuit,
 		moveCursor,
 		selectGame,
@@ -83,6 +83,7 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 		// Clear team filter
 		if (input === 'x') {
 			useAppStore.getState().setGameTeamFilter(null);
+			setFocusedPane('list');
 			return;
 		}
 
@@ -93,11 +94,11 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 		}
 
 		// Global: View switching
-		if (input === 'w') {
+		if (input === 's') {
 			useAppStore.getState().setViewMode('standings');
 			return;
 		}
-		if (input === 'c') {
+		if (input === 'g') {
 			useAppStore.getState().setViewMode('games');
 			return;
 		}
@@ -173,7 +174,7 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 		}
 
 		// Sort toggle
-		if (input === 's') {
+		if (input === 'o') {
 			togglePlaysSortOrder();
 			return;
 		}
@@ -220,13 +221,24 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 			}
 			// Players tab with scheduled game - use playersScrollIndex
 			if (detailTab === 'players' && displayGame?.status === 'scheduled') {
-				if (playersRosterCount > 0) {
+				if (allPlayers.length > 0) {
 					if (input === 'j' || key.downArrow) {
-						movePlayersScroll(1, playersRosterCount - 1);
+						movePlayersScroll(1, allPlayers.length - 1);
 						return;
 					}
 					if (input === 'k' || key.upArrow) {
-						movePlayersScroll(-1, playersRosterCount - 1);
+						movePlayersScroll(-1, allPlayers.length - 1);
+						return;
+					}
+					if (key.return) {
+						const selectedPlayer = allPlayers[playersScrollIndex];
+						if (selectedPlayer && selectedPlayer.id) {
+							const { selectPlayer, setPlayerFilter, setFocusedPane, setViewMode } = useAppStore.getState();
+							selectPlayer(selectedPlayer.id);
+							setPlayerFilter(selectedPlayer.id);
+							setFocusedPane('detail');
+							setViewMode('players');
+						}
 						return;
 					}
 				}
@@ -239,6 +251,45 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 				}
 				if (input === 'k' || key.upArrow) {
 					movePlaysScroll(-1, playsCount - 1);
+					return;
+				}
+				// Enter key for players tab with in-progress/final game
+				if (detailTab === 'players' && key.return) {
+					// Calculate player index accounting for headers
+					const awayPlayers = [
+						...(displayGame?.boxscore?.playerByGameStats?.awayTeam?.forwards || []),
+						...(displayGame?.boxscore?.playerByGameStats?.awayTeam?.defense || []),
+						...(displayGame?.boxscore?.playerByGameStats?.awayTeam?.goalies || []),
+					];
+					const homePlayers = [
+						...(displayGame?.boxscore?.playerByGameStats?.homeTeam?.forwards || []),
+						...(displayGame?.boxscore?.playerByGameStats?.homeTeam?.defense || []),
+						...(displayGame?.boxscore?.playerByGameStats?.homeTeam?.goalies || []),
+					];
+
+					// scrollIndex includes 3 headers (awayTeam, separator, homeTeam)
+					let playerIndex = playersScrollIndex;
+					if (playerIndex === 0 || playerIndex === awayPlayers.length + 1 || playerIndex === awayPlayers.length + 2) {
+						// Selected a header row, ignore
+						return;
+					}
+
+					let selectedPlayer;
+					if (playerIndex < awayPlayers.length + 1) {
+						// Away team player (index 1 to awayPlayers.length)
+						selectedPlayer = awayPlayers[playerIndex - 1];
+					} else {
+						// Home team player (index > awayPlayers.length + 2)
+						selectedPlayer = homePlayers[playerIndex - awayPlayers.length - 3];
+					}
+
+					if (selectedPlayer && selectedPlayer.playerId) {
+						const { selectPlayer, setPlayerFilter, setFocusedPane, setViewMode } = useAppStore.getState();
+						selectPlayer(selectedPlayer.playerId);
+						setPlayerFilter(selectedPlayer.playerId);
+						setFocusedPane('detail');
+						setViewMode('players');
+					}
 					return;
 				}
 			}

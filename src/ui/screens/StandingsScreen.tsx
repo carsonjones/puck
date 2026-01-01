@@ -30,6 +30,7 @@ const StandingsScreen: React.FC = () => {
 		standingsViewMode,
 		teamSearchOpen,
 		pendingTeamNavigation,
+		previousStandingsState,
 		moveStandingsCursor,
 		setFocusedPane,
 		setStandingsTab,
@@ -98,6 +99,14 @@ const StandingsScreen: React.FC = () => {
 		moveStandingsCursor,
 		clearPendingTeamNavigation,
 	]);
+
+	// Reset player scroll index when returning from player view
+	useEffect(() => {
+		if (previousStandingsState) {
+			moveStandingsPlayersScroll(-standingsPlayersScrollIndex);
+			setPreviousStandingsState(null);
+		}
+	}, [previousStandingsState, standingsPlayersScrollIndex, moveStandingsPlayersScroll, setPreviousStandingsState]);
 
 	const quit = () => {
 		exit();

@@ -14,6 +14,8 @@ export type GameListItem = {
 	date: string;
 	homeTeam: string;
 	awayTeam: string;
+	homeTeamAbbrev: string;
+	awayTeamAbbrev: string;
 	startTime: string;
 	status: 'scheduled' | 'in_progress' | 'final';
 	homeScore: number;
@@ -109,6 +111,8 @@ const mapGameListItem = (game: NhlGame): GameListItem => ({
 	date: game.gameDate.slice(0, 10),
 	homeTeam: game.homeTeam.commonName?.default ?? game.homeTeam.name.default,
 	awayTeam: game.awayTeam.commonName?.default ?? game.awayTeam.name.default,
+	homeTeamAbbrev: game.homeTeam.abbrev,
+	awayTeamAbbrev: game.awayTeam.abbrev,
 	startTime: formatLocalTime(game.startTimeUTC),
 	status: mapGameStatus(game.gameState),
 	homeScore: game.homeTeam.score,

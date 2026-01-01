@@ -113,6 +113,7 @@ class QueryClient {
 			} else {
 				// Data unchanged, just update timestamp to mark as fresh
 				this.cache.set(key, { status: 'success', data: existing.data, updatedAt: Date.now() });
+				this.notify(key);
 			}
 
 			return data;

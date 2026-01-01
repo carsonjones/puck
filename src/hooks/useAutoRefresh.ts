@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 type AutoRefreshOptions = {
 	enabled?: boolean;
@@ -12,7 +12,7 @@ export const useAutoRefresh = ({ enabled = true, intervalMs, onRefresh }: AutoRe
 
 	onRefreshRef.current = onRefresh;
 
-	const resetTimer = () => {
+	const resetTimer = useCallback(() => {
 		if (timerRef.current) {
 			clearInterval(timerRef.current);
 			timerRef.current = null;
@@ -23,7 +23,7 @@ export const useAutoRefresh = ({ enabled = true, intervalMs, onRefresh }: AutoRe
 				onRefreshRef.current();
 			}, intervalMs);
 		}
-	};
+	}, [enabled, intervalMs]);
 
 	useEffect(() => {
 		if (!enabled) {

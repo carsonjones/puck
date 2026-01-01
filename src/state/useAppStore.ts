@@ -42,6 +42,7 @@ interface AppState {
 	teamSearchQuery: string;
 	teamSearchCursorIndex: number;
 	gameTeamFilter: string | null;
+	playerFilter: number | null;
 	pendingTeamNavigation: string | null;
 	setFocusedPane: (pane: FocusedPane) => void;
 	moveCursor: (delta: number, maxIndex?: number) => void;
@@ -72,6 +73,7 @@ interface AppState {
 	setTeamSearchQuery: (query: string) => void;
 	moveTeamSearchCursor: (delta: number, maxIndex?: number) => void;
 	setGameTeamFilter: (abbrev: string | null) => void;
+	setPlayerFilter: (playerId: number | null) => void;
 	resetTeamSearch: () => void;
 	navigateToTeamInStandings: (teamAbbrev: string) => void;
 	clearPendingTeamNavigation: () => void;
@@ -104,6 +106,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 	teamSearchQuery: '',
 	teamSearchCursorIndex: 0,
 	gameTeamFilter: null,
+	playerFilter: null,
 	pendingTeamNavigation: null,
 	setFocusedPane: (pane) => set({ focusedPane: pane }),
 	moveCursor: (delta, maxIndex) => {
@@ -205,6 +208,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 		set({ teamSearchCursorIndex: clamped });
 	},
 	setGameTeamFilter: (abbrev) => set({ gameTeamFilter: abbrev }),
+	setPlayerFilter: (playerId) => set({ playerFilter: playerId }),
 	resetTeamSearch: () =>
 		set({ teamSearchOpen: false, teamSearchQuery: '', teamSearchCursorIndex: 0 }),
 	navigateToTeamInStandings: (teamAbbrev) =>

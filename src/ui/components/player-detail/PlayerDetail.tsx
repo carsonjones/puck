@@ -10,15 +10,13 @@ type PlayerDetailProps = {
 };
 
 const PlayerDetail: React.FC<PlayerDetailProps> = ({ player, status, height }) => {
-	if (status === 'loading' && !player) {
-		return <Text dimColor>Loading player details...</Text>;
-	}
-
-	if (status === 'error' && !player) {
-		return <Text color="red">Failed to load player details.</Text>;
-	}
-
 	if (!player) {
+		if (status === 'loading') {
+			return <Text dimColor>Loading player details...</Text>;
+		}
+		if (status === 'error') {
+			return <Text color="red">Failed to load player details.</Text>;
+		}
 		return <Text dimColor>Select a player to view details.</Text>;
 	}
 

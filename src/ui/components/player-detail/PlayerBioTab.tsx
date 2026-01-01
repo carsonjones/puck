@@ -21,7 +21,6 @@ const PlayerBioTab: React.FC<PlayerBioTabProps> = ({ player }) => {
 
 	return (
 		<Box flexDirection="column">
-			<Text bold>Biographical Information</Text>
 			<Box marginTop={1} flexDirection="column">
 				<Box>
 					<Box width={20}>

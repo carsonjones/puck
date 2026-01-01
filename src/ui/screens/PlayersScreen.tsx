@@ -25,6 +25,7 @@ const PlayersScreen: React.FC = () => {
 		playerDetailTab,
 		playerDetailScrollIndex,
 		teamSearchOpen,
+		playerFilter,
 		movePlayersCursor,
 		selectPlayer,
 		setFocusedPane,
@@ -32,6 +33,7 @@ const PlayersScreen: React.FC = () => {
 		movePlayerDetailScroll,
 		setViewMode,
 		openTeamSearch,
+		setPlayerFilter,
 	} = useAppStore();
 
 	const listHeight = Math.max(6, height - 4);
@@ -57,9 +59,13 @@ const PlayersScreen: React.FC = () => {
 		},
 	});
 
-	// Auto-select player based on cursor position
+	// Auto-select player based on cursor position (unless filter is active)
 	useEffect(() => {
 		if (status !== 'success') return;
+
+		// If filter is active, don't auto-select from cursor
+		if (playerFilter !== null) return;
+
 		if (items.length === 0) {
 			if (selectedPlayerId !== null) selectPlayer(null);
 			return;
@@ -74,7 +80,7 @@ const PlayersScreen: React.FC = () => {
 		if (item && item.id !== selectedPlayerId) {
 			selectPlayer(item.id);
 		}
-	}, [status, items, playersCursorIndex, selectedPlayerId, selectPlayer, movePlayersCursor]);
+	}, [status, items, playersCursorIndex, selectedPlayerId, selectPlayer, movePlayersCursor, playerFilter]);
 
 	// Sync cursor to pre-selected player (e.g., from team roster) - only when selectedPlayerId changes
 	useEffect(() => {
@@ -82,6 +88,11 @@ const PlayersScreen: React.FC = () => {
 		const playerIndex = items.findIndex((p) => p.id === selectedPlayerId);
 		if (playerIndex >= 0 && playerIndex !== playersCursorIndex) {
 			movePlayersCursor(playerIndex - playersCursorIndex, items.length - 1);
+			// Player is in list, clear filter
+			if (playerFilter !== null) setPlayerFilter(null);
+		} else if (playerIndex === -1 && playerFilter === null) {
+			// Player not in list and no filter set - set filter
+			setPlayerFilter(selectedPlayerId);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedPlayerId, items, status]);
@@ -123,12 +134,12 @@ const PlayersScreen: React.FC = () => {
 			return;
 		}
 
-		if (input === 'c') {
+		if (input === 'g') {
 			setViewMode('games');
 			return;
 		}
 
-		if (input === 'w') {
+		if (input === 's') {
 			setViewMode('standings');
 			return;
 		}
@@ -136,6 +147,14 @@ const PlayersScreen: React.FC = () => {
 		if (input === 'p') {
 			setViewMode('players');
 			return;
+		}
+
+		if (input === 'x') {
+			// Clear player filter
+			if (playerFilter !== null) {
+				setPlayerFilter(null);
+				return;
+			}
 		}
 
 		if (key.escape) {
@@ -163,11 +182,11 @@ const PlayersScreen: React.FC = () => {
 			return;
 		}
 		if (input === '2') {
-			setPlayerDetailTab('games');
+			setPlayerDetailTab('about');
 			return;
 		}
 		if (input === '3') {
-			setPlayerDetailTab('bio');
+			setPlayerDetailTab('games');
 			return;
 		}
 
@@ -189,13 +208,13 @@ const PlayersScreen: React.FC = () => {
 		if (focusedPane === 'detail') {
 			// Tab navigation with arrow keys
 			if (input === 'l' || key.rightArrow) {
-				// Cycle through tabs: season → games → bio
+				// Cycle through tabs: season → about → games
 				if (playerDetailTab === 'season') {
+					setPlayerDetailTab('about');
+				} else if (playerDetailTab === 'about') {
 					setPlayerDetailTab('games');
-				} else if (playerDetailTab === 'games') {
-					setPlayerDetailTab('bio');
 				}
-				// Stay on bio if already there
+				// Stay on games if already there
 				return;
 			}
 
@@ -203,10 +222,10 @@ const PlayersScreen: React.FC = () => {
 				// Go back through tabs, or back to list if on first tab
 				if (playerDetailTab === 'season') {
 					setFocusedPane('list');
-				} else if (playerDetailTab === 'games') {
+				} else if (playerDetailTab === 'about') {
 					setPlayerDetailTab('season');
-				} else if (playerDetailTab === 'bio') {
-					setPlayerDetailTab('games');
+				} else if (playerDetailTab === 'games') {
+					setPlayerDetailTab('about');
 				}
 				return;
 			}
@@ -228,11 +247,19 @@ const PlayersScreen: React.FC = () => {
 	const header = useMemo(() => {
 		if (status === 'loading') return 'Loading players';
 		if (status === 'error') return 'Players';
-		return `Top Scorers (${items.length})`;
-	}, [status, items.length]);
+		const filterName = playerFilter !== null && playerDetail.data
+			? `${playerDetail.data.firstName.charAt(0)}. ${playerDetail.data.lastName}`
+			: null;
+		const filterSuffix = filterName ? ` (Filtered: ${filterName})` : '';
+		return `Top Scorers (${items.length})${filterSuffix}`;
+	}, [status, items.length, playerFilter, playerDetail.data]);
 
 	const detailPane = () => {
-		const status = playerDetail.status === 'idle' ? 'loading' : playerDetail.status;
+		// Don't show error if no player selected
+		let status = playerDetail.status === 'idle' ? 'loading' : playerDetail.status;
+		if (status === 'error' && !selectedPlayerId) {
+			status = 'loading';
+		}
 		return <PlayerDetail player={playerDetail.data ?? null} status={status} height={height} />;
 	};
 
@@ -263,6 +290,7 @@ const PlayersScreen: React.FC = () => {
 						cursorIndex={playersCursorIndex}
 						height={listHeight}
 						loading={status === 'loading'}
+						hideSelection={playerFilter !== null}
 					/>
 				</Box>
 			</Box>
