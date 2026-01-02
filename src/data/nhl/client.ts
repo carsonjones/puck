@@ -22,6 +22,8 @@ import type {
 	TeamsResponse,
 } from '@/data/nhl/models.js';
 import { formatDate } from '@/utils/dateUtils.js';
+import { playerCache } from './playerCache.js';
+import { fuzzyMatchPlayers } from '@/utils/fuzzyMatchPlayers.js';
 
 type HttpResponse = {
 	ok: boolean;
@@ -192,6 +194,28 @@ export class NhlClient {
 
 	async searchPlayer(name: string): Promise<PlayerSearchResult[]> {
 		if (!name) throw new Error('name cannot be empty');
+
+		// Get cached players
+		const cachedPlayers = playerCache.getPlayers();
+
+		// If cache is empty, fall back to the old implementation
+		if (cachedPlayers.length === 0) {
+			console.warn('Player cache is empty, falling back to API search');
+			return this.searchPlayerLegacy(name);
+		}
+
+		// Use fuzzy matching on cached players
+		const matches = fuzzyMatchPlayers(name, cachedPlayers);
+
+		// Return just the players (without scores)
+		return matches.map((m) => m.player);
+	}
+
+	/**
+	 * Legacy player search implementation (fallback when cache is empty)
+	 * Fetches all team rosters and searches through them
+	 */
+	private async searchPlayerLegacy(name: string): Promise<PlayerSearchResult[]> {
 		const teams = await this.getTeams();
 		const lowered = name.toLowerCase();
 		const results: PlayerSearchResult[] = [];
