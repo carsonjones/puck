@@ -24,7 +24,7 @@ export default {
 		if (url.pathname === '/api/version' && request.method === 'GET') {
 			const versionData: VersionResponse = {
 				minVersion: '0.1.0', // Update this when you need to force upgrades
-				latestVersion: '0.1.0', // Update this with each release
+				latestVersion: '0.2.0', // Update this with each release
 				downloadUrl: 'https://www.npmjs.com/package/puck',
 				homebrewUrl: 'brew install carsonjones/puck/puck',
 			};

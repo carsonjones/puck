@@ -282,7 +282,9 @@ export const useGamesKeyBindings = (config: GamesKeyBindingsConfig) => {
 						selectedPlayer = awayPlayers[scrollIndex - 1] as { playerId?: number } | undefined;
 					} else {
 						// Home team player (index > awayPlayers.length + 2)
-						selectedPlayer = homePlayers[scrollIndex - awayPlayers.length - 3] as { playerId?: number } | undefined;
+						selectedPlayer = homePlayers[scrollIndex - awayPlayers.length - 3] as
+							| { playerId?: number }
+							| undefined;
 					}
 
 					if (selectedPlayer?.playerId) {

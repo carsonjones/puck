@@ -1,7 +1,7 @@
 import { Box, Text, useInput, useStdout } from 'ink';
 import type { StandingListItem } from '@/data/api/client.js';
-import { useStandings } from '@/data/hooks/useStandings.js';
 import { usePlayerCache } from '@/data/hooks/usePlayerCache.js';
+import { useStandings } from '@/data/hooks/useStandings.js';
 import type { PlayerSearchResult } from '@/data/nhl/models.js';
 import { useWindowedList } from '@/hooks/useWindowedList.js';
 import { useAppStore } from '@/state/useAppStore.js';
@@ -41,8 +41,7 @@ const TeamSearchScreen: React.FC = () => {
 	const allTeams: StandingListItem[] = standingsData?.league ?? [];
 
 	// Get all players from cache (only if query is non-empty to avoid showing all 700+ players)
-	const allPlayers: PlayerSearchResult[] =
-		query.trim() ? (playerCacheState.players ?? []) : [];
+	const allPlayers: PlayerSearchResult[] = query.trim() ? (playerCacheState.players ?? []) : [];
 
 	// Merge and filter teams + players using fuzzy match
 	const teamMatches = fuzzyMatchTeams(query, allTeams).map((m) => ({
@@ -58,18 +57,16 @@ const TeamSearchScreen: React.FC = () => {
 	}));
 
 	// Merge and sort by score (or alphabetically if no query)
-	const filteredResults: UnifiedSearchResult[] = [...teamMatches, ...playerMatches].sort(
-		(a, b) => {
-			// If no query, sort teams alphabetically
-			if (!query.trim()) {
-				if (a.type === 'team' && b.type === 'team') {
-					return a.team.teamAbbrev.localeCompare(b.team.teamAbbrev);
-				}
+	const filteredResults: UnifiedSearchResult[] = [...teamMatches, ...playerMatches].sort((a, b) => {
+		// If no query, sort teams alphabetically
+		if (!query.trim()) {
+			if (a.type === 'team' && b.type === 'team') {
+				return a.team.teamAbbrev.localeCompare(b.team.teamAbbrev);
 			}
-			// Otherwise sort by fuzzy match score
-			return b.score - a.score;
-		},
-	);
+		}
+		// Otherwise sort by fuzzy match score
+		return b.score - a.score;
+	});
 
 	// Scrolling window for results
 	const { visible: visibleResults, start } = useWindowedList(

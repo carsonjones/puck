@@ -21,7 +21,7 @@ const StandingsList: React.FC<StandingsListProps> = ({
 }) => {
 	const { stdout } = useStdout();
 	const terminalWidth = stdout?.columns || 80;
-	const containerWidth = Math.floor(terminalWidth / 2) - 10;
+	const _containerWidth = Math.floor(terminalWidth / 2) - 10;
 	const { visible, start } = useWindowedList(items, cursorIndex, height, 6);
 
 	if (loading) {
@@ -72,7 +72,11 @@ const StandingsList: React.FC<StandingsListProps> = ({
 
 				return (
 					<Box key={`${absoluteIndex}-${item.teamAbbrev}`} minHeight={1}>
-						<Text inverse={isSelected}>{teamText}{recordText}{pointsText}</Text>
+						<Text inverse={isSelected}>
+							{teamText}
+							{recordText}
+							{pointsText}
+						</Text>
 					</Box>
 				);
 			})}

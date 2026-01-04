@@ -22,8 +22,8 @@ import type {
 	TeamsResponse,
 } from '@/data/nhl/models.js';
 import { formatDate } from '@/utils/dateUtils.js';
-import { playerCache } from './playerCache.js';
 import { fuzzyMatchPlayers } from '@/utils/fuzzyMatchPlayers.js';
+import { playerCache } from './playerCache.js';
 
 type HttpResponse = {
 	ok: boolean;

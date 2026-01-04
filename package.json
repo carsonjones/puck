@@ -1,6 +1,6 @@
 {
 	"name": "@jonze/puck",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "NHL Terminal UI for real-time stats and game tracking",
 	"license": "MIT",
 	"author": "Carson Jones",
@@ -28,6 +28,7 @@
 		"postbuild": "chmod +x dist/index.js",
 		"prepublishOnly": "bun run build",
 		"start": "bun src/index.tsx",
+		"bump-version": "bun scripts/bump-version.ts",
 		"format": "biome format --write .",
 		"format:check": "biome format .",
 		"lint": "biome lint --write .",

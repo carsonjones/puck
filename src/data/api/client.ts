@@ -401,7 +401,13 @@ const mapGameDetail = (
 	};
 };
 
-export const listGames = async ({ cursor, limit }: { cursor: string | null; limit?: number }): Promise<GamesPage> => {
+export const listGames = async ({
+	cursor,
+	limit: _limit,
+}: {
+	cursor: string | null;
+	limit?: number;
+}): Promise<GamesPage> => {
 	let target: Date;
 	if (cursor) {
 		// Parse YYYY-MM-DD in local timezone (not UTC)

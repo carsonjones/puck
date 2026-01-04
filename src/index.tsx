@@ -1,15 +1,15 @@
 #!/usr/bin/env bun
 import { render } from 'ink';
 import App from '@/app.js';
-import { checkVersion } from '@/utils/versionCheck.js';
 import { startPlayerCacheWorker } from '@/data/nhl/playerCacheWorker.js';
+import { checkVersion } from '@/utils/versionCheck.js';
 
 // Version check (unless --skip-version-check flag is present)
 const skipVersionCheck = process.argv.includes('--skip-version-check');
 
 if (!skipVersionCheck) {
 	const VERSION_API_URL = 'https://puck.neat.workers.dev/api/version';
-	const CURRENT_VERSION = '0.1.0'; // Update this when bumping version
+	const CURRENT_VERSION = '0.2.0'; // Update this when bumping version
 
 	const result = await checkVersion(CURRENT_VERSION, VERSION_API_URL);
 
