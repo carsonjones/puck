@@ -51,7 +51,7 @@ const StandingsList: React.FC<StandingsListProps> = ({
 	return (
 		<Box flexDirection="column">
 			<Box minHeight={1}>
-				<Box width={25}>
+				<Box width={35}>
 					<Text bold>Team</Text>
 				</Box>
 				<Box width={12}>
@@ -66,17 +66,13 @@ const StandingsList: React.FC<StandingsListProps> = ({
 				const isSelected = absoluteIndex === cursorIndex;
 				const record = getRecord(item);
 				const points = getPoints(item);
-
-				const teamText = `${item.rank}. ${item.teamName}`;
-				const recordText = record.padStart(10);
-				const pointsText = points.toString().padStart(4);
-				const combinedLength = teamText.length + recordText.length + pointsText.length;
-				const padding = Math.max(1, containerWidth - combinedLength);
-				const fullText = `${teamText}${' '.repeat(padding)}${recordText} ${pointsText}`;
+				const teamText = `${item.rank}. ${item.teamName}`.padEnd(35);
+				const recordText = record.padEnd(12);
+				const pointsText = points.toString().padEnd(6);
 
 				return (
 					<Box key={`${absoluteIndex}-${item.teamAbbrev}`} minHeight={1}>
-						<Text inverse={isSelected}>{fullText}</Text>
+						<Text inverse={isSelected}>{teamText}{recordText}{pointsText}</Text>
 					</Box>
 				);
 			})}
