@@ -1,9 +1,16 @@
 import { Box, Text, useInput, useStdout } from 'ink';
 import type { StandingListItem } from '@/data/api/client.js';
 import { useStandings } from '@/data/hooks/useStandings.js';
+import { usePlayerCache } from '@/data/hooks/usePlayerCache.js';
+import type { PlayerSearchResult } from '@/data/nhl/models.js';
 import { useWindowedList } from '@/hooks/useWindowedList.js';
 import { useAppStore } from '@/state/useAppStore.js';
 import { fuzzyMatchTeams } from '@/utils/fuzzyMatch.js';
+import { fuzzyMatchPlayers } from '@/utils/fuzzyMatchPlayers.js';
+
+type UnifiedSearchResult =
+	| { type: 'team'; team: StandingListItem; score: number }
+	| { type: 'player'; player: PlayerSearchResult; score: number };
 
 const TeamSearchScreen: React.FC = () => {
 	const { stdout } = useStdout();
@@ -18,6 +25,8 @@ const TeamSearchScreen: React.FC = () => {
 		setTeamSearchQuery,
 		moveTeamSearchCursor,
 		setGameTeamFilter,
+		setPlayerFilter,
+		selectPlayer,
 		setViewMode,
 		setStandingsTab,
 		moveStandingsCursor,
@@ -26,16 +35,49 @@ const TeamSearchScreen: React.FC = () => {
 	} = useAppStore();
 
 	const { data: standingsData, status } = useStandings();
+	const playerCacheState = usePlayerCache();
 
 	// Get all teams from standings
 	const allTeams: StandingListItem[] = standingsData?.league ?? [];
 
-	// Filter teams using fuzzy match
-	const filteredMatches = fuzzyMatchTeams(query, allTeams);
-	const filteredTeams = filteredMatches.map((m) => m.team);
+	// Get all players from cache (only if query is non-empty to avoid showing all 700+ players)
+	const allPlayers: PlayerSearchResult[] =
+		query.trim() ? (playerCacheState.players ?? []) : [];
+
+	// Merge and filter teams + players using fuzzy match
+	const teamMatches = fuzzyMatchTeams(query, allTeams).map((m) => ({
+		type: 'team' as const,
+		team: m.team,
+		score: m.score,
+	}));
+
+	const playerMatches = fuzzyMatchPlayers(query, allPlayers).map((m) => ({
+		type: 'player' as const,
+		player: m.player,
+		score: m.score,
+	}));
+
+	// Merge and sort by score (or alphabetically if no query)
+	const filteredResults: UnifiedSearchResult[] = [...teamMatches, ...playerMatches].sort(
+		(a, b) => {
+			// If no query, sort teams alphabetically
+			if (!query.trim()) {
+				if (a.type === 'team' && b.type === 'team') {
+					return a.team.teamAbbrev.localeCompare(b.team.teamAbbrev);
+				}
+			}
+			// Otherwise sort by fuzzy match score
+			return b.score - a.score;
+		},
+	);
 
 	// Scrolling window for results
-	const { visible: visibleTeams, start } = useWindowedList(filteredTeams, cursorIndex, height, 12);
+	const { visible: visibleResults, start } = useWindowedList(
+		filteredResults,
+		cursorIndex,
+		height,
+		12,
+	);
 
 	const handleTeamSelection = (team: StandingListItem, action: 'context' | 'roster' | 'games') => {
 		if (action === 'roster') {
@@ -84,38 +126,39 @@ const TeamSearchScreen: React.FC = () => {
 		moveStandingsCursor(delta, allTeams.length - 1);
 	};
 
+	const handleUnifiedSelection = (result: UnifiedSearchResult, action?: 'roster' | 'games') => {
+		if (result.type === 'team') {
+			// Handle team selection with existing logic
+			const teamAction = action ?? 'context';
+			handleTeamSelection(result.team, teamAction);
+		} else {
+			// Handle player selection - navigate to players view with filter
+			selectPlayer(result.player.playerId);
+			setPlayerFilter(result.player.playerId);
+			setViewMode('players');
+			setFocusedPane('detail');
+			closeTeamSearch();
+		}
+	};
+
 	// Handle keyboard input
 	useInput((input, key) => {
-		if (key.escape) {
-			closeTeamSearch();
+		// Shortcuts with capital letters (Shift+R, Shift+G) - check FIRST
+		if (input === 'R' && filteredResults.length > 0) {
+			const selected = filteredResults[cursorIndex];
+			if (selected) handleUnifiedSelection(selected, 'roster');
 			return;
 		}
 
-		if (key.return && filteredTeams.length > 0) {
-			const selected = filteredTeams[cursorIndex];
-			if (selected) handleTeamSelection(selected, 'context');
+		if (input === 'G' && filteredResults.length > 0) {
+			const selected = filteredResults[cursorIndex];
+			if (selected) handleUnifiedSelection(selected, 'games');
 			return;
 		}
 
-		if (input === 'r' && filteredTeams.length > 0) {
-			const selected = filteredTeams[cursorIndex];
-			if (selected) handleTeamSelection(selected, 'roster');
-			return;
-		}
-
-		if (input === 'g' && filteredTeams.length > 0) {
-			const selected = filteredTeams[cursorIndex];
-			if (selected) handleTeamSelection(selected, 'games');
-			return;
-		}
-
-		if ((input === 'j' || key.downArrow) && filteredTeams.length > 0) {
-			moveTeamSearchCursor(1, filteredTeams.length - 1);
-			return;
-		}
-
-		if ((input === 'k' || key.upArrow) && filteredTeams.length > 0) {
-			moveTeamSearchCursor(-1, filteredTeams.length - 1);
+		// Alphanumeric and space input
+		if (input && input.length === 1 && /[a-zA-Z0-9 ]/.test(input)) {
+			setTeamSearchQuery(query + input);
 			return;
 		}
 
@@ -126,9 +169,24 @@ const TeamSearchScreen: React.FC = () => {
 			return;
 		}
 
-		// Alphanumeric and space input
-		if (input && input.length === 1 && /[a-zA-Z0-9 ]/.test(input)) {
-			setTeamSearchQuery(query + input);
+		if (key.escape) {
+			closeTeamSearch();
+			return;
+		}
+
+		if (key.return && filteredResults.length > 0) {
+			const selected = filteredResults[cursorIndex];
+			if (selected) handleUnifiedSelection(selected);
+			return;
+		}
+
+		if (key.downArrow && filteredResults.length > 0) {
+			moveTeamSearchCursor(1, filteredResults.length - 1);
+			return;
+		}
+
+		if (key.upArrow && filteredResults.length > 0) {
+			moveTeamSearchCursor(-1, filteredResults.length - 1);
 			return;
 		}
 	});
@@ -147,7 +205,7 @@ const TeamSearchScreen: React.FC = () => {
 		<Box flexDirection="column" width={width} height={height} padding={1}>
 			{/* Header */}
 			<Box flexDirection="column">
-				<Text bold>Search Teams</Text>
+				<Text bold>Search Teams & Players</Text>
 				<Text dimColor>{'─'.repeat(lineWidth)}</Text>
 			</Box>
 
@@ -161,36 +219,47 @@ const TeamSearchScreen: React.FC = () => {
 			{/* Results list */}
 			<Box flexDirection="column" flexGrow={1}>
 				{status === 'loading' ? (
-					<Text dimColor>Loading teams...</Text>
-				) : filteredTeams.length === 0 ? (
-					<Text dimColor>No teams found</Text>
+					<Text dimColor>Loading...</Text>
+				) : playerCacheState.isLoading && query.trim() ? (
+					<Text dimColor>Loading...</Text>
+				) : filteredResults.length === 0 ? (
+					<Text dimColor>No teams or players found</Text>
 				) : (
-					<>
-						<Text dimColor>
-							{filteredTeams.length} team{filteredTeams.length !== 1 ? 's' : ''} found
-						</Text>
-						<Box marginTop={1} flexDirection="column">
-							{visibleTeams.map((team, index) => {
-								const absoluteIndex = start + index;
-								const isSelected = absoluteIndex === cursorIndex;
-								const text = `${team.teamAbbrev} - ${team.teamName}`;
-								const padding = Math.max(0, lineWidth - text.length);
-								const fullText = `${text}${' '.repeat(padding)}`;
-								return (
-									<Box key={`${absoluteIndex}-${team.teamAbbrev}`} minHeight={1}>
-										<Text inverse={isSelected}>{fullText}</Text>
-									</Box>
-								);
-							})}
-						</Box>
-					</>
+					<Box flexDirection="column">
+						{visibleResults.map((result, index) => {
+							const absoluteIndex = start + index;
+							const isSelected = absoluteIndex === cursorIndex;
+
+							// Format differently for teams vs players
+							const text =
+								result.type === 'team'
+									? `${result.team.teamAbbrev} - ${result.team.teamName}`
+									: `${result.player.firstName.default} ${result.player.lastName.default} (#${result.player.jerseyNumber}, ${result.player.teamAbbrev})`;
+
+							const padding = Math.max(0, lineWidth - text.length);
+							const fullText = `${text}${' '.repeat(padding)}`;
+
+							const key =
+								result.type === 'team'
+									? `${absoluteIndex}-team-${result.team.teamAbbrev}`
+									: `${absoluteIndex}-player-${result.player.playerId}`;
+
+							return (
+								<Box key={key} minHeight={1}>
+									<Text inverse={isSelected} dimColor={!isSelected}>
+										{fullText}
+									</Text>
+								</Box>
+							);
+						})}
+					</Box>
 				)}
 			</Box>
 
 			{/* Footer hints */}
 			<Box marginTop={1} borderStyle="single" borderTop>
 				<Text dimColor>
-					[↑↓/jk] nav | [enter] {contextHint} | [g] games | [r] roster | [esc] close
+					[↑↓] nav | [enter] {contextHint} | [shift+G] games | [shift+R] roster | [esc] close
 				</Text>
 			</Box>
 		</Box>

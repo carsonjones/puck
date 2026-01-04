@@ -39,9 +39,11 @@ const StandingsDetailTabs: React.FC<StandingsDetailTabsProps> = ({ team, height 
 	const viewLabel =
 		standingsViewMode === 'home' ? ' (Home)' : standingsViewMode === 'road' ? ' (Road)' : '';
 
+	const contentHeight = height - 6; // header (3) + separators (2) + tabs (1)
+
 	return (
 		<Box flexDirection="column">
-			<Box flexDirection="column" marginBottom={1}>
+			<Box flexDirection="column">
 				<Box minHeight={1}>
 					<Text bold>{`${team.teamName}${viewLabel}`}</Text>
 				</Box>
@@ -61,7 +63,7 @@ const StandingsDetailTabs: React.FC<StandingsDetailTabsProps> = ({ team, height 
 						<TeamPlayersTab
 							teamAbbrev={team.teamAbbrev}
 							scrollIndex={standingsPlayersScrollIndex}
-							height={height}
+							height={contentHeight}
 						/>
 					) : (
 						<TeamInfoTab team={team} />

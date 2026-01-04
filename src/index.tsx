@@ -2,6 +2,7 @@
 import { render } from 'ink';
 import App from '@/app.js';
 import { checkVersion } from '@/utils/versionCheck.js';
+import { startPlayerCacheWorker } from '@/data/nhl/playerCacheWorker.js';
 
 // Version check (unless --skip-version-check flag is present)
 const skipVersionCheck = process.argv.includes('--skip-version-check');
@@ -31,9 +32,15 @@ if (process.stdin.setRawMode) {
 }
 process.stdin.resume();
 
+// Start player cache worker (refreshes every 15 minutes)
+const stopPlayerCacheWorker = startPlayerCacheWorker();
+
 const app = render(<App />, { exitOnCtrlC: false });
 
 app.waitUntilExit().finally(() => {
+	// Stop the player cache worker
+	stopPlayerCacheWorker();
+
 	if (process.stdin.setRawMode) {
 		process.stdin.setRawMode(false);
 	}

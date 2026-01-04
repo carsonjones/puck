@@ -173,7 +173,7 @@ export const useStandingsKeyBindings = (config: StandingsKeyBindingsConfig) => {
 
 			if (selectedTeam) {
 				if (input === 'j' || key.downArrow) {
-					moveStandingsPlayersScroll(1, 999);
+					moveStandingsPlayersScroll(1, Math.max(0, rosterCount - 1));
 					return;
 				}
 				if (input === 'k' || key.upArrow) {
