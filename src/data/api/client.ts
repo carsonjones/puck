@@ -23,6 +23,7 @@ export type GameListItem = {
 	awayScore: number;
 	period: number;
 	periodType: string;
+	clock: string;
 };
 
 export type GameDetail = GameListItem & {
@@ -120,6 +121,7 @@ const mapGameListItem = (game: NhlGame): GameListItem => ({
 	awayScore: game.awayTeam.score,
 	period: game.period,
 	periodType: game.periodDescriptor?.periodType ?? 'REG',
+	clock: game.clock?.timeRemaining ?? '',
 });
 
 const sumHits = (players: PlayerStats[]) =>
@@ -328,6 +330,7 @@ const mapGameDetail = (
 	game: NhlGameDetails,
 	plays: PlayByPlayResponse | null,
 	boxscore: BoxscoreResponse | null,
+	gameStory: import('@/data/nhl/models.js').GameStoryResponse | null,
 ): GameDetail => {
 	const homePlayers = boxscore?.playerByGameStats?.homeTeam
 		? [
@@ -343,7 +346,9 @@ const mapGameDetail = (
 		: [];
 
 	const rosterMap = rosterMapFromPlayByPlay(plays);
-	const period = resolvePeriod(plays);
+	const playsPeriod = resolvePeriod(plays);
+	const actualPeriod = gameStory?.periodDescriptor?.number ?? 0;
+	const period = Math.max(playsPeriod, actualPeriod);
 	const clock = game.clock?.timeRemaining ?? '';
 
 	let status = mapGameStatus(game.gameState);
@@ -429,13 +434,14 @@ export const getGame = async ({ id }: { id: string }): Promise<GameDetail> => {
 		throw new Error(`Invalid game ID: ${id}`);
 	}
 
-	const [details, playByPlay, boxscore] = await Promise.all([
+	const [details, playByPlay, boxscore, gameStory] = await Promise.all([
 		nhlClient.getGameDetails(numericId),
 		nhlClient.getGamePlayByPlay(numericId).catch(() => null),
 		nhlClient.getGameBoxscore(numericId).catch(() => null),
+		nhlClient.getGameStory(numericId).catch(() => null),
 	]);
 
-	return mapGameDetail(details, playByPlay, boxscore);
+	return mapGameDetail(details, playByPlay, boxscore, gameStory);
 };
 
 export const getStandings = async (): Promise<StandingsData> => {

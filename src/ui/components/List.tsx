@@ -32,7 +32,9 @@ const List: React.FC<ListProps> = ({ items, cursorIndex, height, loading }) => {
 			return `${item.awayScore}-${item.homeScore}${overtimeLabel}`;
 		}
 		if (item.status === 'in_progress') {
-			return `• ${item.startTime}`;
+			const periodLabel = item.periodType === 'OT' ? 'OT' : item.periodType === 'SO' ? 'SO' : `P${item.period}`;
+			const timeInfo = item.clock ? ` ${item.clock}` : '';
+			return `${item.awayScore}-${item.homeScore} ${periodLabel}${timeInfo}`;
 		}
 		return item.startTime;
 	};
