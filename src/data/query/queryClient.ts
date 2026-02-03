@@ -5,6 +5,7 @@ export type QueryState<T> = {
 	data?: T;
 	error?: unknown;
 	updatedAt?: number;
+	isStale?: boolean;
 };
 
 type Listener = () => void;
@@ -83,45 +84,56 @@ class QueryClient {
 		const { staleTimeMs = 0, enabled = true } = options;
 		if (!enabled) throw new Error('Query disabled');
 
-		const existing = this.getState<T>(key);
+		const existing = this.cache.get(key) as QueryState<T> | undefined;
 		const now = Date.now();
 		const isFresh =
-			existing.status === 'success' &&
+			existing?.status === 'success' &&
+			!existing.isStale &&
 			typeof existing.updatedAt === 'number' &&
 			now - existing.updatedAt < staleTimeMs;
 
-		if (isFresh && existing.data !== undefined) {
+		if (isFresh && existing?.data !== undefined) {
 			return existing.data;
 		}
 
-		// Simple behavior: refetch on stale and update the cache before returning.
-		this.cache.set(key, {
-			status: 'loading',
-			data: existing.data,
-			updatedAt: existing.updatedAt,
-			error: undefined,
-		});
-		this.notify(key);
+		// Keep existing data during loading for seamless updates
+		const existingData = existing?.data;
+		const existingUpdatedAt = existing?.updatedAt;
+
+		// Only notify loading if no existing data (first load)
+		if (!existingData) {
+			this.cache.set(key, {
+				status: 'loading',
+				data: undefined,
+				updatedAt: existingUpdatedAt,
+				error: undefined,
+			});
+			this.notify(key);
+		}
 
 		try {
 			const data = await fetcher();
+			const wasStale = existing?.isStale;
+			const dataChanged = !deepEqual(existingData, data);
 
-			// Only notify if data actually changed
-			if (!deepEqual(existing.data, data)) {
-				this.cache.set(key, { status: 'success', data, updatedAt: Date.now() });
+			this.cache.set(key, {
+				status: 'success',
+				data: dataChanged ? data : existingData,
+				updatedAt: Date.now(),
+			});
+
+			// Notify if data changed OR was stale (so component clears isStale)
+			if (dataChanged || wasStale) {
 				this.notify(key);
-			} else {
-				// Data unchanged, just update timestamp to mark as fresh
-				this.cache.set(key, { status: 'success', data: existing.data, updatedAt: Date.now() });
 			}
 
 			return data;
 		} catch (error) {
 			this.cache.set(key, {
 				status: 'error',
-				data: existing.data,
+				data: existingData,
 				error,
-				updatedAt: existing.updatedAt,
+				updatedAt: existingUpdatedAt,
 			});
 			this.notify(key);
 			throw error;
@@ -135,8 +147,12 @@ class QueryClient {
 	invalidate(prefixOrKey: string): void {
 		for (const key of this.cache.keys()) {
 			if (key === prefixOrKey || key.startsWith(prefixOrKey)) {
-				this.cache.delete(key);
-				this.notify(key);
+				const entry = this.cache.get(key);
+				if (entry) {
+					// Mark as stale instead of deleting - keeps data for comparison
+					this.cache.set(key, { ...entry, isStale: true });
+					this.notify(key);
+				}
 			}
 		}
 	}

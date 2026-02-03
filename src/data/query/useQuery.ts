@@ -36,9 +36,14 @@ export const useQuery = <T>(
 		return unsubscribe;
 	}, [key]);
 
-	// Refetch when state becomes idle (after cache invalidation)
+	// Refetch when state becomes idle or stale (after cache invalidation)
 	useEffect(() => {
-		if (state.status === 'idle' && optionsRef.current.enabled !== false && !isFetchingRef.current) {
+		const shouldRefetch =
+			(state.status === 'idle' || state.isStale) &&
+			optionsRef.current.enabled !== false &&
+			!isFetchingRef.current;
+
+		if (shouldRefetch) {
 			isFetchingRef.current = true;
 			queryClient
 				.fetchQuery<T>(key, fetcherRef.current, optionsRef.current)
@@ -47,7 +52,7 @@ export const useQuery = <T>(
 					isFetchingRef.current = false;
 				});
 		}
-	}, [state.status, key]);
+	}, [state.status, state.isStale, key]);
 
 	return state;
 };

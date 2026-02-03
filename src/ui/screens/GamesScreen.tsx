@@ -97,11 +97,12 @@ const GamesScreen: React.FC = () => {
 	// Determine refresh interval using helper
 	const refreshIntervalMs = getRefreshInterval(selectedGameId, displayGame);
 
-	// Auto-refresh selected game
+	// Auto-refresh selected game and list
 	const { resetTimer } = useAutoRefresh({
 		enabled: Boolean(selectedGameId),
 		intervalMs: refreshIntervalMs,
 		onRefresh: () => {
+			queryClient.invalidate(queryKeys.gamesList(pageCursor, limit));
 			if (selectedGameId) {
 				queryClient.invalidate(queryKeys.gameDetail(selectedGameId));
 			}
