@@ -12,7 +12,7 @@ import { startPlayerCacheWorker } from '@/data/nhl/playerCacheWorker.js';
 import { checkVersion } from '@/utils/versionCheck.js';
 
 const VERSION_API_URL = 'https://puck.neat.workers.dev/api/version';
-const CURRENT_VERSION = '0.2.0'; // Update this when bumping version
+const CURRENT_VERSION = '0.3.0'; // Update this when bumping version
 
 const rawArgs = process.argv.slice(2);
 const skipVersionCheck = rawArgs.includes('--skip-version-check');
