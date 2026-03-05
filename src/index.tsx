@@ -8,6 +8,11 @@ import {
 	printLookupCommandHelp,
 	runLookupCommand,
 } from '@/cli/lookupCommand.js';
+import {
+	parseStandingsCommandArgs,
+	printStandingsCommandHelp,
+	runStandingsCommand,
+} from '@/cli/standingsCommand.js';
 import { startPlayerCacheWorker } from '@/data/nhl/playerCacheWorker.js';
 import { checkVersion } from '@/utils/versionCheck.js';
 
@@ -76,6 +81,16 @@ if (!command || command === 'tui') {
 		console.error(`Error: ${message}`);
 		process.exit(1);
 	}
+} else if (command === 'standings') {
+	try {
+		const options = parseStandingsCommandArgs(args.slice(1));
+		await runStandingsCommand(options);
+		process.exit(0);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		console.error(`Error: ${message}`);
+		process.exit(1);
+	}
 } else if (command === 'commands') {
 	const format = args.includes('--format=json') || args.includes('--json') ? 'json' : 'table';
 	if (format === 'json') {
@@ -102,6 +117,11 @@ if (!command || command === 'tui') {
 							outputs: ['json', 'ndjson', 'table', 'ids-only'],
 							subcommands: ['player', 'game'],
 						},
+						{
+							name: 'standings',
+							description: 'Get standings snapshot with day-over-day movement',
+							outputs: ['json', 'ndjson', 'table'],
+						},
 						{ name: 'help', description: 'Show global or command-specific help' },
 						{ name: 'version', description: 'Show current version' },
 					],
@@ -116,6 +136,7 @@ if (!command || command === 'tui') {
   date     Get games for a date (json|ndjson|table)
   game     Get parsed game details/plays (json|ndjson|table)
   lookup   Find player/game IDs (json|ndjson|table|ids-only)
+  standings Get standings snapshot + movement (json|ndjson|table)
   help     Show help (supports: puck help <command>)
   version  Show version`);
 	}
@@ -159,6 +180,7 @@ Commands:
   date              Get games for a date in machine-readable output
   game              Get parsed game details (plays, stars, scorers, goalies)
   lookup            Find player/game IDs for piping into other commands
+  standings         Get standings snapshot with day-over-day movement
   commands          List available commands (use --format=json for agents)
 
 Global Options:
@@ -179,11 +201,16 @@ Lookup Command:
   puck lookup player --query "connor mcdavid" --ids-only
   puck lookup game --date today --team DAL --ids-only
 
+Standings Command:
+  puck standings --date today --format json
+  puck standings --date yesterday --team DAL --format table
+
 Discovery:
   puck commands --format=json
   puck help date
   puck help game
-  puck help lookup`);
+  puck help lookup
+  puck help standings`);
 }
 
 function printHelp(topic?: string) {
@@ -204,8 +231,12 @@ function printHelp(topic?: string) {
 		printLookupCommandHelp();
 		return;
 	}
+	if (topic === 'standings') {
+		printStandingsCommandHelp();
+		return;
+	}
 
 	console.error(`Unknown help topic: ${topic}`);
-	console.error('Supported topics: date, game, lookup');
+	console.error('Supported topics: date, game, lookup, standings');
 	process.exit(1);
 }

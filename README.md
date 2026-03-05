@@ -35,6 +35,10 @@ puck game --id 2025020956 --format json
 # Stream parsed plays as NDJSON
 puck game --id 2025020956 --plays-only --format ndjson
 
+# Standings snapshot with day-over-day movement deltas
+puck standings --date yesterday --format json
+puck standings --date yesterday --team DAL --format table
+
 # Lookup IDs for piping
 puck lookup player --query "connor mcdavid" --ids-only
 puck lookup game --date today --team DAL --ids-only
