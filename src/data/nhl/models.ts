@@ -389,6 +389,7 @@ export type PeriodPenalties = {
 
 export type GoalEvent = {
 	situationCode: string;
+	eventId?: number;
 	strength: string;
 	playerId: number;
 	firstName: LanguageNames;
@@ -398,6 +399,12 @@ export type GoalEvent = {
 	timeInPeriod: string;
 	shotType: string;
 	goalModifier: string;
+	highlightClipSharingUrl?: string;
+	highlightClipSharingUrlFr?: string;
+	highlightClip?: number;
+	highlightClipFr?: number;
+	discreteClip?: number;
+	discreteClipFr?: number;
 	awayScore: number;
 	homeScore: number;
 	leadingTeamAbbrev?: LanguageNames;
