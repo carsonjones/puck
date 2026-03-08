@@ -39,6 +39,10 @@ puck game --id 2025020956 --plays-only --format ndjson
 puck standings --date yesterday --format json
 puck standings --date yesterday --team DAL --format table
 
+# Goal highlight clips + direct media URL resolution (Brightcove)
+puck highlights --date yesterday --team DAL --limit 2 --format json
+puck highlights --game-id 2025020956 --format table
+
 # Lookup IDs for piping
 puck lookup player --query "connor mcdavid" --ids-only
 puck lookup game --date today --team DAL --ids-only
