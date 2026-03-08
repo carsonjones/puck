@@ -1,6 +1,6 @@
 {
 	"name": "@jonze/puck",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "NHL Terminal UI for real-time stats and game tracking",
 	"license": "MIT",
 	"author": "Carson Jones",
