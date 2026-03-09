@@ -16,6 +16,7 @@ DEFAULT_SETTINGS = {
 }
 
 # Supported modes:
+# - off
 # - whole_league_video_all
 # - whole_league_video_goals
 # - whole_league_text_only
@@ -88,6 +89,7 @@ def main() -> int:
     mode = settings.get('mode', DEFAULT_SETTINGS['mode'])
 
     valid = {
+        'off',
         'whole_league_video_all',
         'whole_league_video_goals',
         'whole_league_text_only',
@@ -97,6 +99,11 @@ def main() -> int:
     }
     if mode not in valid:
         mode = DEFAULT_SETTINGS['mode']
+
+    if mode == 'off':
+        log_event('watcher_off')
+        print(json.dumps({'status': 'off', 'mode': mode}))
+        return 0
 
     today = run_puck(['date', '--date', 'today', '--format', 'json'])
     games = today.get('games', [])
