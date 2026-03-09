@@ -11,18 +11,17 @@ SETTINGS_PATH = Path('/home/exedev/.openclaw/workspace/.openclaw/tmp/highlight-w
 LOG_PATH = Path('/home/exedev/.openclaw/workspace/.openclaw/tmp/highlight-watcher.log')
 LIVE_STATES = {'LIVE', 'CRIT'}
 
-DEFAULT_SETTINGS = {
-    'mode': 'stars_video_goals',
+DEFAULT_SETTINGS = {'mode': 'stars_video_goals'}
+TEAM_MODES = {'off', 'video_all', 'video_goals', 'text_only'}
+LEGACY_MODES = {
+    'off',
+    'whole_league_video_all',
+    'whole_league_video_goals',
+    'whole_league_text_only',
+    'stars_video_all',
+    'stars_video_goals',
+    'stars_text_only',
 }
-
-# Supported modes:
-# - off
-# - whole_league_video_all
-# - whole_league_video_goals
-# - whole_league_text_only
-# - stars_video_all
-# - stars_video_goals
-# - stars_text_only
 
 
 def run_puck(args: list[str]) -> Any:
@@ -34,11 +33,7 @@ def run_puck(args: list[str]) -> Any:
 
 
 def log_event(event: str, **kwargs: Any) -> None:
-    payload = {
-        'ts': datetime.now(timezone.utc).isoformat(),
-        'event': event,
-        **kwargs,
-    }
+    payload = {'ts': datetime.now(timezone.utc).isoformat(), 'event': event, **kwargs}
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with LOG_PATH.open('a', encoding='utf-8') as f:
         f.write(json.dumps(payload) + '\n')
@@ -51,11 +46,69 @@ def load_settings() -> dict[str, Any]:
         return dict(DEFAULT_SETTINGS)
     try:
         s = json.loads(SETTINGS_PATH.read_text())
-        if 'mode' not in s:
+        if 'mode' not in s and 'wholeLeagueMode' not in s:
             s['mode'] = DEFAULT_SETTINGS['mode']
         return s
     except Exception:
         return dict(DEFAULT_SETTINGS)
+
+
+def normalize_team_mode(v: Any) -> str:
+    if v in TEAM_MODES:
+        return str(v)
+    return 'off'
+
+
+def resolve_modes(settings: dict[str, Any]) -> tuple[str, dict[str, str]]:
+    """Return (wholeLeagueMode, teamModesOverrides).
+
+    New schema preferred:
+      {
+        "wholeLeagueMode": "off|video_all|video_goals|text_only",
+        "teamModes": {"DAL":"video_goals", ...}
+      }
+
+    Back-compat with legacy "mode" string.
+    """
+    team_modes: dict[str, str] = {}
+    whole = None
+
+    if isinstance(settings.get('wholeLeagueMode'), str):
+        whole = normalize_team_mode(settings.get('wholeLeagueMode'))
+
+    raw_team_modes = settings.get('teamModes')
+    if isinstance(raw_team_modes, dict):
+        for k, v in raw_team_modes.items():
+            if isinstance(k, str) and len(k) == 3:
+                team_modes[k.upper()] = normalize_team_mode(v)
+
+    legacy = settings.get('mode', DEFAULT_SETTINGS['mode'])
+    if legacy not in LEGACY_MODES:
+        legacy = DEFAULT_SETTINGS['mode']
+
+    if whole is None and not team_modes:
+        if legacy == 'off':
+            whole = 'off'
+        elif legacy == 'whole_league_video_all':
+            whole = 'video_all'
+        elif legacy == 'whole_league_video_goals':
+            whole = 'video_goals'
+        elif legacy == 'whole_league_text_only':
+            whole = 'text_only'
+        elif legacy == 'stars_video_all':
+            whole = 'off'
+            team_modes['DAL'] = 'video_all'
+        elif legacy == 'stars_video_goals':
+            whole = 'off'
+            team_modes['DAL'] = 'video_goals'
+        elif legacy == 'stars_text_only':
+            whole = 'off'
+            team_modes['DAL'] = 'text_only'
+
+    if whole is None:
+        whole = 'off'
+
+    return whole, team_modes
 
 
 def load_state() -> dict[str, Any]:
@@ -72,123 +125,108 @@ def save_state(state: dict[str, Any]) -> None:
     STATE_PATH.write_text(json.dumps(state, indent=2))
 
 
-def is_goal_only(mode: str) -> bool:
-    return mode.endswith('_goals')
+def mode_for_team(team: str, whole_mode: str, team_modes: dict[str, str]) -> str:
+    return team_modes.get(team.upper(), whole_mode)
 
 
-def is_text_only(mode: str) -> bool:
-    return mode.endswith('_text_only')
+def caption_for_event(game: dict[str, Any], h: dict[str, Any]) -> str:
+    away = game['away']['abbrev']
+    home = game['home']['abbrev']
+    team = (h.get('teamAbbrev') or '').upper()
+    if team not in {away, home}:
+        team = home
 
+    opp = away if team == home else home
+    team_score = (game.get('home', {}) if team == home else game.get('away', {})).get('score')
+    opp_score = (game.get('away', {}) if team == home else game.get('home', {})).get('score')
 
-def is_stars_scope(mode: str) -> bool:
-    return mode.startswith('stars_')
+    scorer = h.get('playerName', 'Unknown')
+    t = h.get('timeInPeriod', '??:??')
+    caption = f"{team} vs {opp}: Goal by {scorer}. {t}."
+
+    if team_score is not None and opp_score is not None:
+        if team_score > opp_score:
+            state_txt = 'lead'
+        elif team_score < opp_score:
+            state_txt = 'trail'
+        else:
+            state_txt = 'are tied'
+        if state_txt == 'are tied':
+            caption += f" {team} now tied {team_score}-{opp_score}."
+        else:
+            caption += f" {team} now {state_txt} {team_score}-{opp_score}."
+
+    return caption
 
 
 def main() -> int:
     settings = load_settings()
-    mode = settings.get('mode', DEFAULT_SETTINGS['mode'])
+    whole_mode, team_modes = resolve_modes(settings)
 
-    valid = {
-        'off',
-        'whole_league_video_all',
-        'whole_league_video_goals',
-        'whole_league_text_only',
-        'stars_video_all',
-        'stars_video_goals',
-        'stars_text_only',
-    }
-    if mode not in valid:
-        mode = DEFAULT_SETTINGS['mode']
-
-    if mode == 'off':
+    if whole_mode == 'off' and not team_modes:
         log_event('watcher_off')
-        print(json.dumps({'status': 'off', 'mode': mode}))
+        print(json.dumps({'status': 'off'}))
         return 0
 
     today = run_puck(['date', '--date', 'today', '--format', 'json'])
-    games = today.get('games', [])
+    games = [g for g in today.get('games', []) if (g or {}).get('state') in LIVE_STATES]
 
-    target_games = []
-    for g in games:
-        state = (g or {}).get('state')
-        if state not in LIVE_STATES:
-            continue
-        away = (((g or {}).get('away') or {}).get('abbrev'))
-        home = (((g or {}).get('home') or {}).get('abbrev'))
-
-        if is_stars_scope(mode) and away != 'DAL' and home != 'DAL':
-            continue
-        target_games.append(g)
-
-    if not target_games:
-        log_event('no_live_game', mode=mode)
-        print(json.dumps({'status': 'no_live_game', 'mode': mode}))
+    if not games:
+        log_event('no_live_game', wholeLeagueMode=whole_mode)
+        print(json.dumps({'status': 'no_live_game'}))
         return 0
 
     state = load_state()
     sent_by_scope = state.setdefault('sentByScope', {})
-    scope_key = mode
+    scope_key = f"whole:{whole_mode}|teams:{json.dumps(team_modes, sort_keys=True)}"
     sent_for_scope = set(sent_by_scope.get(scope_key, []))
 
-    # deterministic order
-    target_games = sorted(target_games, key=lambda g: g.get('startTimeUTC', ''))
+    games = sorted(games, key=lambda g: g.get('startTimeUTC', ''))
 
-    for game in target_games:
+    for game in games:
         game_id = game['id']
         away = game['away']['abbrev']
         home = game['home']['abbrev']
 
-        args = ['highlights', '--game-id', str(game_id), '--limit', '25', '--format', 'json']
-        if is_stars_scope(mode):
-            args.extend(['--team', 'DAL'])
+        away_mode = mode_for_team(away, whole_mode, team_modes)
+        home_mode = mode_for_team(home, whole_mode, team_modes)
+        if away_mode == 'off' and home_mode == 'off':
+            continue
 
-        highlights = run_puck(args)
+        highlights = run_puck(['highlights', '--game-id', str(game_id), '--limit', '30', '--format', 'json'])
         items = highlights.get('highlights', [])
-
-        if is_goal_only(mode):
-            # defensive filter if API ever returns non-goal clips
-            items = [h for h in items if h.get('playerName')]
-
         if not items:
             continue
 
         for h in items:
             clip_id = h.get('highlightClipId')
-            if not clip_id:
+            team = (h.get('teamAbbrev') or '').upper()
+            if not clip_id or team not in {away, home}:
                 continue
-            event_key = f"{game_id}:{clip_id}"
+
+            this_mode = mode_for_team(team, whole_mode, team_modes)
+            if this_mode == 'off':
+                continue
+            if this_mode in {'video_goals', 'text_only'} and not h.get('playerName'):
+                continue
+
+            event_key = f"{game_id}:{clip_id}:{team}:{this_mode}"
             if event_key in sent_for_scope:
                 continue
 
-            dal_score = game.get('home', {}).get('score') if home == 'DAL' else game.get('away', {}).get('score')
-            opp = away if home == 'DAL' else home
-            opp_score = game.get('away', {}).get('score') if home == 'DAL' else game.get('home', {}).get('score')
-
-            scorer = h.get('playerName', 'Unknown')
-            t = h.get('timeInPeriod', '??:??')
-            caption = f"DAL vs {opp}: Goal by {scorer}. {t}."
-            if dal_score is not None and opp_score is not None:
-                if dal_score > opp_score:
-                    state_txt = 'lead'
-                elif dal_score < opp_score:
-                    state_txt = 'trail'
-                else:
-                    state_txt = 'are tied'
-                if state_txt == 'are tied':
-                    caption += f" Stars now tied {dal_score}-{opp_score}."
-                else:
-                    caption += f" Stars now {state_txt} {dal_score}-{opp_score}."
+            caption = caption_for_event(game, h)
+            delivery = 'text' if this_mode == 'text_only' else 'video'
 
             sent_for_scope.add(event_key)
-            sent_by_scope[scope_key] = sorted(sent_for_scope)[-5000:]
+            sent_by_scope[scope_key] = sorted(sent_for_scope)[-10000:]
             save_state(state)
 
-            delivery = 'text' if is_text_only(mode) else 'video'
             log_event(
                 'new_event',
-                mode=mode,
                 delivery=delivery,
+                teamMode=this_mode,
                 gameId=game_id,
+                team=team,
                 highlightClipId=clip_id,
                 caption=caption,
             )
@@ -197,8 +235,8 @@ def main() -> int:
                 json.dumps(
                     {
                         'status': 'new_event',
-                        'mode': mode,
                         'delivery': delivery,
+                        'teamMode': this_mode,
                         'gameId': game_id,
                         'highlight': h,
                         'caption': caption,
@@ -207,8 +245,8 @@ def main() -> int:
             )
             return 0
 
-    log_event('no_new_event', mode=mode)
-    print(json.dumps({'status': 'no_new_event', 'mode': mode}))
+    log_event('no_new_event', wholeLeagueMode=whole_mode)
+    print(json.dumps({'status': 'no_new_event'}))
     return 0
 
 
