@@ -11,7 +11,7 @@ SETTINGS_PATH = Path('/home/exedev/.openclaw/workspace/.openclaw/tmp/highlight-w
 LOG_PATH = Path('/home/exedev/.openclaw/workspace/.openclaw/tmp/highlight-watcher.log')
 LIVE_STATES = {'LIVE', 'CRIT'}
 
-DEFAULT_SETTINGS = {'mode': 'stars_video_goals'}
+DEFAULT_SETTINGS = {'mode': 'stars_video_goals', 'replayDate': None}
 TEAM_MODES = {'off', 'video_all', 'video_goals', 'text_only'}
 LEGACY_MODES = {
     'off',
@@ -168,11 +168,20 @@ def main() -> int:
         print(json.dumps({'status': 'off'}))
         return 0
 
-    today = run_puck(['date', '--date', 'today', '--format', 'json'])
-    games = [g for g in today.get('games', []) if (g or {}).get('state') in LIVE_STATES]
+    replay_date = settings.get('replayDate')
+    date_args = ['date', '--date', 'today', '--format', 'json']
+    if isinstance(replay_date, str) and replay_date.strip():
+        date_args = ['date', '--date', replay_date.strip(), '--format', 'json']
+
+    date_data = run_puck(date_args)
+    if isinstance(replay_date, str) and replay_date.strip():
+        # historical simulation mode: include all games on that date
+        games = [g for g in date_data.get('games', [])]
+    else:
+        games = [g for g in date_data.get('games', []) if (g or {}).get('state') in LIVE_STATES]
 
     if not games:
-        log_event('no_live_game', wholeLeagueMode=whole_mode)
+        log_event('no_live_game', wholeLeagueMode=whole_mode, replayDate=replay_date)
         print(json.dumps({'status': 'no_live_game'}))
         return 0
 
@@ -238,6 +247,7 @@ def main() -> int:
                         'delivery': delivery,
                         'teamMode': this_mode,
                         'gameId': game_id,
+                        'replayDate': replay_date,
                         'highlight': h,
                         'caption': caption,
                     }
@@ -245,7 +255,7 @@ def main() -> int:
             )
             return 0
 
-    log_event('no_new_event', wholeLeagueMode=whole_mode)
+    log_event('no_new_event', wholeLeagueMode=whole_mode, replayDate=replay_date)
     print(json.dumps({'status': 'no_new_event'}))
     return 0
 
