@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import json
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 PUCK_DIR = Path('/home/exedev/.openclaw/workspace/puck')
 STATE_PATH = Path('/home/exedev/.openclaw/workspace/.openclaw/tmp/stars-highlight-state.json')
+LOG_PATH = Path('/home/exedev/.openclaw/workspace/.openclaw/tmp/stars-highlight.log')
 LIVE_STATES = {'LIVE', 'CRIT'}
 
 
@@ -15,6 +17,17 @@ def run_puck(args: list[str]) -> Any:
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or 'puck command failed')
     return json.loads(proc.stdout)
+
+
+def log_event(event: str, **kwargs: Any) -> None:
+    payload = {
+        'ts': datetime.now(timezone.utc).isoformat(),
+        'event': event,
+        **kwargs,
+    }
+    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with LOG_PATH.open('a', encoding='utf-8') as f:
+        f.write(json.dumps(payload) + '\n')
 
 
 def load_state() -> dict[str, Any]:
@@ -45,10 +58,12 @@ def main() -> int:
             break
 
     if not dal_live:
+        log_event('no_live_game')
         print(json.dumps({'status': 'no_live_game'}))
         return 0
 
     game_id = dal_live['id']
+    log_event('live_game_found', gameId=game_id, state=dal_live.get('state'))
     highlights = run_puck([
         'highlights',
         '--game-id',
@@ -63,6 +78,7 @@ def main() -> int:
 
     items = highlights.get('highlights', [])
     if not items:
+        log_event('no_highlights', gameId=game_id)
         print(json.dumps({'status': 'no_highlights', 'gameId': game_id}))
         return 0
 
@@ -84,6 +100,13 @@ def main() -> int:
         if len(sent_by_game[str(game_id)]) > 200:
             sent_by_game[str(game_id)] = sent_by_game[str(game_id)][-200:]
         save_state(state)
+        log_event(
+            'new_highlight',
+            gameId=game_id,
+            highlightClipId=clip_id,
+            playerName=h.get('playerName'),
+            timeInPeriod=h.get('timeInPeriod'),
+        )
 
         print(
             json.dumps(
@@ -96,9 +119,14 @@ def main() -> int:
         )
         return 0
 
+    log_event('no_new_highlight', gameId=game_id)
     print(json.dumps({'status': 'no_new_highlight', 'gameId': game_id}))
     return 0
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except Exception as e:
+        log_event('error', error=str(e))
+        raise
