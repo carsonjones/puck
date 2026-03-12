@@ -4,42 +4,42 @@ import type { StandingListItem } from '@/data/api/client.js';
 import { useTeamInfo } from './useTeamInfo.js';
 
 type TeamInfoTabProps = {
-	team: StandingListItem;
+  team: StandingListItem;
 };
 
 const TeamInfoTab: React.FC<TeamInfoTabProps> = ({ team }) => {
-	const { arena, loading } = useTeamInfo(team.teamAbbrev);
+  const { arena, loading } = useTeamInfo(team.teamAbbrev);
 
-	return (
-		<Box flexDirection="column" gap={1}>
-			<Box flexDirection="column">
-				<Text bold>{team.teamName}</Text>
-				<Text dimColor>
-					{team.conferenceName} - {team.divisionName}
-				</Text>
-			</Box>
+  return (
+    <Box flexDirection="column" gap={1}>
+      <Box flexDirection="column">
+        <Text bold>{team.teamName}</Text>
+        <Text dimColor>
+          {team.conferenceName} - {team.divisionName}
+        </Text>
+      </Box>
 
-			{arena && !loading && (
-				<Box flexDirection="column">
-					<Text>
-						Arena: <Text bold>{arena}</Text>
-					</Text>
-				</Box>
-			)}
+      {arena && !loading && (
+        <Box flexDirection="column">
+          <Text>
+            Arena: <Text bold>{arena}</Text>
+          </Text>
+        </Box>
+      )}
 
-			<Box flexDirection="column">
-				<Text>
-					Record: {team.wins}-{team.losses}-{team.otLosses}
-				</Text>
-				<Text>Points: {team.points}</Text>
-				<Text>Games Played: {team.gamesPlayed}</Text>
-				<Text>
-					Streak: {team.streakCode}
-					{team.streakCount}
-				</Text>
-			</Box>
-		</Box>
-	);
+      <Box flexDirection="column">
+        <Text>
+          Record: {team.wins}-{team.losses}-{team.otLosses}
+        </Text>
+        <Text>Points: {team.points}</Text>
+        <Text>Games Played: {team.gamesPlayed}</Text>
+        <Text>
+          Streak: {team.streakCode}
+          {team.streakCount}
+        </Text>
+      </Box>
+    </Box>
+  );
 };
 
 export default TeamInfoTab;

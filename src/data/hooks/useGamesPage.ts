@@ -7,27 +7,27 @@ import { useQuery } from '@/data/query/useQuery.js';
 const DEFAULT_LIMIT = 10;
 
 export const useGamesPage = ({
-	cursor,
-	limit = DEFAULT_LIMIT,
+  cursor,
+  limit = DEFAULT_LIMIT,
 }: {
-	cursor: string | null;
-	limit?: number;
+  cursor: string | null;
+  limit?: number;
 }) => {
-	const key = queryKeys.gamesList(cursor, limit);
-	const fetcher = useCallback(() => listGames({ cursor, limit }), [cursor, limit]);
-	const state = useQuery(key, fetcher, { staleTimeMs: 20_000 });
-	const lastPrefetchedRef = useRef<string | null>(null);
+  const key = queryKeys.gamesList(cursor, limit);
+  const fetcher = useCallback(() => listGames({ cursor, limit }), [cursor, limit]);
+  const state = useQuery(key, fetcher, { staleTimeMs: 20_000 });
+  const lastPrefetchedRef = useRef<string | null>(null);
 
-	useEffect(() => {
-		if (state.status !== 'success' || !state.data?.nextCursor) return;
-		const nextCursor = state.data.nextCursor;
-		const nextKey = queryKeys.gamesList(nextCursor, limit);
-		if (lastPrefetchedRef.current === nextKey) return;
-		lastPrefetchedRef.current = nextKey;
-		queryClient.prefetchQuery(nextKey, () => listGames({ cursor: nextCursor, limit }), {
-			staleTimeMs: 20_000,
-		});
-	}, [state.status, state.data, limit]);
+  useEffect(() => {
+    if (state.status !== 'success' || !state.data?.nextCursor) return;
+    const nextCursor = state.data.nextCursor;
+    const nextKey = queryKeys.gamesList(nextCursor, limit);
+    if (lastPrefetchedRef.current === nextKey) return;
+    lastPrefetchedRef.current = nextKey;
+    queryClient.prefetchQuery(nextKey, () => listGames({ cursor: nextCursor, limit }), {
+      staleTimeMs: 20_000,
+    });
+  }, [state.status, state.data, limit]);
 
-	return { ...state, limit };
+  return { ...state, limit };
 };

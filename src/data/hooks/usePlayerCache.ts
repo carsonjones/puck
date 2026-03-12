@@ -7,17 +7,17 @@ import { playerCache } from '@/data/nhl/playerCache.js';
  * Returns the current cache state including players, loading status, and last update time
  */
 export function usePlayerCache(): PlayerCacheState {
-	const [state, setState] = useState<PlayerCacheState>(() => playerCache.getState());
+  const [state, setState] = useState<PlayerCacheState>(() => playerCache.getState());
 
-	useEffect(() => {
-		// Subscribe to cache updates
-		const unsubscribe = playerCache.subscribe(() => {
-			setState(playerCache.getState());
-		});
+  useEffect(() => {
+    // Subscribe to cache updates
+    const unsubscribe = playerCache.subscribe(() => {
+      setState(playerCache.getState());
+    });
 
-		// Cleanup subscription on unmount
-		return unsubscribe;
-	}, []);
+    // Cleanup subscription on unmount
+    return unsubscribe;
+  }, []);
 
-	return state;
+  return state;
 }

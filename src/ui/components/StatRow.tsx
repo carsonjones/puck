@@ -2,39 +2,39 @@ import { Box, Text } from 'ink';
 import type React from 'react';
 
 type StatRowProps = {
-	label: string;
-	awayValue: string | number;
-	homeValue: string | number;
-	labelWidth?: number;
-	valueWidth?: number;
-	isHeader?: boolean;
+  label: string;
+  awayValue: string | number;
+  homeValue: string | number;
+  labelWidth?: number;
+  valueWidth?: number;
+  isHeader?: boolean;
 };
 
 const StatRow: React.FC<StatRowProps> = ({
-	label,
-	awayValue,
-	homeValue,
-	labelWidth = 15,
-	valueWidth = 16,
-	isHeader = false,
+  label,
+  awayValue,
+  homeValue,
+  labelWidth = 15,
+  valueWidth = 16,
+  isHeader = false,
 }) => {
-	return (
-		<Box>
-			<Box width={labelWidth}>
-				<Text bold={isHeader}>{label}</Text>
-			</Box>
-			<Box width={valueWidth}>
-				<Text bold={isHeader} wrap="truncate">
-					{awayValue}
-				</Text>
-			</Box>
-			<Box width={valueWidth}>
-				<Text bold={isHeader} wrap="truncate">
-					{homeValue}
-				</Text>
-			</Box>
-		</Box>
-	);
+  return (
+    <Box>
+      <Box width={labelWidth}>
+        <Text bold={isHeader}>{label}</Text>
+      </Box>
+      <Box width={valueWidth}>
+        <Text bold={isHeader} wrap="truncate">
+          {awayValue}
+        </Text>
+      </Box>
+      <Box width={valueWidth}>
+        <Text bold={isHeader} wrap="truncate">
+          {homeValue}
+        </Text>
+      </Box>
+    </Box>
+  );
 };
 
 export default StatRow;
