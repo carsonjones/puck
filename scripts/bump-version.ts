@@ -54,6 +54,6 @@ console.log(`\n✓ Version bumped to ${newVersion}`);
 console.log('\nNext steps:');
 console.log('1. Update CHANGELOG.md');
 console.log('2. Run: bun run build');
-console.log('3. Run: git add -A && git commit -m "v' + newVersion + '"');
-console.log('4. Run: git tag v' + newVersion);
+console.log(`3.·Run: git add -A && git commit -m "v${newVersion}"`);
+console.log(`4. Run: git tag v${newVersion}`);
 console.log('5. Run: git push && git push --tags');

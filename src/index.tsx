@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { render } from 'ink';
+
 import App from '@/app.js';
 import { parseDateCommandArgs, printDateCommandHelp, runDateCommand } from '@/cli/dateCommand.js';
 import { parseGameCommandArgs, printGameCommandHelp, runGameCommand } from '@/cli/gameCommand.js';
@@ -20,6 +20,7 @@ import {
 } from '@/cli/highlightsCommand.js';
 import { startPlayerCacheWorker } from '@/data/nhl/playerCacheWorker.js';
 import { checkVersion } from '@/utils/versionCheck.js';
+import { render } from 'ink';
 
 const VERSION_API_URL = 'https://puck.neat.workers.dev/api/version';
 const CURRENT_VERSION = '0.4.0'; // Update this when bumping version
