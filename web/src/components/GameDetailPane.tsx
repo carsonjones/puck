@@ -1,6 +1,12 @@
-import type { GameDetail } from '@/data/api/client.js';
-import { buildPlayerRows, detailTabs, formatPlayRow, gameSubtitle, gameTitle } from '../helpers.js';
-import type { DetailTab } from '../helpers.js';
+import type { GameDetail } from '@/data/api/client';
+import {
+  buildPlayerRows,
+  detailTabs,
+  formatPlayRow,
+  gameSubtitle,
+  gameTitleWithWinner,
+} from '@web/helpers';
+import type { DetailTab } from '@web/helpers';
 
 type GameDetailPaneProps = {
   gameDetail: {
@@ -13,7 +19,7 @@ type GameDetailPaneProps = {
   setDetailTab: (tab: DetailTab) => void;
 };
 
-export default function GameDetailPane({
+export function GameDetailPane({
   gameDetail,
   selectedGameId,
   detailTab,
@@ -24,8 +30,7 @@ export default function GameDetailPane({
   return (
     <section className="pane pane-detail">
       <div className="pane-header">
-        <span>{gameDetail.data ? gameTitle(gameDetail.data) : 'game detail'}</span>
-        <span>{gameDetail.data?.status ?? 'idle'}</span>
+        <span>{gameDetail.data ? gameTitleWithWinner(gameDetail.data) : 'game detail'}</span>
       </div>
       <div className="detail-scroll">
         <section className="detail-tabs" aria-label="detail tabs">
@@ -51,7 +56,7 @@ export default function GameDetailPane({
         {gameDetail.data ? (
           <>
             <section className="detail-section">
-              <p className="detail-line">{gameTitle(gameDetail.data)}</p>
+              <p className="detail-line">{gameTitleWithWinner(gameDetail.data)}</p>
               <p className="detail-line">{gameSubtitle(gameDetail.data)}</p>
               <p className="detail-line">
                 {gameDetail.data.date} • {gameDetail.data.startTime} • {gameDetail.data.venue}

@@ -1,16 +1,31 @@
 import { useEffect } from 'react';
-import type { GameListItem } from '@/data/api/client.js';
-import { useWebAppStore } from '../state/useWebAppStore.js';
+import type { GameListItem } from '@/data/api/client';
+import type { DetailTab } from '@web/helpers';
 
-export const useGameHotkeys = (games: GameListItem[]) => {
-  const selectedGameId = useWebAppStore((state) => state.selectedGameId);
-  const setSelectedGameId = useWebAppStore((state) => state.setSelectedGameId);
-  const setDetailTab = useWebAppStore((state) => state.setDetailTab);
-  const goToToday = useWebAppStore((state) => state.goToToday);
-  const goToNextDay = useWebAppStore((state) => state.goToNextDay);
-  const goToPreviousDay = useWebAppStore((state) => state.goToPreviousDay);
-  const refreshGames = useWebAppStore((state) => state.refreshGames);
-  const refreshSelectedGame = useWebAppStore((state) => state.refreshSelectedGame);
+type UseGameHotkeysOptions = {
+  games: GameListItem[];
+  selectedGameId: string | null;
+  setSelectedGameId: (gameId: string | null) => void;
+  detailTab: DetailTab;
+  setDetailTab: (tab: DetailTab) => void;
+  goToToday: () => void;
+  goToNextDay: () => void;
+  goToPreviousDay: () => void;
+  refreshGames: () => void;
+  refreshSelectedGame: () => void;
+};
+
+export const useGameHotkeys = ({
+  games,
+  selectedGameId,
+  setSelectedGameId,
+  setDetailTab,
+  goToToday,
+  goToNextDay,
+  goToPreviousDay,
+  refreshGames,
+  refreshSelectedGame,
+}: UseGameHotkeysOptions) => {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

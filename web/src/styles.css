@@ -185,7 +185,7 @@ button {
 
 .detail-tabs {
   display: flex;
-  gap: 0.85rem;
+  gap: 0;
   min-height: 1.25rem;
   align-items: center;
   white-space: nowrap;
@@ -195,7 +195,7 @@ button {
   border: 0;
   background: transparent;
   color: var(--muted);
-  padding: 0;
+  padding: 0.4rem 0.75rem;
   cursor: pointer;
 }
 
@@ -205,9 +205,8 @@ button {
 }
 
 .detail-tab.active {
-  color: var(--text);
-  outline: 1px solid var(--text);
-  outline-offset: 1px;
+  background: var(--accent);
+  color: var(--panel);
 }
 
 .play-list {
@@ -251,13 +250,73 @@ button {
 }
 
 @media (max-width: 960px) {
-  .pane-grid {
-    grid-template-columns: 1fr;
+  .pane {
+    min-height: unset;
   }
 
-  .statusbar,
+  .pane-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+  }
+
+  .pane-list {
+    max-height: 40vh;
+  }
+
+  .pane-list.list-collapsed {
+    max-height: unset;
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .pane-list.list-collapsed .game-row:not(.active) {
+    display: none;
+  }
+
+  .pane-list.list-collapsed .list-scroll {
+    overflow: hidden;
+  }
+
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .statusbar-keys {
+    display: none;
+  }
+
+  .pane-detail .pane-header {
+    display: none;
+  }
+}
+
+.game-row-chevron {
+  display: none;
+}
+
+.day-nav-group {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .game-row-chevron {
+    display: inline;
+  }
+
+  .day-nav-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .day-nav-btn {
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    font: inherit;
   }
 }

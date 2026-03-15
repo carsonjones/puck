@@ -1,4 +1,4 @@
-import type { GameDetail, GameListItem } from '@/data/api/client.js';
+import type { GameDetail, GameListItem } from '@/data/api/client';
 
 export const detailTabs = ['stats', 'plays', 'players'] as const;
 export type DetailTab = (typeof detailTabs)[number];
@@ -52,6 +52,18 @@ export const shiftDate = (cursor: string | null, delta: number) => {
 export const gameTitle = (game: Pick<GameListItem, 'awayTeam' | 'homeTeam'>) =>
   `${game.awayTeam} @ ${game.homeTeam}`;
 
+export const gameTitleWithWinner = (
+  game: Pick<
+    GameListItem,
+    'awayTeam' | 'homeTeam' | 'status' | 'awayScore' | 'homeScore'
+  >,
+) => {
+  const awayWins = game.status === 'final' && game.awayScore > game.homeScore;
+  const homeWins = game.status === 'final' && game.homeScore > game.awayScore;
+
+  return `${game.awayTeam}${awayWins ? ' ✓' : ''} @ ${game.homeTeam}${homeWins ? ' ✓' : ''}`;
+};
+
 const padCell = (value: string, width: number) => value.padEnd(width, ' ');
 
 export const formatPlayRow = (time: string, description: string) =>
@@ -61,21 +73,18 @@ export const getSearchParamsState = () => {
   if (typeof window === 'undefined') {
     return {
       cursor: null,
-      selectedGameId: null,
     };
   }
 
   const params = new URLSearchParams(window.location.search);
   const date = params.get('date');
-  const game = params.get('game');
 
   return {
     cursor: date,
-    selectedGameId: game,
   };
 };
 
-export const updateUrlState = (cursor: string | null, selectedGameId: string | null) => {
+export const updateUrlState = (cursor: string | null) => {
   if (typeof window === 'undefined') {
     return;
   }
@@ -86,12 +95,6 @@ export const updateUrlState = (cursor: string | null, selectedGameId: string | n
     params.set('date', cursor);
   } else {
     params.delete('date');
-  }
-
-  if (selectedGameId) {
-    params.set('game', selectedGameId);
-  } else {
-    params.delete('game');
   }
 
   const nextSearch = params.toString();

@@ -1,4 +1,4 @@
-import type { GameDetail, GamesPage } from '@/data/api/client.js';
+import type { GameDetail, GamesPage } from '@/data/api/client';
 
 const gameDetailCache = new Map<string, { data: GameDetail; cachedAt: number }>();
 const GAME_DETAIL_TTL_MS = 30_000;
