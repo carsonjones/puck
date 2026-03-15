@@ -37,7 +37,11 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 worker/.wrangler/
 worker/node_modules/
 worker/.dev.vars
+web/.wrangler/
+web/.dev.vars
 
 .zed/
 .cursor/
 .claude/
+
+.todos/

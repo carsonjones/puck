@@ -1,50 +1,40 @@
 import { create } from 'zustand';
+import {
+  initialAppNavigationState,
+  standingsViewModes,
+  type AppNavigationState,
+  type DetailTab,
+  type FocusedPane,
+  type GameStatus,
+  type PlayerDetailTab,
+  type PlaysSortOrder,
+  type PreviousStandingsState,
+  type StandingsConference,
+  type StandingsDetailTab,
+  type StandingsDivision,
+  type StandingsTab,
+  type StandingsViewMode,
+  type ViewMode,
+} from '@/shared/appState.js';
 import { clampIndex } from '@/utils/indexUtils.js';
 
-export type FocusedPane = 'list' | 'detail';
-export type DetailTab = 'stats' | 'plays' | 'players';
-export type PlaysSortOrder = 'asc' | 'desc';
-export type GameStatus = 'scheduled' | 'in_progress' | 'final';
-export type ViewMode = 'games' | 'standings' | 'players';
-export type PlayerDetailTab = 'season' | 'games' | 'bio';
-export type StandingsTab = 'league' | 'conference' | 'division';
-export type StandingsDetailTab = 'info' | 'players';
-export type StandingsConference = 'eastern' | 'western';
-export type StandingsDivision = 'atlantic' | 'metropolitan' | 'central' | 'pacific';
-export type StandingsViewMode = 'all' | 'home' | 'road';
+export type {
+  AppNavigationState,
+  DetailTab,
+  FocusedPane,
+  GameStatus,
+  PlayerDetailTab,
+  PlaysSortOrder,
+  PreviousStandingsState,
+  StandingsConference,
+  StandingsDetailTab,
+  StandingsDivision,
+  StandingsTab,
+  StandingsViewMode,
+  ViewMode,
+} from '@/shared/appState.js';
 
-interface AppState {
-  focusedPane: FocusedPane;
-  selectedGameId: string | null;
-  listCursorIndex: number;
-  pageCursor: string | null;
-  detailTab: DetailTab;
-  playsScrollIndex: number;
-  playsSortOrder: PlaysSortOrder;
-  playersTeamTab: 'away' | 'home';
-  playersScrollIndex: number;
-  viewMode: ViewMode;
-  standingsTab: StandingsTab;
-  standingsCursorIndex: number;
-  standingsDetailTab: StandingsDetailTab;
-  standingsPlayersScrollIndex: number;
-  standingsConference: StandingsConference;
-  standingsDivision: StandingsDivision;
-  standingsViewMode: StandingsViewMode;
-  playersCursorIndex: number;
-  selectedPlayerId: number | null;
-  playerDetailTab: PlayerDetailTab;
-  playerDetailScrollIndex: number;
-  previousStandingsState: {
-    teamAbbrev: string | null;
-    playerIndex: number;
-  } | null;
-  teamSearchOpen: boolean;
-  teamSearchQuery: string;
-  teamSearchCursorIndex: number;
-  gameTeamFilter: string | null;
-  playerFilter: number | null;
-  pendingTeamNavigation: string | null;
+interface AppState extends AppNavigationState {
   setFocusedPane: (pane: FocusedPane) => void;
   moveCursor: (delta: number, maxIndex?: number) => void;
   selectGame: (id: string | null, status?: GameStatus) => void;
@@ -66,9 +56,7 @@ interface AppState {
   selectPlayer: (id: number | null) => void;
   setPlayerDetailTab: (tab: PlayerDetailTab) => void;
   movePlayerDetailScroll: (delta: number, maxIndex?: number) => void;
-  setPreviousStandingsState: (
-    state: { teamAbbrev: string | null; playerIndex: number } | null,
-  ) => void;
+  setPreviousStandingsState: (state: PreviousStandingsState | null) => void;
   openTeamSearch: () => void;
   closeTeamSearch: () => void;
   setTeamSearchQuery: (query: string) => void;
@@ -81,34 +69,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
-  focusedPane: 'list',
-  selectedGameId: null,
-  listCursorIndex: 0,
-  pageCursor: null,
-  detailTab: 'stats',
-  playsScrollIndex: 0,
-  playsSortOrder: 'asc',
-  playersTeamTab: 'away',
-  playersScrollIndex: 0,
-  viewMode: 'games',
-  standingsTab: 'league',
-  standingsCursorIndex: 0,
-  standingsDetailTab: 'players',
-  standingsPlayersScrollIndex: 0,
-  standingsConference: 'eastern',
-  standingsDivision: 'atlantic',
-  standingsViewMode: 'all',
-  playersCursorIndex: 0,
-  selectedPlayerId: null,
-  playerDetailTab: 'season',
-  playerDetailScrollIndex: 0,
-  previousStandingsState: null,
-  teamSearchOpen: false,
-  teamSearchQuery: '',
-  teamSearchCursorIndex: 0,
-  gameTeamFilter: null,
-  playerFilter: null,
-  pendingTeamNavigation: null,
+  ...initialAppNavigationState,
   setFocusedPane: (pane) => set({ focusedPane: pane }),
   moveCursor: (delta, maxIndex) => {
     set({ listCursorIndex: clampIndex(get().listCursorIndex, delta, maxIndex) });
@@ -142,11 +103,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   setStandingsConference: (conf) => set({ standingsConference: conf, standingsCursorIndex: 0 }),
   setStandingsDivision: (div) => set({ standingsDivision: div, standingsCursorIndex: 0 }),
   cycleStandingsViewMode: () => {
-    const modes: StandingsViewMode[] = ['all', 'home', 'road'];
     const current = get().standingsViewMode;
-    const currentIndex = modes.indexOf(current);
-    const nextIndex = (currentIndex + 1) % modes.length;
-    set({ standingsViewMode: modes[nextIndex] });
+    const currentIndex = standingsViewModes.indexOf(current);
+    const nextIndex = (currentIndex + 1) % standingsViewModes.length;
+    set({ standingsViewMode: standingsViewModes[nextIndex] });
   },
   setStandingsDetailTab: (tab) => set({ standingsDetailTab: tab, standingsPlayersScrollIndex: 0 }),
   moveStandingsPlayersScroll: (delta, maxIndex) => {
