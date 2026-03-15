@@ -179,7 +179,7 @@ export function GamesRoute() {
 
   return (
     <>
-      <Head title="Games" />
+      <Head />
       <Layout
         header={<span>Games</span>}
         footer={

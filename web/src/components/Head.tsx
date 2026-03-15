@@ -1,16 +1,24 @@
 import { useEffect } from 'react';
 
 interface HeadProps {
-  title?: string;
   description?: string;
 }
 
-const APP_NAME = 'puck';
+const APP_NAME = 'PUCK';
+const THEME_COLOR = '#262C36';
 
-export function Head({ title, description }: HeadProps) {
+export function Head({ description }: HeadProps) {
   useEffect(() => {
-    document.title = title ? `${title} · ${APP_NAME}` : APP_NAME;
-  }, [title]);
+    document.title = APP_NAME;
+
+    let themeTag = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!themeTag) {
+      themeTag = document.createElement('meta');
+      themeTag.name = 'theme-color';
+      document.head.appendChild(themeTag);
+    }
+    themeTag.content = THEME_COLOR;
+  }, []);
 
   useEffect(() => {
     let tag = document.querySelector<HTMLMetaElement>('meta[name="description"]');
