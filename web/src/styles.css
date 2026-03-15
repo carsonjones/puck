@@ -3,7 +3,7 @@
   --bg: #262C36;
   --panel: #262C36;
   --panel-strong: #0d1110;
-  --border: #2b332f;
+  --border: #d7dfda;
   --text: #d7dfda;
   --muted: #8b948f;
   --accent: #d7dfda;
@@ -79,7 +79,8 @@ button {
   min-height: 34rem;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  border-left: 1px solid var(--border);
+  border: 2px solid var(--border);
+  padding-block: .25rem;
 }
 
 .pane-wrapper {
