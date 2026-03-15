@@ -68,6 +68,11 @@ button {
   white-space: nowrap;
 }
 
+.layout-main {
+  min-height: 0;
+  display: contents;
+}
+
 .pane-grid {
   display: grid;
   grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr);

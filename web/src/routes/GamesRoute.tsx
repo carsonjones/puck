@@ -4,6 +4,8 @@ import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { fetchGameDetail, fetchGames } from '@web/api';
 import { GameDetailPane } from '@web/components/GameDetailPane';
 import { GamesListPane } from '@web/components/GamesListPane';
+import { Head } from '@web/components/Head';
+import { Layout } from '@web/components/Layout';
 import { useDebouncedValue } from '@web/hooks/useDebouncedValue';
 import { useGameHotkeys } from '@web/hooks/useGameHotkeys';
 import { type DetailTab, formatDate, shiftDate, updateUrlState } from '@web/helpers';
@@ -176,34 +178,36 @@ export function GamesRoute() {
   });
 
   return (
-    <main className="app-shell">
-      <header className="topbar">
-        <span>Games</span>
-      </header>
-
-      <section className="pane-grid">
-        <GamesListPane
-          displayedDate={displayedDate}
-          gamesData={gamesData}
-          selectedGameId={selectedGameId}
-          setSelectedGameId={setSelectedGameId}
-        />
-        <GameDetailPane
-          gameDetail={gameDetail}
-          selectedGameId={selectedGameId}
-          detailTab={detailTab}
-          setDetailTab={setDetailTab}
-        />
-      </section>
-
-      <footer className="statusbar">
-        <span>● puck</span>
-        <span className="statusbar-keys">[h/l] day [j/k] select [1/2/3] tabs [t] today [r] refresh</span>
-        <span className="day-nav-group">
-          <button className="day-nav-btn" onClick={goToPreviousDay}>❮</button>
-          <button className="day-nav-btn" onClick={goToNextDay}>❯</button>
-        </span>
-      </footer>
-    </main>
+    <>
+      <Head title="Games" />
+      <Layout
+        header={<span>Games</span>}
+        footer={
+          <>
+            <span>● puck</span>
+            <span className="statusbar-keys">[h/l] day [j/k] select [1/2/3] tabs [t] today [r] refresh</span>
+            <span className="day-nav-group">
+              <button className="day-nav-btn" onClick={goToPreviousDay}>❮</button>
+              <button className="day-nav-btn" onClick={goToNextDay}>❯</button>
+            </span>
+          </>
+        }
+      >
+        <section className="pane-grid">
+          <GamesListPane
+            displayedDate={displayedDate}
+            gamesData={gamesData}
+            selectedGameId={selectedGameId}
+            setSelectedGameId={setSelectedGameId}
+          />
+          <GameDetailPane
+            gameDetail={gameDetail}
+            selectedGameId={selectedGameId}
+            detailTab={detailTab}
+            setDetailTab={setDetailTab}
+          />
+        </section>
+      </Layout>
+    </>
   );
 }
