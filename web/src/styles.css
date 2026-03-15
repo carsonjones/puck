@@ -1,13 +1,13 @@
 :root {
   color-scheme: dark;
-  --bg: #0a0d0c;
-  --panel: #0d1110;
+  --bg: #262C36;
+  --panel: #262C36;
   --panel-strong: #0d1110;
   --border: #2b332f;
   --text: #d7dfda;
   --muted: #8b948f;
   --accent: #d7dfda;
-  --accent-dim: #171d1a;
+  --accent-dim: #d7dfda;
 }
 
 * {
@@ -18,6 +18,7 @@ html,
 body,
 #root {
   height: 100%;
+  user-select: none;
 }
 
 body {
@@ -32,7 +33,7 @@ body {
     "Consolas",
     "Liberation Mono",
     monospace;
-  font-size: 14px;
+  font-size: 18px;
   line-height: 1.25;
 }
 
@@ -81,6 +82,15 @@ button {
   border-left: 1px solid var(--border);
 }
 
+.pane-wrapper {
+  padding-inline: 0.75rem;
+  overflow: hidden;
+}
+
+.pane-wrapper p {
+  margin-block: .5rem;
+}
+
 .pane-header {
   display: flex;
   justify-content: space-between;
@@ -111,18 +121,28 @@ button {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.18rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   text-align: left;
   cursor: pointer;
 }
 
+.game-row:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
 .game-row.active {
-  background: var(--accent-dim);
+  background: var(--accent);
   box-shadow: none;
+  color: var(--panel);
 }
 
 .game-row-title {
   color: var(--text);
+}
+
+.game-row.active>.game-row-title {
+  color: var(--panel);
 }
 
 .game-row-meta,
@@ -158,7 +178,7 @@ button {
   margin: 0;
 }
 
-.detail-section + .detail-section {
+.detail-section+.detail-section {
   padding-top: 0.35rem;
 }
 
