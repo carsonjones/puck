@@ -12,6 +12,7 @@
     "noImplicitOverride": true,
     "baseUrl": ".",
     "paths": {
+      "@/*": ["../src/*"],
       "@shared/*": ["../src/shared/*"],
       "@web/*": ["./src/*"]
     },

@@ -1,3 +1,15 @@
+import { getGame, listGames } from '@/data/api/client.js';
+
+const json = (body: unknown, init?: ResponseInit) =>
+  Response.json(body, {
+    ...init,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'public, max-age=30',
+      ...init?.headers,
+    },
+  });
+
 export default {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -13,7 +25,7 @@ export default {
     }
 
     if (url.pathname === '/api/health' && request.method === 'GET') {
-      return Response.json(
+      return json(
         {
           status: 'ok',
           app: 'puck-web',
@@ -26,6 +38,27 @@ export default {
           },
         },
       );
+    }
+
+    if (url.pathname === '/api/games' && request.method === 'GET') {
+      try {
+        const cursor = url.searchParams.get('cursor');
+        return json(await listGames({ cursor }));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return json({ error: message }, { status: 500 });
+      }
+    }
+
+    if (url.pathname.startsWith('/api/games/') && request.method === 'GET') {
+      const gameId = url.pathname.slice('/api/games/'.length);
+
+      try {
+        return json(await getGame({ id: gameId }));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return json({ error: message }, { status: 500 });
+      }
     }
 
     return new Response('Not Found', { status: 404 });
