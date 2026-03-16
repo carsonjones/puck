@@ -42,35 +42,54 @@ export function GamesListPane({
   };
 
   return (
-    <aside className={`pane pane-list${isCollapsed ? ' list-collapsed' : ''}`}>
+    <aside className={[
+      'bg-surface grid grid-rows-[auto_minmax(0,1fr)] border-2 border-light py-1',
+      'min-h-[34rem] max-[960px]:min-h-0',
+      isCollapsed
+        ? 'max-[960px]:border-b-0 max-[960px]:pb-0'
+        : 'max-[960px]:max-h-[40vh]',
+    ].join(' ')}>
       {isSuccess && gamesData.data.length > 0 ? (
-        <div className="pane-header">
+        <div className="flex justify-between gap-4 px-3 py-[0.3rem] min-h-7 whitespace-nowrap overflow-hidden text-dim [&>span]:overflow-hidden [&>span]:text-ellipsis">
           <span>{displayedDate}</span>
           <span>{gamesData.data.length} games</span>
         </div>
       ) : null}
-      <div className="list-scroll">
-        <div className="pane-wrapper">
-          {isLoading ? <p className="empty-state">Loading...</p> : null}
-          {isError ? <p className="empty-state">{gamesData.error}</p> : null}
+      <div className={`min-h-0 overflow-auto${isCollapsed ? ' max-[960px]:overflow-hidden' : ''}`}>
+        <div className="px-3 overflow-hidden [&>p]:my-2">
+          {isLoading ? <p className="text-dim">Loading...</p> : null}
+          {isError ? <p className="text-dim">{gamesData.error}</p> : null}
           {isSuccess && gamesData.data.length === 0 ? (
-            <p className="empty-state">No games found for this date.</p>
+            <p className="text-dim">No games found for this date.</p>
           ) : null}
-
         </div>
-        {gamesData.data.map((game) => (
-          <button
-            key={game.id}
-            className={game.id === selectedGameId ? 'game-row active' : 'game-row'}
-            onClick={() => handleGameClick(game.id)}
-          >
-            <span className="game-row-title">{gameTitleWithWinner(game)}</span>
-            <span className="game-row-meta">
-              {statusLabel(game)}
-              {game.id === selectedGameId && <span className="game-row-chevron">{isExpanded ? ' ▲' : ' ▼'}</span>}
-            </span>
-          </button>
-        ))}
+        {gamesData.data.map((game) => {
+          const isActive = game.id === selectedGameId;
+          return (
+            <button
+              key={game.id}
+              className={[
+                'w-full border-0 flex justify-between gap-4 px-3 py-[0.4rem] text-left cursor-pointer',
+                'focus:outline focus:outline-1 focus:outline-light focus:[outline-offset:-1px]',
+                isActive ? 'bg-light text-surface' : 'bg-transparent',
+                isCollapsed && !isActive ? 'max-[960px]:hidden' : '',
+              ].join(' ')}
+              onClick={() => handleGameClick(game.id)}
+            >
+              <span className={isActive ? '' : 'text-light'}>
+                {gameTitleWithWinner(game)}
+              </span>
+              <span className={isActive ? '' : 'text-dim'}>
+                {statusLabel(game)}
+                {isActive && (
+                  <span className="hidden max-[960px]:inline">
+                    {isExpanded ? ' ▲' : ' ▼'}
+                  </span>
+                )}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </aside>
   );

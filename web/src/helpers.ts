@@ -1,7 +1,18 @@
-import type { GameDetail, GameListItem } from '@/data/api/client';
+import type { GameDetail, GameListItem, StandingListItem, StandingsData } from '@/data/api/client';
+import {
+  standingsConferences,
+  standingsDivisions,
+  standingsDivisionDisplayNames,
+  standingsTabs,
+  type StandingsConference,
+  type StandingsDivision,
+  type StandingsTab,
+} from '@/shared/appState';
 
 export const detailTabs = ['stats', 'plays', 'players'] as const;
 export type DetailTab = (typeof detailTabs)[number];
+export { standingsTabs, standingsConferences, standingsDivisions, standingsDivisionDisplayNames };
+export type { StandingsConference, StandingsDivision, StandingsTab };
 
 export const formatPeriod = (period: number, gameType: number): string => {
   if (period <= 0) return 'n/a';
@@ -142,12 +153,12 @@ export const buildPlayerRows = (gameDetail: GameDetail | null) => {
       hits: number;
     }>,
   ) => [
-    teamName,
-    ...players.map(
-      (player) =>
-        `${String(player.sweaterNumber).padStart(2, ' ')} ${player.name.default} ${player.position} ${player.goals}-${player.assists}-${player.goals + player.assists} ${player.sog} SOG ${player.hits} HIT`,
-    ),
-  ];
+      teamName,
+      ...players.map(
+        (player) =>
+          `${String(player.sweaterNumber).padStart(2, ' ')} ${player.name.default} ${player.position} ${player.goals}-${player.assists}-${player.goals + player.assists} ${player.sog} SOG ${player.hits} HIT`,
+      ),
+    ];
 
   const goalieRows = (
     players: Array<{
@@ -176,4 +187,70 @@ export const buildPlayerRows = (gameDetail: GameDetail | null) => {
     ]),
     ...goalieRows(boxscore.homeTeam?.goalies ?? []),
   ];
+};
+
+export const normalizeStandingsTab = (tab?: string): StandingsTab =>
+  tab === 'conference' || tab === 'division' ? tab : 'league';
+
+export const normalizeStandingsScope = (
+  tab: StandingsTab,
+  scope?: string,
+): StandingsConference | StandingsDivision | null => {
+  if (tab === 'conference') {
+    return scope === 'western' ? 'western' : 'eastern';
+  }
+
+  if (tab === 'division') {
+    if (scope === 'metropolitan' || scope === 'central' || scope === 'pacific') {
+      return scope;
+    }
+
+    return 'atlantic';
+  }
+
+  return null;
+};
+
+export const getStandingsItems = (
+  standings: StandingsData | undefined,
+  tab: StandingsTab,
+  scope: StandingsConference | StandingsDivision | null,
+) => {
+  if (!standings) {
+    return [] satisfies StandingListItem[];
+  }
+
+  if (tab === 'conference') {
+    return scope === 'western' ? standings.western : standings.eastern;
+  }
+
+  if (tab === 'division') {
+    return standings.divisions[(scope as StandingsDivision) ?? 'atlantic'];
+  }
+
+  return standings.league;
+};
+
+export const formatStandingRecord = (
+  team: Pick<StandingListItem, 'wins' | 'losses' | 'otLosses'>,
+) => `${team.wins}-${team.losses}-${team.otLosses}`;
+
+export const formatStandingStreak = (
+  team: Pick<StandingListItem, 'streakCode' | 'streakCount'>,
+) => `${team.streakCode}${team.streakCount}`;
+
+export const standingsHeader = (
+  tab: StandingsTab,
+  scope: StandingsConference | StandingsDivision | null,
+) => {
+  if (tab === 'conference') {
+    return scope === 'western' ? 'Western Conference' : 'Eastern Conference';
+  }
+
+  if (tab === 'division') {
+    const division = (scope as StandingsDivision | null) ?? 'atlantic';
+    return `${division.charAt(0).toUpperCase()}${division.slice(1)} Division`;
+  }
+
+  return 'League Standings';
 };

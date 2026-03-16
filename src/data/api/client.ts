@@ -35,8 +35,8 @@ export type GameDetail = GameListItem & {
   broadcasts: string[];
   gameType: number;
   leaders: {
-    home: string[];
-    away: string[];
+    home: { name: string; goals: number; assists: number; points: number }[];
+    away: { name: string; goals: number; assists: number; points: number }[];
   };
   threeStars: string[];
   stats: {
@@ -135,11 +135,12 @@ const calcFaceoffPct = (players: PlayerStats[]) => {
 
 const topScorers = (players: PlayerStats[], count: number) => {
   const sorted = [...players].sort((a, b) => b.points - a.points || b.goals - a.goals);
-  return sorted
-    .slice(0, count)
-    .map(
-      (player) => `${player.name.default} • ${player.goals}G ${player.assists}A ${player.points}P`,
-    );
+  return sorted.slice(0, count).map((player) => ({
+    name: player.name.default,
+    goals: player.goals,
+    assists: player.assists,
+    points: player.points,
+  }));
 };
 
 type RosterPlayer = {

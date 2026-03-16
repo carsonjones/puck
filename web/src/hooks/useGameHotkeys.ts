@@ -6,13 +6,13 @@ type UseGameHotkeysOptions = {
   games: GameListItem[];
   selectedGameId: string | null;
   setSelectedGameId: (gameId: string | null) => void;
-  detailTab: DetailTab;
   setDetailTab: (tab: DetailTab) => void;
   goToToday: () => void;
   goToNextDay: () => void;
   goToPreviousDay: () => void;
   refreshGames: () => void;
   refreshSelectedGame: () => void;
+  navigateToStandings: () => void;
 };
 
 export const useGameHotkeys = ({
@@ -25,6 +25,7 @@ export const useGameHotkeys = ({
   goToPreviousDay,
   refreshGames,
   refreshSelectedGame,
+  navigateToStandings,
 }: UseGameHotkeysOptions) => {
 
   useEffect(() => {
@@ -86,6 +87,12 @@ export const useGameHotkeys = ({
         return;
       }
 
+      if (event.key === 's') {
+        event.preventDefault();
+        navigateToStandings();
+        return;
+      }
+
       if (event.key === '1') {
         event.preventDefault();
         setDetailTab('stats');
@@ -113,6 +120,7 @@ export const useGameHotkeys = ({
     goToNextDay,
     goToPreviousDay,
     goToToday,
+    navigateToStandings,
     refreshGames,
     refreshSelectedGame,
     selectedGameId,

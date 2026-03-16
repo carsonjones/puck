@@ -25,12 +25,13 @@ export type StandingsDetailTab = (typeof standingsDetailTabs)[number];
 export const standingsConferences = ['eastern', 'western'] as const;
 export type StandingsConference = (typeof standingsConferences)[number];
 
-export const standingsDivisions = [
-  'atlantic',
-  'metropolitan',
-  'central',
-  'pacific',
-] as const;
+export const standingsDivisions = ['atlantic', 'metropolitan', 'central', 'pacific'] as const;
+export const standingsDivisionDisplayNames: Record<StandingsDivision, string> = {
+  atlantic: 'atlantic',
+  metropolitan: 'metro',
+  central: 'central',
+  pacific: 'pacific',
+};
 export type StandingsDivision = (typeof standingsDivisions)[number];
 
 export const standingsViewModes = ['all', 'home', 'road'] as const;

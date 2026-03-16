@@ -1,4 +1,4 @@
-import { getGame, listGames } from '@/data/api/client.js';
+import { getGame, getStandings, listGames } from '@/data/api/client.js';
 
 const json = (body: unknown, init?: ResponseInit) =>
   Response.json(body, {
@@ -44,6 +44,15 @@ export default {
       try {
         const cursor = url.searchParams.get('cursor');
         return json(await listGames({ cursor }));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return json({ error: message }, { status: 500 });
+      }
+    }
+
+    if (url.pathname === '/api/standings' && request.method === 'GET') {
+      try {
+        return json(await getStandings());
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return json({ error: message }, { status: 500 });

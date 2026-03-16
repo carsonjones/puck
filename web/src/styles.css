@@ -1,17 +1,10 @@
-:root {
-  color-scheme: dark;
-  --bg: #262C36;
-  --panel: #262C36;
-  --panel-strong: #0d1110;
-  --border: #d7dfda;
-  --text: #d7dfda;
-  --muted: #8b948f;
-  --accent: #d7dfda;
-  --accent-dim: #d7dfda;
-}
+@import "tailwindcss";
 
-* {
-  box-sizing: border-box;
+@theme {
+  --color-surface: #262C36;
+  --color-deep: #0d1110;
+  --color-light: #d7dfda;
+  --color-dim: #8b948f;
 }
 
 html,
@@ -25,14 +18,10 @@ body {
   margin: 0;
   height: 100vh;
   overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font-family:
-    "IBM Plex Mono",
-    "SFMono-Regular",
-    "Consolas",
-    "Liberation Mono",
-    monospace;
+  color-scheme: dark;
+  background-color: #262C36;
+  color: #d7dfda;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 18px;
   line-height: 1.25;
 }
@@ -41,287 +30,22 @@ button {
   font: inherit;
 }
 
-.app-shell {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  height: 100vh;
-  min-height: 0;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  overflow: hidden;
+@keyframes play-flash {
+  0%   { color: #ffe066; }
+  30%  { color: #ffe066; }
+  100% { color: var(--color-light); }
 }
 
-.topbar,
-.statusbar,
-.pane {
-  background: var(--panel);
+@keyframes play-flash-corrected {
+  0%   { color: var(--color-dim); }
+  30%  { color: var(--color-dim); }
+  100% { color: var(--color-light); }
 }
 
-.topbar,
-.statusbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.25rem 0.75rem;
-  min-height: 1.75rem;
-  white-space: nowrap;
+.play-new {
+  animation: play-flash 3s ease-out forwards;
 }
 
-.layout-main {
-  min-height: 0;
-  display: contents;
-}
-
-.pane-grid {
-  display: grid;
-  grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr);
-  gap: 0.75rem;
-  min-height: 0;
-}
-
-.pane {
-  min-height: 34rem;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  border: 2px solid var(--border);
-  padding-block: .25rem;
-}
-
-.pane-wrapper {
-  padding-inline: 0.75rem;
-  overflow: hidden;
-}
-
-.pane-wrapper p {
-  margin-block: .5rem;
-}
-
-.pane-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.3rem 0.75rem;
-  min-height: 1.75rem;
-  white-space: nowrap;
-  overflow: hidden;
-  color: var(--muted);
-}
-
-.pane-header span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.list-scroll,
-.detail-scroll {
-  min-height: 0;
-  overflow: auto;
-}
-
-.game-row {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.4rem 0.75rem;
-  text-align: left;
-  cursor: pointer;
-}
-
-.game-row:focus {
-  outline: 1px solid var(--accent);
-  outline-offset: -1px;
-}
-
-.game-row.active {
-  background: var(--accent);
-  box-shadow: none;
-  color: var(--panel);
-}
-
-.game-row-title {
-  color: var(--text);
-}
-
-.game-row.active>.game-row-title {
-  color: var(--panel);
-}
-
-.game-row-meta,
-.empty-state,
-.detail-line {
-  color: var(--muted);
-}
-
-.detail-scroll {
-  display: grid;
-  gap: 0.75rem;
-  padding: 0.75rem;
-}
-
-.detail-section,
-.stat-card {
-  background: transparent;
-  padding: 0;
-}
-
-.detail-section {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.detail-list,
-.play-list {
-  margin: 0;
-  padding-left: 1rem;
-}
-
-.detail-line {
-  margin: 0;
-}
-
-.detail-section+.detail-section {
-  padding-top: 0.35rem;
-}
-
-.detail-tabs {
-  display: flex;
-  gap: 0;
-  min-height: 1.25rem;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.detail-tab {
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  padding: 0.4rem 0.75rem;
-  cursor: pointer;
-}
-
-.detail-tab:disabled {
-  cursor: default;
-  opacity: 0.65;
-}
-
-.detail-tab.active {
-  background: var(--accent);
-  color: var(--panel);
-}
-
-.play-list {
-  display: grid;
-  gap: 0.15rem;
-  padding-left: 0;
-  list-style: none;
-}
-
-.play-list li {
-  white-space: pre-wrap;
-  color: var(--text);
-}
-
-.player-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.15rem;
-}
-
-.player-row {
-  white-space: pre-wrap;
-  color: var(--muted);
-}
-
-.player-row.spacer {
-  min-height: 0.5rem;
-}
-
-.statusbar {
-  color: var(--muted);
-  overflow: hidden;
-}
-
-.statusbar span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 960px) {
-  .pane {
-    min-height: unset;
-  }
-
-  .pane-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-    height: 100%;
-  }
-
-  .pane-list {
-    max-height: 40vh;
-  }
-
-  .pane-list.list-collapsed {
-    max-height: unset;
-    border-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  .pane-list.list-collapsed .game-row:not(.active) {
-    display: none;
-  }
-
-  .pane-list.list-collapsed .list-scroll {
-    overflow: hidden;
-  }
-
-  .topbar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .statusbar-keys {
-    display: none;
-  }
-
-  .pane-detail .pane-header {
-    display: none;
-  }
-}
-
-.game-row-chevron {
-  display: none;
-}
-
-.day-nav-group {
-  display: none;
-}
-
-@media (max-width: 960px) {
-  .game-row-chevron {
-    display: inline;
-  }
-
-  .day-nav-group {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .day-nav-btn {
-    border: 0;
-    background: transparent;
-    color: var(--text);
-    padding: 0.25rem 0.5rem;
-    cursor: pointer;
-    font: inherit;
-  }
+.play-corrected {
+  animation: play-flash-corrected 3s ease-out forwards;
 }

@@ -69,6 +69,11 @@ export function GamesRoute() {
     queryKey: ['games', cursor, gamesReloadKey],
     queryFn: () => fetchGames(cursor),
     staleTime: 60_000,
+    refetchInterval: ({ state }) => {
+      const hasLiveGame = state.data?.items.some((g) => g.status === 'in_progress');
+      return hasLiveGame ? 30_000 : 300_000;
+    },
+    refetchIntervalInBackground: false,
   });
 
   const gameDetailQuery = useQuery({
@@ -81,7 +86,11 @@ export function GamesRoute() {
     },
     enabled: Boolean(debouncedSelectedGameId),
     staleTime: 30_000,
-    refetchInterval: ({ state }) => (state.data?.status === 'in_progress' ? 30_000 : false),
+    refetchInterval: ({ state }) => {
+      if (!state.data) return false;
+      if (state.data.status === 'in_progress') return 5_000;
+      return 30_000;
+    },
     refetchIntervalInBackground: false,
   });
 
@@ -168,13 +177,13 @@ export function GamesRoute() {
     games: gamesData.data,
     selectedGameId,
     setSelectedGameId,
-    detailTab,
     setDetailTab,
     goToToday,
     goToNextDay,
     goToPreviousDay,
     refreshGames,
     refreshSelectedGame,
+    navigateToStandings: () => navigate('/standings'),
   });
 
   return (
@@ -185,15 +194,15 @@ export function GamesRoute() {
         footer={
           <>
             <span>● puck</span>
-            <span className="statusbar-keys">[h/l] day [j/k] select [1/2/3] tabs [t] today [r] refresh</span>
-            <span className="day-nav-group">
-              <button className="day-nav-btn" onClick={goToPreviousDay}>❮</button>
-              <button className="day-nav-btn" onClick={goToNextDay}>❯</button>
+            <span className="max-[960px]:hidden">[h/l] day [j/k] select [1/2/3] tabs [s] standings [t] today [r] refresh</span>
+            <span className="hidden max-[960px]:flex max-[960px]:gap-2 max-[960px]:items-center">
+              <button className="border-0 bg-transparent text-light px-2 py-1 cursor-pointer" onClick={goToPreviousDay}>❮</button>
+              <button className="border-0 bg-transparent text-light px-2 py-1 cursor-pointer" onClick={goToNextDay}>❯</button>
             </span>
           </>
         }
       >
-        <section className="pane-grid">
+        <section className="grid grid-cols-[minmax(18rem,26rem)_minmax(0,1fr)] gap-3 min-h-0 max-[960px]:grid-cols-1 max-[960px]:grid-rows-[auto_minmax(0,1fr)] max-[960px]:h-full">
           <GamesListPane
             displayedDate={displayedDate}
             gamesData={gamesData}
