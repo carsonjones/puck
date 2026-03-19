@@ -184,6 +184,7 @@ export function GamesRoute() {
     refreshGames,
     refreshSelectedGame,
     navigateToStandings: () => navigate('/standings'),
+    navigateToPlayers: () => navigate('/players'),
   });
 
   return (
@@ -194,7 +195,7 @@ export function GamesRoute() {
         footer={
           <>
             <span>● puck</span>
-            <span className="max-[960px]:hidden">[h/l] day [j/k] select [1/2/3] tabs [s] standings [t] today [r] refresh</span>
+            <span className="max-[960px]:hidden">[h/l] day [j/k] select [1/2/3] tabs [s] standings [P] players [t] today [r] refresh</span>
             <span className="hidden max-[960px]:flex max-[960px]:gap-2 max-[960px]:items-center">
               <button className="border-0 bg-transparent text-light px-2 py-1 cursor-pointer" onClick={goToPreviousDay}>❮</button>
               <button className="border-0 bg-transparent text-light px-2 py-1 cursor-pointer" onClick={goToNextDay}>❯</button>

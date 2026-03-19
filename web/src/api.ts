@@ -1,4 +1,4 @@
-import type { GameDetail, GamesPage, StandingsData } from '@/data/api/client';
+import type { GameDetail, GamesPage, PlayerDetailData, PlayerListItem, StandingsData } from '@/data/api/client';
 
 const gameDetailCache = new Map<string, { data: GameDetail; cachedAt: number }>();
 const GAME_DETAIL_TTL_MS = 30_000;
@@ -47,4 +47,16 @@ export const fetchGameDetail = async (id: string): Promise<GameDetail> => {
 export const fetchStandings = async (): Promise<StandingsData> => {
   const response = await ensureOk(await fetch('/api/standings'));
   return (await response.json()) as StandingsData;
+};
+
+export const fetchPlayers = async (): Promise<PlayerListItem[]> => {
+  const response = await ensureOk(await fetch('/api/players'));
+  return (await response.json()) as PlayerListItem[];
+};
+
+export const fetchPlayerDetail = async (id: number, teamAbbrev?: string): Promise<PlayerDetailData> => {
+  const url = new URL(`/api/players/${id}`, window.location.origin);
+  if (teamAbbrev) url.searchParams.set('team', teamAbbrev);
+  const response = await ensureOk(await fetch(url));
+  return (await response.json()) as PlayerDetailData;
 };

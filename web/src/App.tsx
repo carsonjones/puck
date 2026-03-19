@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router';
 import { GamesRoute } from '@web/routes/GamesRoute';
+import { PlayersRoute } from '@web/routes/PlayersRoute';
 import { StandingsRoute } from '@web/routes/StandingsRoute';
 
 export function App() {
@@ -12,6 +13,8 @@ export function App() {
       <Route path="/standings" element={<StandingsRoute />} />
       <Route path="/standings/:tab" element={<StandingsRoute />} />
       <Route path="/standings/:tab/:scope" element={<StandingsRoute />} />
+      <Route path="/players" element={<PlayersRoute />} />
+      <Route path="/players/:playerId" element={<PlayersRoute />} />
     </Routes>
   );
 }

@@ -10,6 +10,7 @@ const parsePlayTime = (t: string) => {
 export function GamePlaysTab({ data }: { data: GameDetail }) {
   const prevKeySet = useRef<Set<string> | null>(null);
   const prevTimeSet = useRef<Set<string> | null>(null);
+  const prevGameId = useRef<string | number | null>(null);
   const [newKeys, setNewKeys] = useState<Set<string>>(new Set());
   const [correctedKeys, setCorrectedKeys] = useState<Set<string>>(new Set());
 
@@ -17,7 +18,15 @@ export function GamePlaysTab({ data }: { data: GameDetail }) {
     const currentKeys = new Set(data.plays.map((p) => `${p.time}-${p.description}`));
     const currentTimes = new Set(data.plays.map((p) => p.time));
 
-    if (prevKeySet.current !== null && prevTimeSet.current !== null) {
+    const gameChanged = prevGameId.current !== null && prevGameId.current !== data.id;
+    if (gameChanged) {
+      setNewKeys(new Set());
+      setCorrectedKeys(new Set());
+    }
+
+    prevGameId.current = data.id;
+
+    if (!gameChanged && prevKeySet.current !== null && prevTimeSet.current !== null) {
       const added = [...currentKeys].filter((k) => !prevKeySet.current!.has(k));
       const brandNew: string[] = [];
       const corrected: string[] = [];

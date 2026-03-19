@@ -1,4 +1,4 @@
-import { getGame, getStandings, listGames } from '@/data/api/client.js';
+import { getGame, getPlayerDetail, getPlayersList, getStandings, listGames } from '@/data/api/client.js';
 
 const json = (body: unknown, init?: ResponseInit) =>
   Response.json(body, {
@@ -64,6 +64,33 @@ export default {
 
       try {
         return json(await getGame({ id: gameId }));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return json({ error: message }, { status: 500 });
+      }
+    }
+
+    if (url.pathname === '/api/players' && request.method === 'GET') {
+      try {
+        return json(await getPlayersList(), {
+          headers: { 'Cache-Control': 'public, max-age=3600' },
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return json({ error: message }, { status: 500 });
+      }
+    }
+
+    if (url.pathname.startsWith('/api/players/') && request.method === 'GET') {
+      const playerId = Number(url.pathname.slice('/api/players/'.length));
+      const teamAbbrev = url.searchParams.get('team') ?? undefined;
+      if (Number.isNaN(playerId)) {
+        return json({ error: 'Invalid player ID' }, { status: 400 });
+      }
+      try {
+        return json(await getPlayerDetail(playerId, teamAbbrev), {
+          headers: { 'Cache-Control': 'public, max-age=300' },
+        });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return json({ error: message }, { status: 500 });

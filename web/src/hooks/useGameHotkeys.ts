@@ -13,6 +13,7 @@ type UseGameHotkeysOptions = {
   refreshGames: () => void;
   refreshSelectedGame: () => void;
   navigateToStandings: () => void;
+  navigateToPlayers: () => void;
 };
 
 export const useGameHotkeys = ({
@@ -26,6 +27,7 @@ export const useGameHotkeys = ({
   refreshGames,
   refreshSelectedGame,
   navigateToStandings,
+  navigateToPlayers,
 }: UseGameHotkeysOptions) => {
 
   useEffect(() => {
@@ -93,6 +95,12 @@ export const useGameHotkeys = ({
         return;
       }
 
+      if (event.key === 'P') {
+        event.preventDefault();
+        navigateToPlayers();
+        return;
+      }
+
       if (event.key === '1') {
         event.preventDefault();
         setDetailTab('stats');
@@ -120,6 +128,7 @@ export const useGameHotkeys = ({
     goToNextDay,
     goToPreviousDay,
     goToToday,
+    navigateToPlayers,
     navigateToStandings,
     refreshGames,
     refreshSelectedGame,

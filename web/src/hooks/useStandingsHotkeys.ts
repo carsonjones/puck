@@ -13,6 +13,7 @@ type UseStandingsHotkeysOptions = {
   setNextScope: () => void;
   refreshStandings: () => void;
   navigateToGames: () => void;
+  navigateToPlayers: () => void;
 };
 
 export function useStandingsHotkeys({
@@ -24,6 +25,7 @@ export function useStandingsHotkeys({
   setNextScope,
   refreshStandings,
   navigateToGames,
+  navigateToPlayers,
 }: UseStandingsHotkeysOptions) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -40,6 +42,12 @@ export function useStandingsHotkeys({
       if (event.key === 'g') {
         event.preventDefault();
         navigateToGames();
+        return;
+      }
+
+      if (event.key === 'p') {
+        event.preventDefault();
+        navigateToPlayers();
         return;
       }
 
@@ -108,6 +116,7 @@ export function useStandingsHotkeys({
   }, [
     items,
     navigateToGames,
+    navigateToPlayers,
     refreshStandings,
     selectedTeamAbbrev,
     setNextScope,

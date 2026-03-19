@@ -129,6 +129,7 @@ export function StandingsRoute() {
     setNextScope,
     refreshStandings,
     navigateToGames: () => navigate('/games'),
+    navigateToPlayers: () => navigate('/players'),
   });
 
   return (
@@ -139,7 +140,7 @@ export function StandingsRoute() {
         footer={
           <>
             <span>● puck</span>
-            <span className="max-[960px]:hidden">[1/2/3] tabs [h/l] group [j/k] select [g] games [r] refresh</span>
+            <span className="max-[960px]:hidden">[1/2/3] tabs [h/l] group [j/k] select [g] games [p] players [r] refresh</span>
           </>
         }
       >
