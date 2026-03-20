@@ -108,11 +108,16 @@ export default {
       if (Number.isNaN(playerId)) {
         return json({ error: 'Invalid player ID' }, { status: 400 });
       }
+      const cacheKey = `player-detail-${playerId}`;
+      const cached = await env.CACHE.get(cacheKey);
+      if (cached) {
+        return json(JSON.parse(cached), { headers: { 'Cache-Control': 'public, max-age=300' } });
+      }
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
-          return json(await getPlayerDetail(playerId), {
-            headers: { 'Cache-Control': 'public, max-age=300' },
-          });
+          const detail = await getPlayerDetail(playerId);
+          env.CACHE.put(cacheKey, JSON.stringify(detail), { expirationTtl: 3600 });
+          return json(detail, { headers: { 'Cache-Control': 'public, max-age=300' } });
         } catch (error) {
           if (error instanceof Error && error.message.includes('429') && attempt < 2) {
             await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));

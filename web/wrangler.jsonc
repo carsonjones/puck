@@ -9,7 +9,7 @@
     "run_worker_first": ["/api/*", "/__scheduled"]
   },
   "kv_namespaces": [
-    { "binding": "CACHE", "id": "puck-web-cache", "preview_id": "puck-web-cache" }
+    { "binding": "CACHE", "id": "6bfe36cd519c42d4956f1d0f4edecae5", "preview_id": "6bfe36cd519c42d4956f1d0f4edecae5" }
   ],
   "triggers": {
     "crons": ["0 * * * *"]
