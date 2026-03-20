@@ -1,4 +1,5 @@
 import type { GameDetail } from '@/data/api/client';
+import { teamDisplayName } from '@web/helpers';
 
 type StatRowProps = { label: string; away: string | number; home: string | number };
 
@@ -6,8 +7,8 @@ function StatRow({ label, away, home }: StatRowProps) {
   return (
     <div className="flex gap-2">
       <span className="w-[10ch] shrink-0 text-dim">{label}</span>
-      <span className="w-[6ch] text-right shrink-0">{away}</span>
-      <span className="w-[6ch] text-right shrink-0">{home}</span>
+      <span className="w-[6ch] shrink-0">{away}</span>
+      <span className="w-[6ch] shrink-0">{home}</span>
     </div>
   );
 }
@@ -22,8 +23,8 @@ export function GameStatsTab({ data }: { data: GameDetail }) {
       <section className="flex flex-col gap-[0.15rem] tabular-nums">
         <div className="flex gap-2 text-dim">
           <span className="w-[10ch] shrink-0" />
-          <span className="w-[6ch] text-right shrink-0">{data.awayTeamAbbrev}</span>
-          <span className="w-[6ch] text-right shrink-0">{data.homeTeamAbbrev}</span>
+          <span className="w-[6ch] shrink-0">{data.awayTeamAbbrev}</span>
+          <span className="w-[6ch] shrink-0">{data.homeTeamAbbrev}</span>
         </div>
         <StatRow label="shots" away={data.stats.shots.away} home={data.stats.shots.home} />
         <StatRow label="hits" away={data.stats.hits.away} home={data.stats.hits.home} />
@@ -41,7 +42,7 @@ export function GameStatsTab({ data }: { data: GameDetail }) {
 
       <section className="flex flex-col gap-[0.15rem] tabular-nums">
         <div className="flex gap-2 text-dim">
-          <span className="w-[15ch] shrink-0">{data.awayTeam}</span>
+          <span className="w-[15ch] shrink-0">{teamDisplayName(data.awayTeam)}</span>
           <span className="w-[2ch] text-right shrink-0">g</span>
           <span className="w-[2ch] text-right shrink-0 ml-2">a</span>
           <span className="w-[2ch] text-right shrink-0 ml-2">p</span>
@@ -57,7 +58,7 @@ export function GameStatsTab({ data }: { data: GameDetail }) {
       </section>
       <section className="flex flex-col gap-[0.15rem] tabular-nums">
         <div className="flex gap-2 text-dim">
-          <span className="w-[15ch] shrink-0">{data.homeTeam}</span>
+          <span className="w-[15ch] shrink-0">{teamDisplayName(data.homeTeam)}</span>
           <span className="w-[2ch] text-right shrink-0">g</span>
           <span className="w-[2ch] text-right shrink-0 ml-2">a</span>
           <span className="w-[2ch] text-right shrink-0 ml-2">p</span>

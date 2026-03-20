@@ -11,6 +11,8 @@ export function CmdK() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const locationRef = useRef(location);
+  locationRef.current = location;
   const [idx, setIdx] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -18,14 +20,14 @@ export function CmdK() {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        const ci = ROUTES.findIndex((r) => location.pathname.startsWith(r.path));
+        const ci = ROUTES.findIndex((r) => locationRef.current.pathname.startsWith(r.path));
         setIdx(ci === -1 ? 0 : ci);
         setOpen((o) => !o);
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [location]);
+  }, []);
 
   useEffect(() => {
     if (!open) return;

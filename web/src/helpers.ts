@@ -60,8 +60,14 @@ export const shiftDate = (cursor: string | null, delta: number) => {
   return formatDate(next);
 };
 
+const teamNicknames: Record<string, string> = {
+  'Golden Knights': 'G. Knights',
+};
+
+export const teamDisplayName = (name: string): string => teamNicknames[name] ?? name;
+
 export const gameTitle = (game: Pick<GameListItem, 'awayTeam' | 'homeTeam'>) =>
-  `${game.awayTeam} @ ${game.homeTeam}`;
+  `${teamDisplayName(game.awayTeam)} @ ${teamDisplayName(game.homeTeam)}`;
 
 export const gameTitleWithWinner = (
   game: Pick<
@@ -72,7 +78,7 @@ export const gameTitleWithWinner = (
   const awayWins = game.status === 'final' && game.awayScore > game.homeScore;
   const homeWins = game.status === 'final' && game.homeScore > game.awayScore;
 
-  return `${game.awayTeam}${awayWins ? ' ✓' : ''} @ ${game.homeTeam}${homeWins ? ' ✓' : ''}`;
+  return `${teamDisplayName(game.awayTeam)}${awayWins ? ' ✓' : ''} @ ${teamDisplayName(game.homeTeam)}${homeWins ? ' ✓' : ''}`;
 };
 
 const padCell = (value: string, width: number) => value.padEnd(width, ' ');
@@ -175,13 +181,13 @@ export const buildPlayerRows = (gameDetail: GameDetail | null) => {
     );
 
   return [
-    ...skaterRows(gameDetail.awayTeam, [
+    ...skaterRows(teamDisplayName(gameDetail.awayTeam), [
       ...(boxscore.awayTeam?.forwards ?? []),
       ...(boxscore.awayTeam?.defense ?? []),
     ]),
     ...goalieRows(boxscore.awayTeam?.goalies ?? []),
     '',
-    ...skaterRows(gameDetail.homeTeam, [
+    ...skaterRows(teamDisplayName(gameDetail.homeTeam), [
       ...(boxscore.homeTeam?.forwards ?? []),
       ...(boxscore.homeTeam?.defense ?? []),
     ]),

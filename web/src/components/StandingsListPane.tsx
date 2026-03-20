@@ -2,6 +2,7 @@ import type { StandingListItem } from '@/data/api/client';
 import {
   formatStandingRecord,
   formatStandingStreak,
+  teamDisplayName,
   standingsConferences,
   standingsDivisions,
   standingsDivisionDisplayNames,
@@ -100,7 +101,7 @@ export function StandingsListPane({
                   {team.rank}
                 </span>
                 <span className="flex-1 min-w-0 truncate">
-                  {team.teamName}
+                  {teamDisplayName(team.teamName)}
                 </span>
                 <span className={`w-[5ch] text-right shrink-0 ${isActive ? '' : 'text-dim'}`}>
                   {team.points}p

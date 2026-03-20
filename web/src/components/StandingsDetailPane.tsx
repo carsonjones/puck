@@ -1,5 +1,5 @@
 import type { StandingListItem } from '@/data/api/client';
-import { formatStandingRecord, formatStandingStreak } from '@web/helpers';
+import { formatStandingRecord, formatStandingStreak, teamDisplayName } from '@web/helpers';
 
 type StandingsDetailPaneProps = {
   team: StandingListItem | null;
@@ -34,7 +34,7 @@ export function StandingsDetailPane({ team }: StandingsDetailPaneProps) {
         {team ? (
           <>
             <section className="flex flex-col gap-[0.35rem] pb-3">
-              <span>{team.teamName}</span>
+              <span>{teamDisplayName(team.teamName)}</span>
               <span className="text-dim">{team.conferenceName} • {team.divisionName}</span>
               <span className="text-dim">rank {team.rank} • {team.points}p • {formatStandingStreak(team)}</span>
             </section>

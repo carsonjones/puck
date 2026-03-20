@@ -1,4 +1,5 @@
 import type { GameDetail } from '@/data/api/client';
+import { teamDisplayName } from '@web/helpers';
 
 type Skater = {
   sweaterNumber: number;
@@ -92,13 +93,13 @@ export function GamePlayersTab({ data }: { data: GameDetail }) {
   return (
     <>
       <TeamSection
-        teamName={data.awayTeam}
+        teamName={teamDisplayName(data.awayTeam)}
         skaters={[...(bs.awayTeam?.forwards ?? []), ...(bs.awayTeam?.defense ?? [])] as Skater[]}
         goalies={(bs.awayTeam?.goalies ?? []) as Goalie[]}
         className="border-b-2 border-dim mb-3 pb-6"
       />
       <TeamSection
-        teamName={data.homeTeam}
+        teamName={teamDisplayName(data.homeTeam)}
         skaters={[...(bs.homeTeam?.forwards ?? []), ...(bs.homeTeam?.defense ?? [])] as Skater[]}
         goalies={(bs.homeTeam?.goalies ?? []) as Goalie[]}
       />
