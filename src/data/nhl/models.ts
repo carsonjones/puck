@@ -237,6 +237,20 @@ export type StatsFilter = {
 };
 
 export type PlayerLandingResponse = {
+  playerId?: number;
+  firstName?: NameInfo;
+  lastName?: NameInfo;
+  position?: string;
+  sweaterNumber?: number;
+  currentTeamAbbrev?: string;
+  headshot?: string;
+  birthDate?: string;
+  birthCity?: NameInfo;
+  birthCountry?: string;
+  birthStateProvince?: NameInfo;
+  heightInInches?: number;
+  weightInPounds?: number;
+  shootsCatches?: string;
   seasonTotals: SeasonTotal[];
 };
 

@@ -6,6 +6,12 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*", "/__scheduled"]
+  },
+  "kv_namespaces": [
+    { "binding": "CACHE", "id": "puck-web-cache", "preview_id": "puck-web-cache" }
+  ],
+  "triggers": {
+    "crons": ["0 * * * *"]
   }
 }
