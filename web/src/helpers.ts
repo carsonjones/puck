@@ -62,6 +62,7 @@ export const shiftDate = (cursor: string | null, delta: number) => {
 
 const teamNicknames: Record<string, string> = {
   'Golden Knights': 'G. Knights',
+  'Hurricanes': 'Canes',
 };
 
 export const teamDisplayName = (name: string): string => teamNicknames[name] ?? name;

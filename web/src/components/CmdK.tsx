@@ -55,7 +55,7 @@ export function CmdK() {
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
-      style={{ background: 'rgba(0,0,0,0.75)' }}
+      style={{ background: 'rgba(0,0,0,0.45)' }}
       onClick={() => setOpen(false)}
     >
       <div
