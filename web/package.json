@@ -1,0 +1,30 @@
+{
+  "name": "@jonze/puck-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "cf:dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.21",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router": "^7.13.1",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "latest",
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.6.3",
+    "vite": "latest",
+    "wrangler": "latest"
+  }
+}

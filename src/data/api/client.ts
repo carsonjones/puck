@@ -35,8 +35,8 @@ export type GameDetail = GameListItem & {
   broadcasts: string[];
   gameType: number;
   leaders: {
-    home: string[];
-    away: string[];
+    home: { name: string; goals: number; assists: number; points: number }[];
+    away: { name: string; goals: number; assists: number; points: number }[];
   };
   threeStars: string[];
   stats: {
@@ -135,11 +135,12 @@ const calcFaceoffPct = (players: PlayerStats[]) => {
 
 const topScorers = (players: PlayerStats[], count: number) => {
   const sorted = [...players].sort((a, b) => b.points - a.points || b.goals - a.goals);
-  return sorted
-    .slice(0, count)
-    .map(
-      (player) => `${player.name.default} • ${player.goals}G ${player.assists}A ${player.points}P`,
-    );
+  return sorted.slice(0, count).map((player) => ({
+    name: player.name.default,
+    goals: player.goals,
+    assists: player.assists,
+    points: player.points,
+  }));
 };
 
 type RosterPlayer = {
@@ -635,29 +636,9 @@ export const getPlayersLeaderboard = async (): Promise<PlayerLeaderboardItem[]> 
   return Array.from(allPlayers.values()).sort((a, b) => b.points - a.points);
 };
 
-const findPlayerInRosters = async (
-  playerId: number,
-): Promise<{ playerInfo: PlayerInfo; teamAbbrev: string } | null> => {
-  const teams = await nhlClient.getTeams();
-
-  for (const team of teams.teams) {
-    try {
-      const roster = await nhlClient.getTeamRoster(team.abbreviation);
-      const allPlayers = [...roster.forwards, ...roster.defensemen, ...roster.goalies];
-      const player = allPlayers.find((p) => p.id === playerId);
-
-      if (player) {
-        return { playerInfo: player, teamAbbrev: team.abbreviation };
-      }
-    } catch {}
-  }
-
-  return null;
-};
-
 export const getPlayerDetail = async (
   playerId: number,
-  teamAbbrev?: string,
+  _teamAbbrev?: string,
 ): Promise<PlayerDetailData> => {
   const landing = await nhlClient.getPlayerSeasonStats(playerId);
 
@@ -666,46 +647,21 @@ export const getPlayerDetail = async (
     (s) => s.season === currentSeason && s.gameTypeId === 2,
   );
 
-  // If teamAbbrev provided, fetch roster directly; otherwise search all rosters
-  let rosters: { playerInfo: PlayerInfo; teamAbbrev: string } | null | undefined;
-  if (teamAbbrev) {
-    try {
-      const roster = await nhlClient.getTeamRoster(teamAbbrev);
-      const allPlayers = [...roster.forwards, ...roster.defensemen, ...roster.goalies];
-      const player = allPlayers.find((p) => p.id === playerId);
-      if (player) {
-        rosters = { playerInfo: player, teamAbbrev };
-      }
-    } catch {
-      rosters = null;
-    }
-  }
-
-  if (!rosters) {
-    rosters = await findPlayerInRosters(playerId);
-  }
-
-  if (!rosters?.playerInfo) {
-    throw new Error(`Player ${playerId} not found in rosters`);
-  }
-
-  const player = rosters.playerInfo;
-
   return {
-    id: player.id,
-    firstName: player.firstName.default,
-    lastName: player.lastName.default,
-    sweaterNumber: player.sweaterNumber,
-    position: player.positionCode,
-    teamAbbrev: rosters.teamAbbrev,
-    headshot: player.headshot,
-    birthDate: player.birthDate,
-    birthCity: player.birthCity.default,
-    birthCountry: player.birthCountry,
-    birthStateProvince: player.birthStateProvince?.default || null,
-    heightInInches: player.heightInInches,
-    weightInPounds: player.weightInPounds,
-    shootsCatches: player.shootsCatches,
+    id: playerId,
+    firstName: landing.firstName?.default ?? '',
+    lastName: landing.lastName?.default ?? '',
+    sweaterNumber: landing.sweaterNumber ?? 0,
+    position: landing.position ?? '',
+    teamAbbrev: landing.currentTeamAbbrev ?? '',
+    headshot: landing.headshot ?? '',
+    birthDate: landing.birthDate ?? '',
+    birthCity: landing.birthCity?.default ?? '',
+    birthCountry: landing.birthCountry ?? '',
+    birthStateProvince: landing.birthStateProvince?.default ?? null,
+    heightInInches: landing.heightInInches ?? 0,
+    weightInPounds: landing.weightInPounds ?? 0,
+    shootsCatches: landing.shootsCatches ?? '',
     seasonStats: seasonStats
       ? {
           gamesPlayed: seasonStats.gamesPlayed,
@@ -723,6 +679,41 @@ export const getPlayerDetail = async (
         }
       : null,
   };
+};
+
+export type PlayerListItem = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  position: string;
+  sweaterNumber: number;
+  teamAbbrev: string;
+};
+
+export const getPlayersList = async (): Promise<PlayerListItem[]> => {
+  const teams = await nhlClient.getTeams();
+  const results: PlayerListItem[] = [];
+
+  // Sequential fetches with pacing to avoid rate limiting (result is cached for 1h at the edge)
+  for (const team of teams.teams) {
+    try {
+      const roster = await nhlClient.getTeamRoster(team.abbreviation);
+      const allPlayers = [...roster.forwards, ...roster.defensemen, ...roster.goalies];
+      allPlayers.forEach((p) => {
+        results.push({
+          id: p.id,
+          firstName: p.firstName.default,
+          lastName: p.lastName.default,
+          position: p.positionCode,
+          sweaterNumber: p.sweaterNumber,
+          teamAbbrev: team.abbreviation,
+        });
+      });
+    } catch {}
+    await new Promise((r) => setTimeout(r, 80));
+  }
+
+  return results.sort((a, b) => a.lastName.localeCompare(b.lastName));
 };
 
 export const getPlayerGameLog = async (

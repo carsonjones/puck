@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "puck-web",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-03-14",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/__scheduled"]
+  },
+  "kv_namespaces": [
+    { "binding": "CACHE", "id": "6bfe36cd519c42d4956f1d0f4edecae5", "preview_id": "6bfe36cd519c42d4956f1d0f4edecae5" }
+  ],
+  "triggers": {
+    "crons": ["0 * * * *"]
+  }
+}

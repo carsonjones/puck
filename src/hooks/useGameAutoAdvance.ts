@@ -21,8 +21,9 @@ export function useGameAutoAdvance({
     if (pageCursor !== null || status !== 'success' || !data) return;
 
     const allGamesFinal = games.length > 0 && games.every((game) => game.status === 'final');
+    const isMorning = new Date().getHours() < 12;
 
-    if (allGamesFinal) {
+    if (allGamesFinal && isMorning) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       setPageCursor(formatDate(tomorrow));

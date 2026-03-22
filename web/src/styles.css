@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #262C36;
+  --color-deep: #0d1110;
+  --color-light: #d7dfda;
+  --color-dim: #8b948f;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  height: 100dvh;
+  overflow: hidden;
+  color-scheme: dark;
+  background-color: #262C36;
+  color: #d7dfda;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+button {
+  font: inherit;
+}
+
+@keyframes play-flash {
+  0% {
+    color: #ffe066;
+  }
+
+  30% {
+    color: #ffe066;
+  }
+
+  100% {
+    color: var(--color-light);
+  }
+}
+
+@keyframes play-flash-corrected {
+  0% {
+    color: var(--color-dim);
+  }
+
+  30% {
+    color: var(--color-dim);
+  }
+
+  100% {
+    color: var(--color-light);
+  }
+}
+
+.play-new {
+  animation: play-flash 3s ease-out forwards;
+}
+
+.play-corrected {
+  animation: play-flash-corrected 3s ease-out forwards;
+}

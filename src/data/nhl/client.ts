@@ -53,9 +53,7 @@ export class NhlClient {
   private async get<T>(path: string): Promise<T> {
     const response = await this.httpClient(`${this.baseUrl}${path}`, {
       method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
+      headers: { Accept: 'application/json' },
     });
 
     if (!response.ok) {

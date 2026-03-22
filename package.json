@@ -23,6 +23,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.tsx",
+    "web:dev": "bun run --cwd ./web dev",
+    "web:cf:dev": "bun run --cwd ./web cf:dev",
     "prebuild": "rm -rf dist",
     "build": "tsc -p tsconfig.json",
     "postbuild": "chmod +x dist/index.js",
