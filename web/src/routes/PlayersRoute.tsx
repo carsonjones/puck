@@ -115,12 +115,12 @@ export function PlayersRoute() {
         header={<span>Players</span>}
         footer={
           <>
-            <span>● puck</span>
+            <span className="cursor-pointer" onClick={() => window.dispatchEvent(new CustomEvent('open-cmdk'))}>● puck</span>
             <span className="max-[960px]:hidden">type to search · [g] games [s] standings</span>
           </>
         }
       >
-        <section className="grid grid-cols-[minmax(18rem,32rem)_minmax(0,1fr)] gap-3 min-h-0 max-[960px]:grid-cols-1 max-[960px]:grid-rows-[auto_minmax(0,1fr)] max-[960px]:h-full">
+        <section className="grid grid-cols-[minmax(18rem,32rem)_minmax(0,1fr)] gap-3 min-h-0 max-[960px]:grid-cols-1 max-[960px]:grid-rows-[minmax(0,25dvh)_minmax(0,1fr)] max-[960px]:h-full">
           <PlayersListPane
             status={
               playersQuery.status === 'pending'

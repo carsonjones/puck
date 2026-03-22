@@ -16,17 +16,25 @@ export function CmdK() {
   const [idx, setIdx] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
+  const openMenu = () => {
+    const ci = ROUTES.findIndex((r) => locationRef.current.pathname.startsWith(r.path));
+    setIdx(ci === -1 ? 0 : ci);
+    setOpen((o) => !o);
+  };
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        const ci = ROUTES.findIndex((r) => locationRef.current.pathname.startsWith(r.path));
-        setIdx(ci === -1 ? 0 : ci);
-        setOpen((o) => !o);
+        openMenu();
       }
     }
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('open-cmdk', openMenu);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('open-cmdk', openMenu);
+    };
   }, []);
 
   useEffect(() => {

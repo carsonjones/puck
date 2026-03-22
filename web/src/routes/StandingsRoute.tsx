@@ -139,7 +139,7 @@ export function StandingsRoute() {
         header={<span>Standings</span>}
         footer={
           <>
-            <span>● puck</span>
+            <span className="cursor-pointer" onClick={() => window.dispatchEvent(new CustomEvent('open-cmdk'))}>● puck</span>
             <span className="max-[960px]:hidden">[1/2/3] tabs [h/l] group [j/k] select [g] games [p] players [r] refresh</span>
           </>
         }

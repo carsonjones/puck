@@ -16,7 +16,7 @@ body,
 
 body {
   margin: 0;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   color-scheme: dark;
   background-color: #262C36;
@@ -26,20 +26,42 @@ body {
   line-height: 1.25;
 }
 
+@media (max-width: 640px) {
+  body {
+    font-size: 15px;
+  }
+}
+
 button {
   font: inherit;
 }
 
 @keyframes play-flash {
-  0%   { color: #ffe066; }
-  30%  { color: #ffe066; }
-  100% { color: var(--color-light); }
+  0% {
+    color: #ffe066;
+  }
+
+  30% {
+    color: #ffe066;
+  }
+
+  100% {
+    color: var(--color-light);
+  }
 }
 
 @keyframes play-flash-corrected {
-  0%   { color: var(--color-dim); }
-  30%  { color: var(--color-dim); }
-  100% { color: var(--color-light); }
+  0% {
+    color: var(--color-dim);
+  }
+
+  30% {
+    color: var(--color-dim);
+  }
+
+  100% {
+    color: var(--color-light);
+  }
 }
 
 .play-new {
