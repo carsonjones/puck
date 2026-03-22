@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import type { StandingListItem } from '@/data/api/client';
 import {
   formatStandingRecord,
-  formatStandingStreak,
   teamDisplayName,
   standingsConferences,
   standingsDivisions,
@@ -135,14 +134,7 @@ export function StandingsListPane({
                 <span className={`w-[10ch] pl-[2ch] text-left shrink-0 ${isActive ? '' : 'text-dim'}`}>
                   {formatStandingRecord(team)}
                 </span>
-                <span className={`w-[4ch] text-right shrink-0 ${isActive ? '' : 'text-dim'}`}>
-                  <span className={isActive ? 'max-[960px]:hidden' : ''}>{formatStandingStreak(team)}</span>
-                  {isActive && (
-                    <span className="hidden max-[960px]:inline">
-                      {isExpanded ? '▲' : '▼'}
-                    </span>
-                  )}
-                </span>
+
               </button>
             );
           })}

@@ -20,7 +20,7 @@ function SplitRow({ label, gp, wins, losses, otLosses, points }: SplitRowProps) 
       <span className="w-[8ch] shrink-0 text-dim">{label}</span>
       <span className="w-[3ch] text-right shrink-0">{gp}</span>
       <span className="w-[10ch] pl-[2ch] shrink-0">{formatStandingRecord({ wins, losses, otLosses })}</span>
-      <span className="w-[4ch] text-right shrink-0">{points}p</span>
+      <span className="w-[4ch] pl-[2ch] text-right shrink-0">{points}p</span>
     </div>
   );
 }
@@ -44,7 +44,7 @@ export function StandingsDetailPane({ team }: StandingsDetailPaneProps) {
                 <span className="w-[8ch] shrink-0" />
                 <span className="w-[3ch] text-right shrink-0">gp</span>
                 <span className="w-[10ch] pl-[2ch] shrink-0">record</span>
-                <span className="w-[4ch] text-right shrink-0">pts</span>
+                <span className="w-[4ch] pl-[2ch] text-right shrink-0">pts</span>
               </div>
               <SplitRow
                 label="overall"
