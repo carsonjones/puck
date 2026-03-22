@@ -27,7 +27,7 @@ function SplitRow({ label, gp, wins, losses, otLosses, points }: SplitRowProps) 
 
 export function StandingsDetailPane({ team }: StandingsDetailPaneProps) {
   return (
-    <section className="bg-surface min-h-[34rem] grid grid-rows-[auto_minmax(0,1fr)] border-2 border-light py-1 max-[960px]:min-h-0">
+    <section className="bg-surface min-h-[34rem] grid grid-rows-[auto_minmax(0,1fr)] border-2 border-light py-1 max-[960px]:min-h-0 max-[960px]:overflow-auto">
       <div className="min-h-0 overflow-auto flex flex-col gap-3 p-3">
         {!team ? <p className="text-dim m-0">Select a team to view standings detail.</p> : null}
 
