@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { StandingListItem } from '@/data/api/client';
 import {
   formatStandingRecord,
@@ -43,6 +44,11 @@ export function StandingsListPane({
   setTab,
   setScope,
 }: StandingsListPaneProps) {
+  const selectedRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    selectedRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [selectedTeamAbbrev]);
   const subtabs =
     tab === 'conference' ? standingsConferences : tab === 'division' ? standingsDivisions : [];
 
@@ -90,6 +96,7 @@ export function StandingsListPane({
             return (
               <button
                 key={team.teamAbbrev}
+                ref={isActive ? selectedRef : undefined}
                 className={[
                   'w-full border-0 flex items-center gap-2 px-3 py-[0.4rem] text-left cursor-pointer tabular-nums',
                   'focus:outline focus:outline-1 focus:outline-light focus:[outline-offset:-1px]',

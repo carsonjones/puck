@@ -203,7 +203,7 @@ export function GamesRoute() {
           </>
         }
       >
-        <section className="grid grid-cols-[minmax(18rem,26rem)_minmax(0,1fr)] gap-3 min-h-0 max-[960px]:grid-cols-1 max-[960px]:grid-rows-[auto_minmax(0,1fr)] max-[960px]:h-full">
+        <section className="grid grid-cols-[minmax(20rem,28rem)_minmax(0,1fr)] gap-3 min-h-0 max-[960px]:grid-cols-1 max-[960px]:grid-rows-[auto_minmax(0,1fr)] max-[960px]:h-full">
           <GamesListPane
             displayedDate={displayedDate}
             gamesData={gamesData}

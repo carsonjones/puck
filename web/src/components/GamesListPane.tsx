@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { GameListItem } from '@/data/api/client';
 import { gameTitleWithWinner, statusLabel } from '@web/helpers';
 
@@ -27,9 +27,11 @@ export function GamesListPane({
 
   const [isExpanded, setIsExpanded] = useState(false);
   const isCollapsed = !isExpanded && Boolean(selectedGameId);
+  const selectedRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setIsExpanded(false);
+    selectedRef.current?.scrollIntoView({ block: 'nearest' });
   }, [selectedGameId]);
 
   const handleGameClick = (gameId: string) => {
@@ -68,6 +70,7 @@ export function GamesListPane({
           return (
             <button
               key={game.id}
+              ref={isActive ? selectedRef : undefined}
               className={[
                 'w-full border-0 flex justify-between gap-4 px-3 py-[0.4rem] text-left cursor-pointer',
                 'focus:outline focus:outline-1 focus:outline-light focus:[outline-offset:-1px]',
