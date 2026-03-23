@@ -1,4 +1,4 @@
-import type { GameDetail, GamesPage, PlayerDetailData, PlayerListItem, StandingsData } from '@/data/api/client';
+import type { GameDetail, GamesPage, PlayerDetailData, PlayerListItem, StandingsData, TeamRoster, TeamScheduleItem } from '@/data/api/client';
 
 const gameDetailCache = new Map<string, { data: GameDetail; cachedAt: number }>();
 const GAME_DETAIL_TTL_MS = 30_000;
@@ -52,6 +52,16 @@ export const fetchStandings = async (): Promise<StandingsData> => {
 export const fetchPlayers = async (): Promise<PlayerListItem[]> => {
   const response = await ensureOk(await fetch('/api/players'));
   return (await response.json()) as PlayerListItem[];
+};
+
+export const fetchTeamSchedule = async (teamAbbrev: string): Promise<TeamScheduleItem[]> => {
+  const response = await ensureOk(await fetch(`/api/teams/${teamAbbrev}/schedule`));
+  return (await response.json()) as TeamScheduleItem[];
+};
+
+export const fetchTeamRoster = async (teamAbbrev: string): Promise<TeamRoster> => {
+  const response = await ensureOk(await fetch(`/api/teams/${teamAbbrev}/roster`));
+  return (await response.json()) as TeamRoster;
 };
 
 export const fetchPlayerDetail = async (id: number, teamAbbrev?: string): Promise<PlayerDetailData> => {

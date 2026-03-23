@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { StandingListItem } from '@/data/api/client';
+import type { StandingsDetailTab } from '@web/components/StandingsDetailPane';
 import type { StandingsConference, StandingsDivision, StandingsTab } from '@web/helpers';
 
 type UseStandingsHotkeysOptions = {
@@ -14,6 +15,7 @@ type UseStandingsHotkeysOptions = {
   refreshStandings: () => void;
   navigateToGames: () => void;
   navigateToPlayers: () => void;
+  detailTab?: StandingsDetailTab;
 };
 
 export function useStandingsHotkeys({
@@ -26,6 +28,7 @@ export function useStandingsHotkeys({
   refreshStandings,
   navigateToGames,
   navigateToPlayers,
+  detailTab,
 }: UseStandingsHotkeysOptions) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -49,6 +52,10 @@ export function useStandingsHotkeys({
         event.preventDefault();
         navigateToPlayers();
         return;
+      }
+
+      if ((event.key === 'j' || event.key === 'ArrowDown' || event.key === 'k' || event.key === 'ArrowUp') && detailTab === 'schedule') {
+        return; // schedule tab handles its own navigation
       }
 
       if (event.key === 'j' || event.key === 'ArrowDown') {
@@ -114,6 +121,7 @@ export function useStandingsHotkeys({
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [
+    detailTab,
     items,
     navigateToGames,
     navigateToPlayers,

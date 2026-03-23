@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { fetchStandings } from '@web/api';
 import { Head } from '@web/components/Head';
 import { Layout } from '@web/components/Layout';
-import { StandingsDetailPane } from '@web/components/StandingsDetailPane';
+import { StandingsDetailPane, type StandingsDetailTab } from '@web/components/StandingsDetailPane';
 import { StandingsListPane } from '@web/components/StandingsListPane';
 import {
   getStandingsItems,
@@ -22,10 +22,17 @@ import { useWebAppStore } from '@web/state/useWebAppStore';
 export function StandingsRoute() {
   const navigate = useNavigate();
   const params = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const standingsReloadKey = useWebAppStore((s) => s.standingsReloadKey);
   const refreshStandings = useWebAppStore((s) => s.refreshStandings);
   const selectedStandingsTeamAbbrev = useWebAppStore((s) => s.selectedStandingsTeamAbbrev);
   const setSelectedStandingsTeamAbbrev = useWebAppStore((s) => s.setSelectedStandingsTeamAbbrev);
+
+  const rawDetail = searchParams.get('detail');
+  const detailTab: StandingsDetailTab =
+    rawDetail === 'roster' || rawDetail === 'schedule' ? rawDetail : 'info';
+  const setDetailTab = (tab: StandingsDetailTab) =>
+    setSearchParams((p) => { p.set('detail', tab); return p; }, { replace: true });
 
   const tab = normalizeStandingsTab(params.tab);
   const scope = normalizeStandingsScope(tab, params.scope);
@@ -119,6 +126,7 @@ export function StandingsRoute() {
   };
 
   useStandingsHotkeys({
+    detailTab,
     items,
     selectedTeamAbbrev: selectedTeam?.teamAbbrev ?? null,
     setSelectedTeamAbbrev: setSelectedStandingsTeamAbbrev,
@@ -169,7 +177,7 @@ export function StandingsRoute() {
             setTab={setTab}
             setScope={setScope}
           />
-          <StandingsDetailPane team={selectedTeam} />
+          <StandingsDetailPane team={selectedTeam} detailTab={detailTab} setDetailTab={setDetailTab} />
         </section>
       </Layout>
     </>

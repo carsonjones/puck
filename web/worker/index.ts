@@ -1,4 +1,4 @@
-import { getGame, getPlayerDetail, getPlayersList, getStandings, listGames } from '@/data/api/client.js';
+import { getGame, getPlayerDetail, getPlayersList, getStandings, getTeamRoster, getTeamScheduleSeason, listGames } from '@/data/api/client.js';
 
 type KVNamespace = {
   get(key: string): Promise<string | null>;
@@ -126,6 +126,42 @@ export default {
           const message = error instanceof Error ? error.message : String(error);
           return json({ error: message }, { status: 500 });
         }
+      }
+    }
+
+    const scheduleMatch = url.pathname.match(/^\/api\/teams\/([^/]+)\/schedule$/);
+    if (scheduleMatch && request.method === 'GET') {
+      const teamAbbrev = scheduleMatch[1]!;
+      const cacheKey = `team-schedule-${teamAbbrev}`;
+      const cached = await env.CACHE.get(cacheKey);
+      if (cached) {
+        return json(JSON.parse(cached), { headers: { 'Cache-Control': 'public, max-age=60' } });
+      }
+      try {
+        const schedule = await getTeamScheduleSeason(teamAbbrev);
+        env.CACHE.put(cacheKey, JSON.stringify(schedule), { expirationTtl: 300 });
+        return json(schedule, { headers: { 'Cache-Control': 'public, max-age=60' } });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return json({ error: message }, { status: 500 });
+      }
+    }
+
+    const rosterMatch = url.pathname.match(/^\/api\/teams\/([^/]+)\/roster$/);
+    if (rosterMatch && request.method === 'GET') {
+      const teamAbbrev = rosterMatch[1]!;
+      const cacheKey = `team-roster-${teamAbbrev}`;
+      const cached = await env.CACHE.get(cacheKey);
+      if (cached) {
+        return json(JSON.parse(cached), { headers: { 'Cache-Control': 'public, max-age=300' } });
+      }
+      try {
+        const roster = await getTeamRoster(teamAbbrev);
+        env.CACHE.put(cacheKey, JSON.stringify(roster), { expirationTtl: 3600 });
+        return json(roster, { headers: { 'Cache-Control': 'public, max-age=300' } });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return json({ error: message }, { status: 500 });
       }
     }
 

@@ -8,6 +8,40 @@ import type {
   PlayerStats,
   RosterSpot,
 } from '@/data/nhl/models.js';
+
+export type PlayerWithStats = {
+  id: number;
+  sweaterNumber: number;
+  firstName: string;
+  lastName: string;
+  positionCode: string;
+  gamesPlayed: number;
+  goals: number;
+  assists: number;
+  points: number;
+  plusMinus: number;
+  shots: number;
+  shootingPctg: number;
+};
+
+export type GoalieWithStats = {
+  id: number;
+  sweaterNumber: number;
+  firstName: string;
+  lastName: string;
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  otLosses: number;
+  goalsAgainstAverage: number;
+  savePct: number;
+  shutouts: number;
+};
+
+export type TeamRoster = {
+  players: PlayerWithStats[];
+  goalies: GoalieWithStats[];
+};
 import { addDays, formatDate, formatLocalTime } from '@/utils/dateUtils.js';
 
 export type GameListItem = {
@@ -714,6 +748,114 @@ export const getPlayersList = async (): Promise<PlayerListItem[]> => {
   }
 
   return results.sort((a, b) => a.lastName.localeCompare(b.lastName));
+};
+
+export type TeamScheduleItem = {
+  id: string;
+  date: string;
+  homeTeamAbbrev: string;
+  awayTeamAbbrev: string;
+  homeScore: number;
+  awayScore: number;
+  gameState: 'scheduled' | 'in_progress' | 'final';
+  startTime: string;
+};
+
+export const getTeamScheduleSeason = async (teamAbbrev: string): Promise<TeamScheduleItem[]> => {
+  const currentSeason = getCurrentSeasonId();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const response = await nhlClient.getTeamSchedule({ abbreviation: teamAbbrev } as any, currentSeason);
+  const today = formatDate(new Date());
+
+  const allGames = response.games
+    .filter((g) => g.gameType >= 2)
+    .map((g) => ({
+      id: String(g.id),
+      date: g.gameDate.slice(0, 10),
+      homeTeamAbbrev: g.homeTeam.abbrev,
+      awayTeamAbbrev: g.awayTeam.abbrev,
+      homeScore: g.homeTeam.score || 0,
+      awayScore: g.awayTeam.score || 0,
+      gameState: mapGameStatus(g.gameState),
+      startTime: formatLocalTime(g.startTimeUTC),
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const past = allGames.filter((g) => g.gameState === 'final' && g.date <= today).slice(-10);
+  const upcoming = allGames.filter((g) => g.gameState !== 'final').slice(0, 10);
+  return [...past, ...upcoming];
+};
+
+export const getTeamRoster = async (teamAbbrev: string): Promise<TeamRoster> => {
+  const currentSeason = getCurrentSeasonId();
+  const roster = await nhlClient.getTeamRoster(teamAbbrev);
+  const skaters = [...roster.forwards, ...roster.defensemen];
+
+  const [skatersResults, goaliesResults] = await Promise.all([
+    Promise.all(
+      skaters.map(async (player) => {
+        try {
+          const landing = await nhlClient.getPlayerSeasonStats(player.id);
+          return { player, landing };
+        } catch {
+          return { player, landing: null };
+        }
+      }),
+    ),
+    Promise.all(
+      roster.goalies.map(async (goalie) => {
+        try {
+          const landing = await nhlClient.getPlayerSeasonStats(goalie.id);
+          return { player: goalie, landing };
+        } catch {
+          return { player: goalie, landing: null };
+        }
+      }),
+    ),
+  ]);
+
+  const players: PlayerWithStats[] = skatersResults.map(({ player, landing }) => {
+    const seasonStats = landing?.seasonTotals?.find(
+      (s) => s.season === currentSeason && s.gameTypeId === 2,
+    );
+    return {
+      id: player.id,
+      sweaterNumber: player.sweaterNumber,
+      firstName: player.firstName.default,
+      lastName: player.lastName.default,
+      positionCode: player.positionCode,
+      gamesPlayed: seasonStats?.gamesPlayed || 0,
+      goals: seasonStats?.goals || 0,
+      assists: seasonStats?.assists || 0,
+      points: seasonStats?.points || 0,
+      plusMinus: seasonStats?.plusMinus || 0,
+      shots: seasonStats?.shots || 0,
+      shootingPctg: seasonStats?.shootingPctg || 0,
+    };
+  });
+  players.sort((a, b) => b.points - a.points);
+
+  const goalies: GoalieWithStats[] = goaliesResults.map(({ player, landing }) => {
+    const seasonStats = landing?.seasonTotals?.find(
+      (s) => s.season === currentSeason && s.gameTypeId === 2,
+    );
+    return {
+      id: player.id,
+      sweaterNumber: player.sweaterNumber,
+      firstName: player.firstName.default,
+      lastName: player.lastName.default,
+      gamesPlayed: seasonStats?.gamesPlayed || 0,
+      wins: seasonStats?.wins || 0,
+      losses: seasonStats?.losses || 0,
+      otLosses: seasonStats?.otLosses || 0,
+      goalsAgainstAverage: seasonStats?.goalsAgainstAverage || 0,
+      savePct: seasonStats?.savePctg || 0,
+      shutouts: seasonStats?.shutouts || 0,
+    };
+  });
+  goalies.sort((a, b) => b.wins - a.wins);
+
+  return { players, goalies };
 };
 
 export const getPlayerGameLog = async (
